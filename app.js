@@ -30,5 +30,5 @@ document.querySelectorAll('.style-option').forEach(button=>button.addEventListen
 }));
 document.getElementById('previewButton').addEventListener('click',()=>{updateCaption();showToast('Aperçu actualisé.');});
 captionText.addEventListener('input',updateCaption);colorInput.addEventListener('input',updateCaption);
-document.getElementById('notifyButton').addEventListener('click',()=>showToast('Les abonnements seront activés après la mise en place du paiement.'));
+document.querySelectorAll('.plan-button').forEach(button=>button.addEventListener('click',()=>showToast('La formule '+button.dataset.plan+' sera disponible après activation des paiements.')));
 updateCaption();

@@ -18,3 +18,7 @@ Ouvrir `index.html` dans un navigateur récent. L'import vidéo utilise une URL 
 
 ## Limites actuelles
 Cette version est une maquette front-end fonctionnelle, pas encore un service de sous-titrage IA. La transcription, la traduction, le rendu vidéo, les comptes, le paiement et les publicités nécessitent un backend, des services adaptés et des tests. Aucun paiement n'est collecté dans cette version.
+
+
+## Abonnements affichés
+La page présente trois offres indicatives : Starter (15 $/mois, 20 vidéos), Pro (29 $/mois, 45 vidéos) et Business (59 $/mois, 105 vidéos). Les boutons affichent un message informatif : aucun paiement, compte utilisateur ou quota réel n'est encore connecté.

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080b18">
+  <meta name="description" content="JUSTEVIVO — créez des vidéos captivantes avec des sous-titres dynamiques.">
+  <title>JUSTEVIVO — Sous-titres vidéo IA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#" aria-label="JUSTEVIVO accueil"><span class="brand-mark">▶</span> JUSTE<span>VIVO</span></a>
+    <nav><a href="#features">Fonctionnalités</a><a href="#how">Comment ça marche</a><a href="#pricing">Tarifs</a></nav>
+    <a class="top-cta" href="#studio">Ouvrir le studio <span>↗</span></a>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div class="hero-copy">
+        <div class="eyebrow"><i></i> LE STUDIO VIDÉO DES CRÉATEURS</div>
+        <h1>Des sous-titres qui<br>font <span>vivre</span> vos vidéos.</h1>
+        <p>Importez une vidéo, donnez du rythme à vos mots et préparez des contenus qui captent l’attention.</p>
+        <div class="hero-actions"><a class="button primary" href="#studio">Commencer gratuitement <b>→</b></a><a class="button ghost" href="#features">Découvrir le studio</a></div>
+        <div class="hero-proof"><span>✦</span> Pensé pour les créateurs, les entrepreneurs et les équipes sociales.</div>
+      </div>
+      <div class="hero-art">
+        <div class="glow"></div>
+        <div class="video-card">
+          <div class="video-top"><span>APERÇU DU STYLE</span><span class="live-dot">● EN DIRECT</span></div>
+          <div class="video-scene"><div class="scene-orb"></div><div class="caption-demo">TES IDÉES<br><strong>MÉRITENT</strong><br>D'ÊTRE VUES<span> ✦</span></div><div class="play">▶</div></div>
+          <div class="video-controls"><span>00:08</span><div class="track"><i></i></div><span>00:24</span></div>
+        </div>
+        <div class="float-tag tag-one">✦ Sous-titres dynamiques</div><div class="float-tag tag-two">◈ Style personnalisé</div>
+      </div>
+    </section>
+
+    <section class="feature-strip" id="features">
+      <div><b>✧</b><span><strong>Styles animés</strong><small>Des mots qui ressortent</small></span></div>
+      <div><b>⌘</b><span><strong>Personnalisation</strong><small>Couleurs et typographies</small></span></div>
+      <div><b>◎</b><span><strong>Formats sociaux</strong><small>Vertical, carré, paysage</small></span></div>
+      <div><b>⇧</b><span><strong>Export vidéo</strong><small>Prêt à publier</small></span></div>
+    </section>
+
+    <section class="studio-section" id="studio">
+      <div class="section-heading"><div><div class="eyebrow">VOTRE ESPACE DE CRÉATION</div><h2>Le studio <span>JUSTEVIVO</span></h2></div><p>Une première démo interactive pour poser les bases de notre éditeur.</p></div>
+      <div class="studio">
+        <aside class="sidebar"><div class="mini-brand"><span class="brand-mark">▶</span> JUSTEVIVO</div><div class="side-link active">▦ <span>Mon studio</span></div><div class="side-link">▤ <span>Mes projets</span></div><div class="side-link">✧ <span>Styles de texte</span></div><div class="side-link">⚙ <span>Paramètres</span></div><div class="side-bottom">Plan gratuit · Démo</div></aside>
+        <div class="workspace">
+          <div class="workspace-head"><div><h3>Créer une vidéo</h3><p>Importez un fichier pour commencer votre projet.</p></div><span class="status">VERSION DÉMO</span></div>
+          <label class="upload-zone" for="videoInput"><div class="upload-icon">↑</div><strong>Déposez votre vidéo ici</strong><span>ou cliquez pour choisir un fichier</span><small>MP4, WebM ou MOV · Démo locale dans votre navigateur</small><input id="videoInput" type="file" accept="video/*"></label>
+          <div class="editor-grid">
+            <div class="preview-panel"><div class="panel-label">APERÇU VIDÉO</div><div class="preview-frame" id="previewFrame"><video id="videoPreview" controls hidden></video><div id="placeholderPreview"><div class="preview-play">▶</div><div class="preview-caption" id="captionPreview">TES MOTS<br><b>PRENNENT VIE</b> ✦</div></div></div><div class="preview-note" id="fileName">Aucune vidéo sélectionnée</div></div>
+            <div class="controls-panel"><div class="panel-label">PERSONNALISER LES SOUS-TITRES</div><label class="field-label" for="captionText">Texte de démonstration</label><textarea id="captionText" rows="3">Tes mots prennent vie !</textarea><label class="field-label">Choisir un style</label><div class="style-options"><button class="style-option selected" data-style="pop">POP</button><button class="style-option" data-style="neon">NÉON</button><button class="style-option" data-style="clean">ÉPURÉ</button></div><label class="field-label" for="captionColor">Couleur d'accentuation</label><input id="captionColor" type="color" value="#a879ff"><button class="button primary full" id="previewButton">Actualiser l'aperçu <span>↗</span></button></div>
+          </div>
+          <p class="demo-warning">Cette version est une maquette front-end : la transcription IA, le rendu vidéo final et les comptes seront connectés dans les prochaines étapes.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="how-section" id="how"><div class="eyebrow">SIMPLE ET RAPIDE</div><h2>De la vidéo au contenu <span>prêt à publier.</span></h2><div class="steps"><article><em>01</em><h3>Importez</h3><p>Choisissez une vidéo depuis votre appareil.</p></article><article><em>02</em><h3>Personnalisez</h3><p>Choisissez le style et l’apparence de vos sous-titres.</p></article><article><em>03</em><h3>Exportez</h3><p>Préparez votre vidéo finale pour vos réseaux.</p></article></div></section>
+
+    <section class="pricing" id="pricing"><div><div class="eyebrow">TARIF ENVISAGÉ</div><h2>Un studio. Toute votre créativité.</h2><p>Un prix simple pour accéder aux fonctionnalités premium lorsqu’elles seront disponibles.</p></div><div class="price-card"><span class="plan">JUSTEVIVO PREMIUM</span><div class="price">$15 <small>/ mois</small></div><ul><li>Styles de sous-titres premium</li><li>Outils IA et traduction</li><li>Personnalisation avancée</li><li>Exports haute qualité selon le plan</li></ul><button class="button primary full" id="notifyButton">Lancement prochainement</button><small class="price-note">Les paiements ne sont pas encore activés.</small></div></section>
+  </main>
+  <footer><a class="brand" href="#"><span class="brand-mark">▶</span> JUSTE<span>VIVO</span></a><span>Créez. Animez. Partagez.</span><span>© 2026 JUSTEVIVO — Projet en construction.</span></footer>
+  <div class="toast" id="toast" role="status"></div>
+  <script src="app.js"></script>
+</body>
+</html>

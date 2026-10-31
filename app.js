@@ -1,4 +1,3 @@
-
 const videoInput = document.getElementById('videoInput');
 const videoPreview = document.getElementById('videoPreview');
 const placeholder = document.getElementById('placeholderPreview');
@@ -13,6 +12,7 @@ const API_URL = 'https://justevivo-backend.onrender.com';
 
 let activeStyle = 'pop';
 let selectedFile = null;
+let segments = []; // [{ start, end, text }]
 
 function showToast(message) {
   toast.textContent = message;
@@ -44,6 +44,7 @@ videoInput.addEventListener('change', () => {
   }
 
   selectedFile = file;
+  segments = [];
 
   const url = URL.createObjectURL(file);
   videoPreview.src = url;
@@ -51,6 +52,7 @@ videoInput.addEventListener('change', () => {
   placeholder.hidden = true;
   fileName.textContent = file.name;
 
+  updateCaption();
   showToast('Vidéo chargée. Vous pouvez lancer la transcription.');
 });
 
@@ -91,12 +93,27 @@ transcribeButton.addEventListener('click', async () => {
       throw new Error('Aucun texte détecté dans le fichier.');
     }
 
-    captionText.value = result.text;
+    if (Array.isArray(result.segments) && result.segments.length) {
+      segments = result.segments.map(s => ({
+        start: s.start,
+        end: s.end,
+        text: (s.text || '').trim()
+      }));
+      // Une ligne = un sous-titre
+      captionText.value = segments.map(s => s.text).join('\n');
+    } else {
+      segments = [];
+      captionText.value = result.text;
+    }
+
     updateCaption();
 
     showToast(
       'Transcription réussie ! Langue : ' +
-      (result.language || 'détectée')
+      (result.language || 'détectée') +
+      (segments.length
+        ? '. Une ligne = un sous-titre, ne supprimez pas de ligne.'
+        : '')
     );
 
   } catch (error) {
@@ -108,23 +125,24 @@ transcribeButton.addEventListener('click', async () => {
   }
 });
 
-// Personnalisation des sous-titres
-function updateCaption() {
-  const words = captionText.value.trim()
-    .split(/\s+/)
-    .filter(Boolean);
+// Échapper le HTML
+function escapeWord(w) {
+  return w.replace(/[&<>"]/g, c => ({
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;'
+  }[c]));
+}
 
-  const safe = words.map(w =>
-    w.replace(/[&<>"]/g, c => ({
-      '&': '&amp;',
-      '<': '&lt;',
-      '>': '&gt;',
-      '"': '&quot;'
-    }[c]))
-  );
+// Afficher un texte dans l'aperçu
+function renderCaption(text, emptyLabel) {
+  const words = text.trim().split(/\s+/).filter(Boolean);
+  const safe = words.map(escapeWord);
 
   if (!safe.length) {
-    captionPreview.textContent = 'VOTRE TEXTE';
+    captionPreview.innerHTML = '';
+    captionPreview.textContent = emptyLabel || '';
   } else {
     const split = Math.ceil(safe.length / 2);
 
@@ -139,10 +157,61 @@ function updateCaption() {
 
   captionPreview.querySelector('b')
     ?.style.setProperty('color', colorInput.value);
+}
+
+// Trouver le sous-titre actif selon le temps de la vidéo
+function currentSegmentText() {
+  const t = videoPreview.currentTime || 0;
+  const seg = segments.find(s => t >= s.start && t < s.end);
+  return seg ? seg.text : '';
+}
+
+// Personnalisation des sous-titres
+function updateCaption() {
+  if (segments.length) {
+    renderCaption(currentSegmentText(), '');
+  } else {
+    renderCaption(captionText.value, 'VOTRE TEXTE');
+  }
 
   previewFrame.classList.remove('pop', 'neon', 'clean');
   previewFrame.classList.add(activeStyle);
 }
+
+// Synchronisation avec la vidéo
+let lastShown = null;
+
+function syncCaption() {
+  if (!segments.length) return;
+  const text = currentSegmentText();
+  if (text === lastShown) return;
+  lastShown = text;
+  renderCaption(text, '');
+}
+
+function syncLoop() {
+  syncCaption();
+  if (!videoPreview.paused && !videoPreview.ended) {
+    requestAnimationFrame(syncLoop);
+  }
+}
+
+videoPreview.addEventListener('play', () => requestAnimationFrame(syncLoop));
+videoPreview.addEventListener('timeupdate', syncCaption);
+videoPreview.addEventListener('seeked', syncCaption);
+videoPreview.addEventListener('pause', syncCaption);
+
+// Corriger le texte (une ligne = un segment)
+captionText.addEventListener('input', () => {
+  if (segments.length) {
+    const lines = captionText.value.split('\n');
+    segments.forEach((s, i) => {
+      s.text = (lines[i] || '').trim();
+    });
+    lastShown = null;
+  }
+  updateCaption();
+});
 
 // Styles
 document.querySelectorAll('.style-option').forEach(button => {
@@ -152,6 +221,7 @@ document.querySelectorAll('.style-option').forEach(button => {
 
     button.classList.add('selected');
     activeStyle = button.dataset.style;
+    lastShown = null;
     updateCaption();
   });
 });
@@ -159,12 +229,15 @@ document.querySelectorAll('.style-option').forEach(button => {
 // Aperçu
 document.getElementById('previewButton')
   .addEventListener('click', () => {
+    lastShown = null;
     updateCaption();
     showToast('Aperçu actualisé.');
   });
 
-captionText.addEventListener('input', updateCaption);
-colorInput.addEventListener('input', updateCaption);
+colorInput.addEventListener('input', () => {
+  lastShown = null;
+  updateCaption();
+});
 
 // Abonnements
 document.querySelectorAll('.plan-button').forEach(button => {

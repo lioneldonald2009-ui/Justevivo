@@ -3506,5 +3506,163 @@ exportVideoButton.addEventListener('click', async () => {
     } catch (e) {
       console.warn('Son non capturé :', e);
     }
+const mime = MIME_CHOICES.find(m => MediaRecorder.isTypeSupported(m)) || '';
+    const recorder = new MediaRecorder(
+      stream,
+      mime
+        ? { mimeType: mime, videoBitsPerSecond: 5000000 }
+        : { videoBitsPerSecond: 5000000 }
+    );
 
+    // Découpage : partie de la vidéo à garder
+    const trimmed = isTrimmed();
+    const startT = trimmed ? trimStart : 0;
+    const endT = trimmed ? getTrimEnd() : vid.duration;
+    const fit = rr ? fitMode : 'cover';
+
+    if (startT > 0.05) {
+      await new Promise(resolve => {
+        const done = () => {
+          vid.onseeked = null;
+          resolve();
+        };
+        vid.onseeked = done;
+        setTimeout(done, 3000);
+        vid.currentTime = startT;
+      });
+    }
+
+    // Effets sonores à jouer pendant l'export
+    const sfxList = sfxEventsList().filter(e => e.t >= startT - 0.01);
+    let sfxIdx = 0;
+
+    showToast(
+      'Export en cours : gardez cet écran ouvert jusqu’à la fin de la vidéo.' +
+      (hasAudio ? '' : ' (Son non disponible sur ce navigateur.)')
+    );
+
+    const blob = await new Promise((resolve, reject) => {
+      const chunks = [];
+
+      recorder.ondataavailable = e => {
+        if (e.data && e.data.size) chunks.push(e.data);
+      };
+
+      recorder.onstop = () =>
+        resolve(
+          new Blob(chunks, {
+            type: recorder.mimeType || mime || 'video/webm'
+          })
+        );
+
+      recorder.onerror = e =>
+        reject((e && e.error) || new Error('Erreur d’enregistrement.'));
+
+      vid.onended = () => {
+        if (recorder.state !== 'inactive') recorder.stop();
+      };
+
+      const draw = () => {
+        // Fin de la partie gardée
+        if (trimmed && vid.currentTime >= endT - 0.02) {
+          vid.pause();
+          if (recorder.state !== 'inactive') recorder.stop();
+          return;
+        }
+
+        // Sauter les silences
+        if (silenceOn && silences.length && !vid.seeking) {
+          const cur = vid.currentTime;
+          const sl = silences.find(x => cur >= x.from && cur < x.to);
+          if (sl) vid.currentTime = sl.to;
+        }
+
+        const tcur = vid.currentTime;
+
+        // Image de la vidéo (format choisi + zoom automatique)
+        const z = zoomAt(tcur);
+        drawVideoFrame(ctx, vid, vw, vh, w, h, z, fit);
+
+        drawCaption(ctx, w, h, tcur);
+        drawHook(ctx, w, h, tcur);
+
+        // Fondu d'image (noir)
+        const ff = fadeFactor(tcur);
+        if (ff < 0.999) {
+          ctx.fillStyle = 'rgba(0,0,0,' + (1 - ff).toFixed(3) + ')';
+          ctx.fillRect(0, 0, w, h);
+        }
+
+        // Volume de la voix, de la musique (avec baisse quand on parle) et fondu du son
+        if (voiceGain) voiceGain.gain.value = voiceVolume * ff;
+
+        if (musicNode) {
+          const target = musicVolume * duckFactor(tcur) * ff;
+          musicNode.cur += (target - musicNode.cur) * 0.2;
+          musicNode.gain.gain.value = musicNode.cur;
+        }
+
+        // Effets sonores
+        if (sfxGain) {
+          while (sfxIdx < sfxList.length && sfxList[sfxIdx].t <= tcur) {
+            if (tcur - sfxList[sfxIdx].t < 0.5) {
+              playSfx(audioCtx, sfxGain, sfxList[sfxIdx].kind, audioCtx.currentTime);
+            }
+            sfxIdx++;
+          }
+        }
+
+        const span = Math.max(0.1, endT - startT);
+        const pct = Math.min(
+          100,
+          Math.max(0, Math.round(((tcur - startT) / span) * 100))
+        );
+        exportVideoButton.textContent = 'Export en cours... ' + pct + '%';
+
+        if (!vid.ended && recorder.state !== 'inactive') {
+          requestAnimationFrame(draw);
+        }
+      };
+
+      recorder.start(1000);
+
+      vid.play()
+        .then(() => {
+          if (musicNode) musicNode.src.start(0);
+          requestAnimationFrame(draw);
+        })
+        .catch(() => {
+          reject(new Error('Lecture bloquée. Touchez de nouveau le bouton d’export.'));
+          if (recorder.state !== 'inactive') recorder.stop();
+        });
+    });
+
+    const ext = blob.type.includes('mp4') ? 'mp4' : 'webm';
+    downloadBlob(blob, baseName() + '-sous-titres.' + ext);
+    showToast('Vidéo exportée (' + ext.toUpperCase() + ') et téléchargée.');
+
+  } catch (error) {
+    console.error('Erreur export :', error);
+    showToast(error.message || 'Export impossible.');
+  } finally {
+    if (audioCtx) audioCtx.close().catch(() => {});
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    exportVideoButton.disabled = false;
+    exportVideoButton.textContent = idleLabel;
+  }
+});
+
+// Abonnements
+document.querySelectorAll('.plan-button').forEach(button => {
+  button.addEventListener('click', () => {
+    showToast(
+      'La formule ' + button.dataset.plan +
+      ' sera disponible après activation des paiements.'
+    );
+  });
+});
+
+layoutPreview();
+updateSilenceInfo();
+updateCaption();
    

@@ -33,6 +33,28 @@ transcribeButton.textContent = 'Générer les sous-titres IA';
 document.querySelector('.controls-panel')
   .appendChild(transcribeButton);
 
+// Placer le sous-titre PAR-DESSUS la vidéo
+function attachCaptionToVideo() {
+  if (getComputedStyle(previewFrame).position === 'static') {
+    previewFrame.style.position = 'relative';
+  }
+
+  previewFrame.appendChild(captionPreview);
+
+  const s = captionPreview.style;
+  s.position = 'absolute';
+  s.left = '0';
+  s.right = '0';
+  s.bottom = '16%';
+  s.top = 'auto';
+  s.transform = 'none';
+  s.margin = '0 auto';
+  s.padding = '0 12px';
+  s.textAlign = 'center';
+  s.zIndex = '5';
+  s.pointerEvents = 'none';
+}
+
 // Charger la vidéo
 videoInput.addEventListener('change', () => {
   const file = videoInput.files && videoInput.files[0];
@@ -45,6 +67,7 @@ videoInput.addEventListener('change', () => {
 
   selectedFile = file;
   segments = [];
+  lastShown = null;
 
   const url = URL.createObjectURL(file);
   videoPreview.src = url;
@@ -52,7 +75,10 @@ videoInput.addEventListener('change', () => {
   placeholder.hidden = true;
   fileName.textContent = file.name;
 
+  attachCaptionToVideo();
+  captionText.value = '';
   updateCaption();
+
   showToast('Vidéo chargée. Vous pouvez lancer la transcription.');
 });
 
@@ -106,6 +132,7 @@ transcribeButton.addEventListener('click', async () => {
       captionText.value = result.text;
     }
 
+    lastShown = null;
     updateCaption();
 
     showToast(

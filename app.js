@@ -10,9 +10,6 @@ const toast = document.getElementById('toast');
 
 const API_URL = 'https://justevivo-backend.onrender.com';
 
-// Nombre maximum de mots par sous-titre (les longues phrases sont découpées)
-const MAX_WORDS = 6;
-
 // Liste des styles : [identifiant, nom affiché]
 const STYLES = [
   ['pop', 'POP'],
@@ -95,6 +92,15 @@ const POSITIONS = [
   ['bottom', 'Bas', 14],
   ['custom', 'Personnalisée (curseur)', null]
 ];
+
+// Valeurs par défaut des réglages du texte
+const DEFAULTS = {
+  size: 100,      // %
+  words: 6,       // mots par sous-titre
+  width: 90,      // % de la largeur de la vidéo
+  lineHeight: 120, // /100
+  spacing: 0      // /100 em
+};
 
 // Mots courants à ne jamais surligner
 const STOPWORDS = new Set((
@@ -263,7 +269,18 @@ let kwMode = 'off';
 let positionPercent = 14; // distance du bas de la vidéo, en %
 let captionAttached = false;
 let selectedFile = null;
-let segments = []; // [{ start, end, text, starts: [] }]
+
+// Réglages du texte (modifiables par l'utilisateur)
+let sizeScale = DEFAULTS.size / 100;
+let maxWords = DEFAULTS.words;
+let widthPercent = DEFAULTS.width;
+let lineHeight = DEFAULTS.lineHeight / 100;
+let letterGap = DEFAULTS.spacing / 100; // en em
+let upperCase = false;
+
+let baseSegments = []; // phrases d'origine (avant découpage)
+let segments = [];     // sous-titres affichés [{ start, end, text, starts: [] }]
+let edited = false;    // l'utilisateur a corrigé le texte à la main
 let lastShown = null;
 
 function showToast(message) {
@@ -344,6 +361,45 @@ function styleSelect(select) {
     fontSize: '12px',
     fontFamily: 'inherit'
   });
+}
+
+// Curseur avec son titre (affiche la valeur en direct)
+function addSlider(parent, text, min, max, step, value, fmt, onInput, onChange) {
+  const label = document.createElement('label');
+  label.className = 'field-label';
+
+  const input = document.createElement('input');
+  input.type = 'range';
+  input.min = String(min);
+  input.max = String(max);
+  input.step = String(step);
+  input.value = String(value);
+  Object.assign(input.style, { width: '100%', accentColor: '#a879ff' });
+
+  const refresh = () => {
+    label.textContent = text + ' : ' + fmt(Number(input.value));
+  };
+  refresh();
+
+  input.addEventListener('input', () => {
+    refresh();
+    if (onInput) onInput(Number(input.value));
+  });
+
+  if (onChange) {
+    input.addEventListener('change', () => onChange(Number(input.value)));
+  }
+
+  parent.appendChild(label);
+  parent.appendChild(input);
+
+  return {
+    input,
+    set(v) {
+      input.value = String(v);
+      refresh();
+    }
+  };
 }
 
 const colorLabel = document.querySelector('label[for="captionColor"]');
@@ -476,6 +532,143 @@ kwColorInput.addEventListener('input', () => {
   updateCaption();
 });
 
+// ===== Réglages du texte (taille, mots, largeur, interligne...) =====
+const advBox = document.createElement('details');
+advBox.open = true;
+
+const advSummary = document.createElement('summary');
+advSummary.textContent = 'Réglages du texte (taille, lignes...)';
+Object.assign(advSummary.style, {
+  cursor: 'pointer',
+  fontSize: '11px',
+  fontWeight: '800',
+  color: '#d9c2ff',
+  margin: '16px 0 4px'
+});
+advBox.appendChild(advSummary);
+
+const sizeSlider = addSlider(
+  advBox, 'Taille du texte', 50, 200, 5, DEFAULTS.size,
+  v => v + ' %',
+  v => {
+    sizeScale = v / 100;
+    lastShown = null;
+    updateCaption();
+  }
+);
+
+const wordsSlider = addSlider(
+  advBox, 'Mots par sous-titre', 2, 10, 1, DEFAULTS.words,
+  v => String(v),
+  null,
+  v => applyMaxWords(v)
+);
+
+const widthSlider = addSlider(
+  advBox, 'Largeur du texte', 50, 100, 5, DEFAULTS.width,
+  v => v + ' %',
+  v => {
+    widthPercent = v;
+    lastShown = null;
+    updateCaption();
+  }
+);
+
+const lineSlider = addSlider(
+  advBox, 'Interligne', 90, 200, 5, DEFAULTS.lineHeight,
+  v => (v / 100).toFixed(2),
+  v => {
+    lineHeight = v / 100;
+    lastShown = null;
+    updateCaption();
+  }
+);
+
+const spacingSlider = addSlider(
+  advBox, 'Espacement des lettres', -5, 30, 1, DEFAULTS.spacing,
+  v => (v / 100).toFixed(2) + ' em',
+  v => {
+    letterGap = v / 100;
+    lastShown = null;
+    updateCaption();
+  }
+);
+
+const upperLabel = document.createElement('label');
+Object.assign(upperLabel.style, {
+  display: 'flex',
+  alignItems: 'center',
+  gap: '8px',
+  fontSize: '11px',
+  color: '#b9c2d8',
+  margin: '14px 0 4px'
+});
+
+const upperInput = document.createElement('input');
+upperInput.type = 'checkbox';
+upperLabel.appendChild(upperInput);
+upperLabel.appendChild(document.createTextNode('Tout en majuscules'));
+advBox.appendChild(upperLabel);
+
+upperInput.addEventListener('change', () => {
+  upperCase = upperInput.checked;
+  lastShown = null;
+  updateCaption();
+});
+
+const resetButton = document.createElement('button');
+resetButton.type = 'button';
+resetButton.className = 'button ghost full';
+resetButton.textContent = 'Réinitialiser ces réglages';
+advBox.appendChild(resetButton);
+
+resetButton.addEventListener('click', () => {
+  sizeScale = DEFAULTS.size / 100;
+  widthPercent = DEFAULTS.width;
+  lineHeight = DEFAULTS.lineHeight / 100;
+  letterGap = DEFAULTS.spacing / 100;
+  upperCase = false;
+
+  sizeSlider.set(DEFAULTS.size);
+  widthSlider.set(DEFAULTS.width);
+  lineSlider.set(DEFAULTS.lineHeight);
+  spacingSlider.set(DEFAULTS.spacing);
+  upperInput.checked = false;
+
+  wordsSlider.set(DEFAULTS.words);
+  applyMaxWords(DEFAULTS.words);
+
+  lastShown = null;
+  updateCaption();
+  showToast('Réglages du texte réinitialisés.');
+});
+
+colorLabel.parentNode.insertBefore(advBox, colorLabel);
+
+// Changer le nombre de mots par sous-titre
+function applyMaxWords(v) {
+  if (v === maxWords) return;
+
+  if (
+    baseSegments.length && edited &&
+    !confirm('Changer ce réglage efface vos corrections du texte. Continuer ?')
+  ) {
+    wordsSlider.set(maxWords);
+    return;
+  }
+
+  maxWords = v;
+
+  if (baseSegments.length) {
+    rebuildSegments();
+    edited = false;
+    captionText.value = segments.map(s => s.text).join('\n');
+  }
+
+  lastShown = null;
+  updateCaption();
+}
+
 function applyPosition() {
   if (!captionAttached) return;
   captionPreview.style.bottom = positionPercent + '%';
@@ -500,24 +693,27 @@ posSlider.addEventListener('input', () => {
   applyPosition();
 });
 
-function applyFont() {
+// Appliquer police, taille et réglages du texte à l'aperçu
+function applyTypography() {
   const f = FONTS[Number(fontSelect.value)];
+  const s = captionPreview.style;
 
-  if (f[1]) {
-    captionPreview.style.fontFamily = f[1];
-    captionPreview.style.fontWeight = f[2];
-    captionPreview.style.fontSize = f[3];
-    captionPreview.classList.add('custom-font');
-  } else {
-    captionPreview.style.fontFamily = '';
-    captionPreview.style.fontWeight = '';
-    captionPreview.style.fontSize = '';
-    captionPreview.classList.remove('custom-font');
-  }
+  s.fontFamily = f[1] || '';
+  s.fontWeight = f[1] ? f[2] : '';
+  s.fontSize = f[1] ? f[3] : '';
+  captionPreview.classList.toggle('custom-font', !!f[1]);
+
+  // Taille de base (selon le style / la police), puis facteur choisi
+  const base = parseFloat(getComputedStyle(captionPreview).fontSize) || 23;
+  s.fontSize = (base * sizeScale) + 'px';
+
+  s.lineHeight = String(lineHeight);
+  s.letterSpacing = letterGap ? letterGap + 'em' : '';
+  s.textTransform = upperCase ? 'uppercase' : '';
+  s.maxWidth = widthPercent + '%';
 }
 
 fontSelect.addEventListener('change', () => {
-  applyFont();
   lastShown = null;
   updateCaption();
 });
@@ -617,7 +813,9 @@ videoInput.addEventListener('change', () => {
   }
 
   selectedFile = file;
+  baseSegments = [];
   segments = [];
+  edited = false;
   lastShown = null;
 
   const url = URL.createObjectURL(file);
@@ -633,11 +831,11 @@ videoInput.addEventListener('change', () => {
   showToast('Vidéo chargée. Vous pouvez lancer la transcription.');
 });
 
-// Découper une longue phrase en sous-titres courts (MAX_WORDS mots maximum)
-function splitSegment(seg) {
+// Découper une longue phrase en sous-titres courts (max mots maximum)
+function splitSegment(seg, max) {
   const words = seg.text.split(/\s+/).filter(Boolean);
   const n = words.length;
-  if (n <= MAX_WORDS) return [seg];
+  if (n <= max) return [seg];
 
   let starts = seg.starts;
   let ends = seg.ends;
@@ -652,7 +850,7 @@ function splitSegment(seg) {
     ends = null;
   }
 
-  const parts = Math.ceil(n / MAX_WORDS);
+  const parts = Math.ceil(n / max);
   const per = Math.ceil(n / parts);
   const out = [];
 
@@ -677,8 +875,8 @@ function splitSegment(seg) {
   return out;
 }
 
-// Associer chaque mot (avec son heure) à son segment, puis découper
-function buildSegments(rawSegments, rawWords) {
+// Associer chaque mot (avec son heure) à sa phrase d'origine
+function makeBase(rawSegments, rawWords) {
   const base = rawSegments.map(s => ({
     start: s.start,
     end: s.end,
@@ -697,11 +895,22 @@ function buildSegments(rawSegments, rawWords) {
     }
   });
 
-  const out = [];
-  base.forEach(seg => {
-    splitSegment(seg).forEach(part => out.push(part));
+  return base;
+}
+
+// Reconstruire les sous-titres à partir des phrases d'origine
+function rebuildSegments() {
+  segments = [];
+  baseSegments.forEach(b => {
+    splitSegment(b, maxWords).forEach(p => {
+      segments.push({
+        start: p.start,
+        end: p.end,
+        text: p.text,
+        starts: (p.starts || []).slice()
+      });
+    });
   });
-  return out;
 }
 
 // Transcription avec Groq
@@ -742,10 +951,13 @@ transcribeButton.addEventListener('click', async () => {
     }
 
     if (Array.isArray(result.segments) && result.segments.length) {
-      segments = buildSegments(result.segments, result.words);
+      baseSegments = makeBase(result.segments, result.words);
+      rebuildSegments();
+      edited = false;
       // Une ligne = un sous-titre
       captionText.value = segments.map(s => s.text).join('\n');
     } else {
+      baseSegments = [];
       segments = [];
       captionText.value = result.text;
     }
@@ -845,7 +1057,7 @@ function renderCaption(text, emptyLabel, count, mode) {
     const first = safe.slice(0, split).map((w, i) => show(w, i));
     const second = safe.slice(split).map((w, i) => show(w, i + split));
 
-    // Retour à la ligne automatique (taille de texte fixe)
+    // Retour à la ligne automatique
     captionPreview.innerHTML =
       first.join(' ') +
       (second.length ? ' <b>' + second.join(' ') + '</b>' : '');
@@ -901,14 +1113,16 @@ function drawSegments(force) {
 
 // Personnalisation des sous-titres
 function updateCaption() {
+  previewFrame.classList.remove(...STYLES.map(s => s[0]));
+  previewFrame.classList.add(activeStyle);
+
+  applyTypography();
+
   if (segments.length) {
     drawSegments(true);
   } else {
     renderCaption(captionText.value, 'VOTRE TEXTE', -1, 'all');
   }
-
-  previewFrame.classList.remove(...STYLES.map(s => s[0]));
-  previewFrame.classList.add(activeStyle);
 }
 
 // Synchronisation avec la vidéo
@@ -929,13 +1143,14 @@ videoPreview.addEventListener('timeupdate', syncCaption);
 videoPreview.addEventListener('seeked', syncCaption);
 videoPreview.addEventListener('pause', syncCaption);
 
-// Corriger le texte (une ligne = un segment)
+// Corriger le texte (une ligne = un sous-titre)
 captionText.addEventListener('input', () => {
   if (segments.length) {
     const lines = captionText.value.split('\n');
     segments.forEach((s, i) => {
       s.text = (lines[i] || '').trim();
     });
+    edited = true;
     lastShown = null;
   }
   updateCaption();
@@ -1052,9 +1267,10 @@ function drawCaption(ctx, w, h, t) {
   const weight = f[1] ? f[2] : cfg.weight;
   const basePx = f[1] && f[3] ? parseFloat(f[3]) : cfg.size;
 
-  // Échelle : taille de texte fixe, adaptée à la largeur ET à la hauteur
+  // Échelle adaptée à la vidéo, puis taille choisie par l'utilisateur
   const sc = Math.min(h / 240, w / 200);
-  const conv = x => (cfg.upper ? x.toUpperCase() : x);
+  const upper = cfg.upper || upperCase;
+  const conv = x => (upper ? x.toUpperCase() : x);
 
   const words = st.words;
   const n = words.length;
@@ -1081,16 +1297,22 @@ function drawCaption(ctx, w, h, t) {
     ' ' + px + 'px ' + family;
 
   ctx.save();
-  if ('letterSpacing' in ctx) {
-    ctx.letterSpacing = ((cfg.spacing || 0) * sc) + 'px';
-  }
+
+  const setSpacing = px => {
+    if ('letterSpacing' in ctx) {
+      ctx.letterSpacing =
+        (((cfg.spacing || 0) * sc) + letterGap * px) + 'px';
+    }
+  };
 
   const boxPadX = cfg.box ? cfg.box.padX * sc : 0;
   const boxPadY = cfg.box ? cfg.box.padY * sc : 0;
-  const maxWidth = Math.max(40, w * 0.9 - boxPadX * 2);
+  const maxWidth = Math.max(40, w * (widthPercent / 100) - boxPadX * 2);
 
   // Retour à la ligne automatique
   const layout = px => {
+    setSpacing(px);
+
     const result = [];
     let cur = { items: [], width: 0 };
 
@@ -1115,22 +1337,25 @@ function drawCaption(ctx, w, h, t) {
     return result;
   };
 
-  let size = basePx * sc;
+  const fullSize = basePx * sc * sizeScale;
+  let size = fullSize;
   let lines = layout(size);
   const widest = ls => Math.max(...ls.map(l => l.width));
 
-  // Réduction seulement si vraiment trop de lignes ou un mot trop large
+  // Réduction seulement si un mot seul est plus large que la zone de texte
   let guard = 0;
   while (
-    guard++ < 6 &&
-    (lines.length > 3 || widest(lines) > maxWidth * 1.001) &&
-    size > basePx * sc * 0.5
+    guard++ < 8 &&
+    widest(lines) > maxWidth * 1.001 &&
+    size > fullSize * 0.4
   ) {
     size *= 0.9;
     lines = layout(size);
   }
 
-  const lh = size * 1.2;
+  setSpacing(size);
+
+  const lh = size * lineHeight;
   const totalH = lines.length * lh;
   const bottomY = h * (1 - positionPercent / 100);
   let top = bottomY - totalH;

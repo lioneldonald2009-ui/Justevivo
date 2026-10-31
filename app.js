@@ -59,9 +59,17 @@ const FONTS = [
   ['Press Start 2P (rétro)', "'Press Start 2P', monospace", '400', '13px']
 ];
 
+// Modes d'affichage des mots : [identifiant, nom affiché]
+const MODES = [
+  ['all', 'Phrase complète'],
+  ['progressive', 'Mot par mot (progressif)'],
+  ['single', 'Un seul mot à la fois']
+];
+
 let activeStyle = 'pop';
+let displayMode = 'all';
 let selectedFile = null;
-let segments = []; // [{ start, end, text }]
+let segments = []; // [{ start, end, text, starts: [] }]
 let lastShown = null;
 
 function showToast(message) {
@@ -108,7 +116,23 @@ fontStyle.textContent =
   '#captionPreview.custom-font b{font-weight:inherit;font-family:inherit}';
 document.head.appendChild(fontStyle);
 
-// Créer le menu des polices (au-dessus de la couleur)
+// Style commun des menus déroulants
+function styleSelect(select) {
+  Object.assign(select.style, {
+    width: '100%',
+    padding: '10px',
+    background: '#0b1122',
+    color: '#fff',
+    border: '1px solid #34405f',
+    borderRadius: '8px',
+    fontSize: '12px',
+    fontFamily: 'inherit'
+  });
+}
+
+const colorLabel = document.querySelector('label[for="captionColor"]');
+
+// Menu des polices
 const fontLabel = document.createElement('label');
 fontLabel.className = 'field-label';
 fontLabel.htmlFor = 'captionFont';
@@ -116,16 +140,7 @@ fontLabel.textContent = 'Police';
 
 const fontSelect = document.createElement('select');
 fontSelect.id = 'captionFont';
-Object.assign(fontSelect.style, {
-  width: '100%',
-  padding: '10px',
-  background: '#0b1122',
-  color: '#fff',
-  border: '1px solid #34405f',
-  borderRadius: '8px',
-  fontSize: '12px',
-  fontFamily: 'inherit'
-});
+styleSelect(fontSelect);
 
 FONTS.forEach((f, i) => {
   const option = document.createElement('option');
@@ -134,9 +149,37 @@ FONTS.forEach((f, i) => {
   fontSelect.appendChild(option);
 });
 
-const colorLabel = document.querySelector('label[for="captionColor"]');
 colorLabel.parentNode.insertBefore(fontLabel, colorLabel);
 colorLabel.parentNode.insertBefore(fontSelect, colorLabel);
+
+// Menu du mode d'affichage des mots
+const modeLabel = document.createElement('label');
+modeLabel.className = 'field-label';
+modeLabel.htmlFor = 'captionMode';
+modeLabel.textContent = 'Affichage des mots';
+
+const modeSelect = document.createElement('select');
+modeSelect.id = 'captionMode';
+styleSelect(modeSelect);
+
+MODES.forEach(([id, label]) => {
+  const option = document.createElement('option');
+  option.value = id;
+  option.textContent = label;
+  modeSelect.appendChild(option);
+});
+
+colorLabel.parentNode.insertBefore(modeLabel, colorLabel);
+colorLabel.parentNode.insertBefore(modeSelect, colorLabel);
+
+modeSelect.addEventListener('change', () => {
+  displayMode = modeSelect.value;
+  lastShown = null;
+  updateCaption();
+  if (displayMode !== 'all' && !segments.length) {
+    showToast('Générez d’abord les sous-titres IA pour utiliser ce mode.');
+  }
+});
 
 function applyFont() {
   const f = FONTS[Number(fontSelect.value)];
@@ -243,6 +286,25 @@ videoInput.addEventListener('change', () => {
   showToast('Vidéo chargée. Vous pouvez lancer la transcription.');
 });
 
+// Associer chaque mot (avec son heure) à son segment
+function buildSegments(rawSegments, rawWords) {
+  const list = rawSegments.map(s => ({
+    start: s.start,
+    end: s.end,
+    text: (s.text || '').trim(),
+    starts: []
+  }));
+
+  (rawWords || []).forEach(w => {
+    const seg = list.find(
+      s => w.start >= s.start - 0.05 && w.start < s.end + 0.05
+    );
+    if (seg) seg.starts.push(w.start);
+  });
+
+  return list;
+}
+
 // Transcription avec Groq
 transcribeButton.addEventListener('click', async () => {
   if (!selectedFile) {
@@ -281,11 +343,7 @@ transcribeButton.addEventListener('click', async () => {
     }
 
     if (Array.isArray(result.segments) && result.segments.length) {
-      segments = result.segments.map(s => ({
-        start: s.start,
-        end: s.end,
-        text: (s.text || '').trim()
-      }));
+      segments = buildSegments(result.segments, result.words);
       // Une ligne = un sous-titre
       captionText.value = segments.map(s => s.text).join('\n');
     } else {
@@ -324,20 +382,31 @@ function escapeWord(w) {
 }
 
 // Afficher un texte dans l'aperçu
-function renderCaption(text, emptyLabel) {
+// count = nombre de mots visibles (-1 = tous), mode = all | progressive | single
+function renderCaption(text, emptyLabel, count, mode) {
   const words = text.trim().split(/\s+/).filter(Boolean);
   const safe = words.map(escapeWord);
 
   if (!safe.length) {
     captionPreview.innerHTML = '';
     captionPreview.textContent = emptyLabel || '';
+  } else if (mode === 'single') {
+    const i = Math.min(count, safe.length) - 1;
+    captionPreview.innerHTML = i >= 0 ? '<b>' + safe[i] + '</b>' : '';
   } else {
     const split = Math.ceil(safe.length / 2);
+    const show = (w, i) =>
+      mode === 'progressive' && i >= count
+        ? '<span style="visibility:hidden">' + w + '</span>'
+        : '<span>' + w + '</span>';
+
+    const first = safe.slice(0, split).map((w, i) => show(w, i));
+    const second = safe.slice(split).map((w, i) => show(w, i + split));
 
     captionPreview.innerHTML =
-      safe.slice(0, split).join(' ') +
+      first.join(' ') +
       '<br><b>' +
-      safe.slice(split).join(' ') +
+      second.join(' ') +
       '</b>';
   }
 
@@ -347,19 +416,50 @@ function renderCaption(text, emptyLabel) {
     ?.style.setProperty('color', colorInput.value);
 }
 
-// Trouver le sous-titre actif selon le temps de la vidéo
-function currentSegmentText() {
+// Combien de mots ont déjà été prononcés dans ce segment
+function visibleCount(seg, t) {
+  const n = seg.text.split(/\s+/).filter(Boolean).length;
+  if (!n) return 0;
+
+  let starts = seg.starts;
+  if (!starts || starts.length !== n) {
+    // Pas d'heures précises : on répartit les mots sur la durée du segment
+    starts = Array.from(
+      { length: n },
+      (_, i) => seg.start + ((seg.end - seg.start) * i) / n
+    );
+  }
+
+  return starts.filter(s => t >= s).length;
+}
+
+// Dessiner le sous-titre selon le temps de la vidéo
+function drawSegments(force) {
   const t = videoPreview.currentTime || 0;
   const seg = segments.find(s => t >= s.start && t < s.end);
-  return seg ? seg.text : '';
+
+  let text = '';
+  let count = -1;
+  let key = '';
+
+  if (seg) {
+    text = seg.text;
+    count = displayMode === 'all' ? -1 : visibleCount(seg, t);
+    key = text + '|' + count + '|' + displayMode;
+  }
+
+  if (!force && key === lastShown) return;
+  lastShown = key;
+
+  renderCaption(text, '', count, displayMode);
 }
 
 // Personnalisation des sous-titres
 function updateCaption() {
   if (segments.length) {
-    renderCaption(currentSegmentText(), '');
+    drawSegments(true);
   } else {
-    renderCaption(captionText.value, 'VOTRE TEXTE');
+    renderCaption(captionText.value, 'VOTRE TEXTE', -1, 'all');
   }
 
   previewFrame.classList.remove(...STYLES.map(s => s[0]));
@@ -369,10 +469,7 @@ function updateCaption() {
 // Synchronisation avec la vidéo
 function syncCaption() {
   if (!segments.length) return;
-  const text = currentSegmentText();
-  if (text === lastShown) return;
-  lastShown = text;
-  renderCaption(text, '');
+  drawSegments(false);
 }
 
 function syncLoop() {

@@ -66,8 +66,18 @@ const MODES = [
   ['single', 'Un seul mot à la fois']
 ];
 
+// Positions prédéfinies : [identifiant, nom affiché, distance du bas en %]
+const POSITIONS = [
+  ['top', 'Haut', 78],
+  ['middle', 'Milieu', 44],
+  ['bottom', 'Bas', 14],
+  ['custom', 'Personnalisée (curseur)', null]
+];
+
 let activeStyle = 'pop';
 let displayMode = 'all';
+let positionPercent = 14; // distance du bas de la vidéo, en %
+let captionAttached = false;
 let selectedFile = null;
 let segments = []; // [{ start, end, text, starts: [] }]
 let lastShown = null;
@@ -181,6 +191,66 @@ modeSelect.addEventListener('change', () => {
   }
 });
 
+// Menu de la position du texte
+const posLabel = document.createElement('label');
+posLabel.className = 'field-label';
+posLabel.htmlFor = 'captionPosition';
+posLabel.textContent = 'Position du texte';
+
+const posSelect = document.createElement('select');
+posSelect.id = 'captionPosition';
+styleSelect(posSelect);
+
+POSITIONS.forEach(([id, label]) => {
+  const option = document.createElement('option');
+  option.value = id;
+  option.textContent = label;
+  if (id === 'bottom') option.selected = true;
+  posSelect.appendChild(option);
+});
+
+// Curseur de position verticale (bas = 4, haut = 80)
+const posSlider = document.createElement('input');
+posSlider.type = 'range';
+posSlider.id = 'captionPositionSlider';
+posSlider.min = '4';
+posSlider.max = '80';
+posSlider.step = '1';
+posSlider.value = String(positionPercent);
+Object.assign(posSlider.style, {
+  width: '100%',
+  marginTop: '10px',
+  accentColor: '#a879ff'
+});
+
+colorLabel.parentNode.insertBefore(posLabel, colorLabel);
+colorLabel.parentNode.insertBefore(posSelect, colorLabel);
+colorLabel.parentNode.insertBefore(posSlider, colorLabel);
+
+function applyPosition() {
+  if (!captionAttached) return;
+  captionPreview.style.bottom = positionPercent + '%';
+  captionPreview.style.top = 'auto';
+}
+
+posSelect.addEventListener('change', () => {
+  const preset = POSITIONS.find(p => p[0] === posSelect.value);
+  if (preset && preset[2] !== null) {
+    positionPercent = preset[2];
+    posSlider.value = String(positionPercent);
+  }
+  applyPosition();
+  if (!captionAttached) {
+    showToast('Importez une vidéo pour voir la position du texte.');
+  }
+});
+
+posSlider.addEventListener('input', () => {
+  positionPercent = Number(posSlider.value);
+  posSelect.value = 'custom';
+  applyPosition();
+});
+
 function applyFont() {
   const f = FONTS[Number(fontSelect.value)];
 
@@ -249,7 +319,6 @@ function attachCaptionToVideo() {
   s.position = 'absolute';
   s.left = '0';
   s.right = '0';
-  s.bottom = '16%';
   s.top = 'auto';
   s.transform = 'none';
   s.margin = '0 auto';
@@ -257,6 +326,9 @@ function attachCaptionToVideo() {
   s.textAlign = 'center';
   s.zIndex = '5';
   s.pointerEvents = 'none';
+
+  captionAttached = true;
+  applyPosition();
 }
 
 // Charger la vidéo

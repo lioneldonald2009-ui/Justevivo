@@ -95,11 +95,11 @@ const POSITIONS = [
 
 // Valeurs par défaut des réglages du texte
 const DEFAULTS = {
-  size: 100,      // %
-  words: 6,       // mots par sous-titre
-  width: 90,      // % de la largeur de la vidéo
+  size: 100,       // %
+  words: 6,        // mots par sous-titre
+  width: 90,       // % de la largeur de la vidéo
   lineHeight: 120, // /100
-  spacing: 0      // /100 em
+  spacing: 0       // /100 em
 };
 
 // Mots courants à ne jamais surligner
@@ -278,6 +278,16 @@ let lineHeight = DEFAULTS.lineHeight / 100;
 let letterGap = DEFAULTS.spacing / 100; // en em
 let upperCase = false;
 
+// Outils IA : zoom, silences, titre d'accroche
+let zoomOn = false;
+let zoomLevel = 1.18;
+let silenceOn = false;
+let silenceMin = 0.7;   // durée minimale d'un silence supprimé, en secondes
+let silences = [];      // [{ from, to }] en secondes (temps de la vidéo d'origine)
+let hookSeconds = 3;    // durée d'affichage du titre
+let hookScale = 1;      // taille du titre
+let hookTop = 12;       // position du titre, % depuis le haut
+
 let baseSegments = []; // phrases d'origine (avant découpage)
 let segments = [];     // sous-titres affichés [{ start, end, text, starts: [] }]
 let edited = false;    // l'utilisateur a corrigé le texte à la main
@@ -402,7 +412,49 @@ function addSlider(parent, text, min, max, step, value, fmt, onInput, onChange) 
   };
 }
 
+// Case à cocher avec son titre
+function addCheckbox(parent, text, onChange) {
+  const label = document.createElement('label');
+  Object.assign(label.style, {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    fontSize: '11px',
+    color: '#b9c2d8',
+    margin: '14px 0 4px'
+  });
+
+  const input = document.createElement('input');
+  input.type = 'checkbox';
+  label.appendChild(input);
+  label.appendChild(document.createTextNode(text));
+  parent.appendChild(label);
+
+  input.addEventListener('change', () => onChange(input.checked));
+  return input;
+}
+
 const colorLabel = document.querySelector('label[for="captionColor"]');
+
+// Section repliable de réglages (placée avant « Couleur d'accentuation »)
+function makeSection(title, open) {
+  const details = document.createElement('details');
+  details.open = !!open;
+
+  const summary = document.createElement('summary');
+  summary.textContent = title;
+  Object.assign(summary.style, {
+    cursor: 'pointer',
+    fontSize: '11px',
+    fontWeight: '800',
+    color: '#d9c2ff',
+    margin: '16px 0 4px'
+  });
+  details.appendChild(summary);
+
+  colorLabel.parentNode.insertBefore(details, colorLabel);
+  return details;
+}
 
 // Menu des polices
 const fontLabel = document.createElement('label');
@@ -533,19 +585,7 @@ kwColorInput.addEventListener('input', () => {
 });
 
 // ===== Réglages du texte (taille, mots, largeur, interligne...) =====
-const advBox = document.createElement('details');
-advBox.open = true;
-
-const advSummary = document.createElement('summary');
-advSummary.textContent = 'Réglages du texte (taille, lignes...)';
-Object.assign(advSummary.style, {
-  cursor: 'pointer',
-  fontSize: '11px',
-  fontWeight: '800',
-  color: '#d9c2ff',
-  margin: '16px 0 4px'
-});
-advBox.appendChild(advSummary);
+const advBox = makeSection('Réglages du texte (taille, lignes...)', true);
 
 const sizeSlider = addSlider(
   advBox, 'Taille du texte', 50, 200, 5, DEFAULTS.size,
@@ -594,24 +634,8 @@ const spacingSlider = addSlider(
   }
 );
 
-const upperLabel = document.createElement('label');
-Object.assign(upperLabel.style, {
-  display: 'flex',
-  alignItems: 'center',
-  gap: '8px',
-  fontSize: '11px',
-  color: '#b9c2d8',
-  margin: '14px 0 4px'
-});
-
-const upperInput = document.createElement('input');
-upperInput.type = 'checkbox';
-upperLabel.appendChild(upperInput);
-upperLabel.appendChild(document.createTextNode('Tout en majuscules'));
-advBox.appendChild(upperLabel);
-
-upperInput.addEventListener('change', () => {
-  upperCase = upperInput.checked;
+const upperInput = addCheckbox(advBox, 'Tout en majuscules', checked => {
+  upperCase = checked;
   lastShown = null;
   updateCaption();
 });
@@ -643,7 +667,262 @@ resetButton.addEventListener('click', () => {
   showToast('Réglages du texte réinitialisés.');
 });
 
-colorLabel.parentNode.insertBefore(advBox, colorLabel);
+// ===== Titre d'accroche =====
+const hookBox = makeSection('Titre d’accroche', false);
+
+const hookLabel = document.createElement('label');
+hookLabel.className = 'field-label';
+hookLabel.htmlFor = 'hookText';
+hookLabel.textContent = 'Texte affiché au début de la vidéo';
+hookBox.appendChild(hookLabel);
+
+const hookInput = document.createElement('input');
+hookInput.type = 'text';
+hookInput.id = 'hookText';
+hookInput.maxLength = 120;
+hookInput.placeholder = 'Ex : Le secret pour économiser 1000 €';
+Object.assign(hookInput.style, {
+  width: '100%',
+  padding: '10px',
+  background: '#0b1122',
+  color: '#fff',
+  border: '1px solid #34405f',
+  borderRadius: '8px',
+  fontSize: '12px',
+  fontFamily: 'inherit'
+});
+hookBox.appendChild(hookInput);
+
+addSlider(
+  hookBox, 'Durée d’affichage', 1, 10, 0.5, hookSeconds,
+  v => v + ' s',
+  v => {
+    hookSeconds = v;
+    updateHook();
+  }
+);
+
+addSlider(
+  hookBox, 'Taille du titre', 60, 180, 10, 100,
+  v => v + ' %',
+  v => {
+    hookScale = v / 100;
+    updateHook();
+  }
+);
+
+addSlider(
+  hookBox, 'Position du titre (depuis le haut)', 4, 70, 1, hookTop,
+  v => v + ' %',
+  v => {
+    hookTop = v;
+    updateHook();
+  }
+);
+
+hookInput.addEventListener('input', () => updateHook());
+
+// ===== Zooms automatiques =====
+const zoomBox = makeSection('Zooms automatiques', false);
+
+addCheckbox(zoomBox, 'Activer les zooms (une phrase sur deux)', checked => {
+  zoomOn = checked;
+  applyZoom();
+  if (checked && !baseSegments.length) {
+    showToast('Générez les sous-titres IA : les zooms suivent les phrases.');
+  }
+});
+
+addSlider(
+  zoomBox, 'Intensité du zoom', 105, 150, 1, 118,
+  v => v + ' %',
+  v => {
+    zoomLevel = v / 100;
+    applyZoom();
+  }
+);
+
+const zoomNote = document.createElement('div');
+zoomNote.textContent =
+  'Le zoom se voit pendant la lecture et dans la vidéo exportée.';
+Object.assign(zoomNote.style, {
+  fontSize: '10px',
+  color: '#8994ad',
+  margin: '8px 0 0'
+});
+zoomBox.appendChild(zoomNote);
+
+// ===== Suppression des silences =====
+const silenceBox = makeSection('Suppression des silences', false);
+
+addCheckbox(silenceBox, 'Supprimer les silences', checked => {
+  silenceOn = checked;
+  computeSilences();
+  updateSilenceInfo();
+  updateHook();
+
+  if (checked && !baseSegments.length) {
+    showToast('Générez d’abord les sous-titres IA.');
+  } else if (checked) {
+    showToast('À utiliser pour la parole : dans une chanson, les passages sans voix seraient coupés.');
+  }
+});
+
+addSlider(
+  silenceBox, 'Silence minimal à supprimer', 0.3, 2, 0.1, silenceMin,
+  v => v.toFixed(1) + ' s',
+  v => {
+    silenceMin = v;
+    computeSilences();
+    updateSilenceInfo();
+  }
+);
+
+const silenceInfo = document.createElement('div');
+Object.assign(silenceInfo.style, {
+  fontSize: '10px',
+  color: '#8994ad',
+  margin: '8px 0 0'
+});
+silenceBox.appendChild(silenceInfo);
+
+// Calcul des silences (à partir des horaires des mots)
+function computeSilences() {
+  silences = [];
+  if (!silenceOn || !baseSegments.length) return;
+
+  const PAD = 0.15; // marge gardée autour de la parole
+  const speech = [];
+
+  baseSegments.forEach(b => {
+    const n = b.text.split(/\s+/).filter(Boolean).length;
+    if (n > 0 && b.starts && b.ends && b.starts.length === n && b.ends.length === n) {
+      for (let i = 0; i < n; i++) speech.push([b.starts[i], b.ends[i]]);
+    } else {
+      speech.push([b.start, b.end]);
+    }
+  });
+
+  speech.sort((a, b) => a[0] - b[0]);
+
+  let prevEnd = 0;
+  speech.forEach(([s, e]) => {
+    if (s - prevEnd >= silenceMin) {
+      const a = prevEnd === 0 ? 0 : prevEnd + PAD;
+      const b = s - PAD;
+      if (b - a >= 0.15) silences.push({ from: a, to: b });
+    }
+    prevEnd = Math.max(prevEnd, e);
+  });
+
+  const dur = videoPreview.duration;
+  if (isFinite(dur) && dur - prevEnd >= silenceMin) {
+    const a = prevEnd + PAD;
+    const b = dur - 0.05;
+    if (b - a >= 0.15) silences.push({ from: a, to: b });
+  }
+}
+
+function updateSilenceInfo() {
+  if (!baseSegments.length) {
+    silenceInfo.textContent = 'Générez d’abord les sous-titres IA.';
+    return;
+  }
+  if (!silenceOn) {
+    silenceInfo.textContent = 'Désactivé.';
+    return;
+  }
+  const total = silences.reduce((sum, s) => sum + (s.to - s.from), 0);
+  silenceInfo.textContent =
+    silences.length + ' silence(s) supprimé(s) · ' +
+    total.toFixed(1) + ' s gagnées';
+}
+
+// Temps de la vidéo finale (sans les silences supprimés)
+function compressTime(t) {
+  let removed = 0;
+  for (const s of silences) {
+    if (t >= s.to) removed += s.to - s.from;
+    else if (t > s.from) removed += t - s.from;
+    else break;
+  }
+  return Math.max(0, t - removed);
+}
+
+function outTime(t) {
+  return silenceOn && silences.length ? compressTime(t) : t;
+}
+
+// Sauter les silences pendant la lecture
+function skipSilence() {
+  if (!silenceOn || !silences.length || videoPreview.paused) return;
+  const t = videoPreview.currentTime;
+  const s = silences.find(x => t >= x.from && t < x.to);
+  if (s) videoPreview.currentTime = s.to;
+}
+
+// Facteur de zoom à l'instant t (une phrase sur deux, avec transition douce)
+function zoomAt(t) {
+  if (!zoomOn) return 1;
+
+  const list = baseSegments.length ? baseSegments : segments;
+  const i = list.findIndex(s => t >= s.start && t < s.end);
+  if (i < 0 || i % 2 === 0) return 1;
+
+  const s = list[i];
+  const ramp = 0.3;
+  const a = Math.min(1, Math.max(0, (t - s.start) / ramp));
+  const b = Math.min(1, Math.max(0, (s.end - t) / ramp));
+  const k = Math.min(a, b);
+  const e = k * k * (3 - 2 * k);
+  return 1 + (zoomLevel - 1) * e;
+}
+
+function applyZoom() {
+  // Pas de zoom en pause, pour garder les commandes de la vidéo accessibles
+  const z = videoPreview.paused ? 1 : zoomAt(videoPreview.currentTime || 0);
+  videoPreview.style.transformOrigin = 'center center';
+  videoPreview.style.transform = z > 1.0005 ? 'scale(' + z.toFixed(4) + ')' : '';
+}
+
+// Titre d'accroche superposé à la vidéo (aperçu)
+const hookPreview = document.createElement('div');
+hookPreview.id = 'hookPreview';
+Object.assign(hookPreview.style, {
+  position: 'absolute',
+  left: '0',
+  right: '0',
+  margin: '0 auto',
+  width: 'fit-content',
+  maxWidth: '86%',
+  padding: '6px 12px',
+  background: '#fff',
+  color: '#111',
+  borderRadius: '12px',
+  fontWeight: '800',
+  lineHeight: '1.25',
+  textAlign: 'center',
+  zIndex: '6',
+  pointerEvents: 'none',
+  display: 'none',
+  boxShadow: '0 4px 14px rgba(0,0,0,0.35)'
+});
+
+function updateHook() {
+  if (!captionAttached) return;
+
+  const txt = hookInput.value.trim();
+  const t = outTime(videoPreview.currentTime || 0);
+  const show = txt && t < hookSeconds;
+
+  hookPreview.style.display = show ? 'block' : 'none';
+
+  if (show) {
+    if (hookPreview.textContent !== txt) hookPreview.textContent = txt;
+    hookPreview.style.fontSize = (14 * hookScale) + 'px';
+    hookPreview.style.top = hookTop + '%';
+  }
+}
 
 // Changer le nombre de mots par sous-titre
 function applyMaxWords(v) {
@@ -785,6 +1064,7 @@ function attachCaptionToVideo() {
   }
 
   previewFrame.appendChild(captionPreview);
+  previewFrame.appendChild(hookPreview);
 
   const s = captionPreview.style;
   s.position = 'absolute';
@@ -815,6 +1095,7 @@ videoInput.addEventListener('change', () => {
   selectedFile = file;
   baseSegments = [];
   segments = [];
+  silences = [];
   edited = false;
   lastShown = null;
 
@@ -827,6 +1108,8 @@ videoInput.addEventListener('change', () => {
   attachCaptionToVideo();
   captionText.value = '';
   updateCaption();
+  updateSilenceInfo();
+  updateHook();
 
   showToast('Vidéo chargée. Vous pouvez lancer la transcription.');
 });
@@ -961,6 +1244,9 @@ transcribeButton.addEventListener('click', async () => {
       segments = [];
       captionText.value = result.text;
     }
+
+    computeSilences();
+    updateSilenceInfo();
 
     lastShown = null;
     updateCaption();
@@ -1131,17 +1417,30 @@ function syncCaption() {
   drawSegments(false);
 }
 
-function syncLoop() {
+function tick() {
+  skipSilence();
   syncCaption();
+  applyZoom();
+  updateHook();
+}
+
+function syncLoop() {
+  tick();
   if (!videoPreview.paused && !videoPreview.ended) {
     requestAnimationFrame(syncLoop);
   }
 }
 
 videoPreview.addEventListener('play', () => requestAnimationFrame(syncLoop));
-videoPreview.addEventListener('timeupdate', syncCaption);
-videoPreview.addEventListener('seeked', syncCaption);
-videoPreview.addEventListener('pause', syncCaption);
+videoPreview.addEventListener('timeupdate', tick);
+videoPreview.addEventListener('seeked', tick);
+videoPreview.addEventListener('pause', tick);
+videoPreview.addEventListener('ended', tick);
+videoPreview.addEventListener('loadedmetadata', () => {
+  computeSilences();
+  updateSilenceInfo();
+  updateHook();
+});
 
 // Corriger le texte (une ligne = un sous-titre)
 captionText.addEventListener('input', () => {
@@ -1161,6 +1460,7 @@ document.getElementById('previewButton')
   .addEventListener('click', () => {
     lastShown = null;
     updateCaption();
+    updateHook();
     showToast('Aperçu actualisé.');
   });
 
@@ -1191,13 +1491,23 @@ function stamp(sec, sep) {
 
 function buildSubtitles(kind) {
   const sep = kind === 'vtt' ? '.' : ',';
-  const rows = segments.filter(s => s.text);
+
+  // Les horaires suivent la vidéo raccourcie si les silences sont supprimés
+  const rows = segments
+    .filter(s => s.text)
+    .map(s => ({
+      start: outTime(s.start),
+      end: outTime(s.end),
+      text: s.text
+    }))
+    .filter(r => r.end - r.start > 0.04);
+
   let out = kind === 'vtt' ? 'WEBVTT\n\n' : '';
 
-  rows.forEach((s, i) => {
+  rows.forEach((r, i) => {
     if (kind === 'srt') out += (i + 1) + '\n';
-    out += stamp(s.start, sep) + ' --> ' + stamp(s.end, sep) + '\n';
-    out += s.text + '\n\n';
+    out += stamp(r.start, sep) + ' --> ' + stamp(r.end, sep) + '\n';
+    out += r.text + '\n\n';
   });
 
   return out;
@@ -1252,6 +1562,66 @@ function getCaptionState(t) {
 
   const count = displayMode === 'all' ? -1 : visibleCount(seg, t);
   return { words, count };
+}
+
+// Titre d'accroche dessiné dans la vidéo exportée
+function drawHook(ctx, w, h, t) {
+  const txt = hookInput.value.trim();
+  if (!txt) return;
+
+  const tt = outTime(t);
+  if (tt >= hookSeconds) return;
+
+  const sc = Math.min(h / 240, w / 200);
+  const size = 14 * sc * hookScale;
+  const fade = Math.min(1, Math.max(0, (hookSeconds - tt) / 0.3));
+
+  ctx.save();
+  ctx.globalAlpha = fade;
+  ctx.font = '800 ' + size + "px 'DM Sans', Arial, sans-serif";
+  if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+
+  const maxW = w * 0.86 - size * 1.6;
+  const lines = [];
+  let cur = '';
+
+  txt.split(/\s+/).forEach(word => {
+    const test = cur ? cur + ' ' + word : word;
+    if (cur && ctx.measureText(test).width > maxW) {
+      lines.push(cur);
+      cur = word;
+    } else {
+      cur = test;
+    }
+  });
+  if (cur) lines.push(cur);
+
+  const lh = size * 1.25;
+  const widest = Math.max(...lines.map(l => ctx.measureText(l).width));
+  const padX = size * 0.85;
+  const padY = size * 0.45;
+  const bw = Math.min(w * 0.94, widest + padX * 2);
+  const bh = lines.length * lh + padY * 2;
+  const x = w / 2 - bw / 2;
+  const y = Math.max(4, Math.min(h * (hookTop / 100), h - bh - 4));
+
+  ctx.save();
+  roundRectPath(ctx, x, y, bw, bh, size * 0.85);
+  ctx.shadowColor = 'rgba(0,0,0,0.35)';
+  ctx.shadowBlur = size * 0.6;
+  ctx.shadowOffsetY = size * 0.2;
+  ctx.fillStyle = '#fff';
+  ctx.fill();
+  ctx.restore();
+
+  ctx.fillStyle = '#111';
+  lines.forEach((l, i) => {
+    ctx.fillText(l, w / 2, y + padY + i * lh + lh / 2);
+  });
+
+  ctx.restore();
 }
 
 function drawCaption(ctx, w, h, t) {
@@ -1514,6 +1884,7 @@ exportVideoButton.addEventListener('click', async () => {
       const wt = fsel[1] ? fsel[2] : cfgNow.weight;
       await document.fonts.load(wt + ' 20px ' + fam);
       await document.fonts.load('700 20px ' + fam);
+      await document.fonts.load("800 20px 'DM Sans'");
     } catch (e) {
       console.warn('Chargement de police :', e);
     }
@@ -1534,8 +1905,8 @@ exportVideoButton.addEventListener('click', async () => {
     });
 
     // Taille de sortie (maximum 1280 px sur le grand côté)
-    let vw = vid.videoWidth || 720;
-    let vh = vid.videoHeight || 1280;
+    const vw = vid.videoWidth || 720;
+    const vh = vid.videoHeight || 1280;
     const ratio = Math.min(1, 1280 / Math.max(vw, vh));
     const w = Math.max(2, Math.round((vw * ratio) / 2) * 2);
     const h = Math.max(2, Math.round((vh * ratio) / 2) * 2);
@@ -1597,8 +1968,25 @@ exportVideoButton.addEventListener('click', async () => {
       };
 
       const draw = () => {
-        ctx.drawImage(vid, 0, 0, w, h);
+        // Sauter les silences
+        if (silenceOn && silences.length && !vid.seeking) {
+          const cur = vid.currentTime;
+          const sl = silences.find(x => cur >= x.from && cur < x.to);
+          if (sl) vid.currentTime = sl.to;
+        }
+
+        // Image de la vidéo (avec zoom automatique)
+        const z = zoomAt(vid.currentTime);
+        if (z > 1.0005) {
+          const sw = vw / z;
+          const sh = vh / z;
+          ctx.drawImage(vid, (vw - sw) / 2, (vh - sh) / 2, sw, sh, 0, 0, w, h);
+        } else {
+          ctx.drawImage(vid, 0, 0, w, h);
+        }
+
         drawCaption(ctx, w, h, vid.currentTime);
+        drawHook(ctx, w, h, vid.currentTime);
 
         const pct = vid.duration
           ? Math.min(100, Math.round((vid.currentTime / vid.duration) * 100))
@@ -1645,4 +2033,5 @@ document.querySelectorAll('.plan-button').forEach(button => {
   });
 });
 
+updateSilenceInfo();
 updateCaption();

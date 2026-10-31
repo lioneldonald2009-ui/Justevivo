@@ -10,6 +10,9 @@ const toast = document.getElementById('toast');
 
 const API_URL = 'https://justevivo-backend.onrender.com';
 
+// Nombre maximum de mots par sous-titre (les longues phrases sont découpées)
+const MAX_WORDS = 6;
+
 // Liste des styles : [identifiant, nom affiché]
 const STYLES = [
   ['pop', 'POP'],
@@ -630,23 +633,75 @@ videoInput.addEventListener('change', () => {
   showToast('Vidéo chargée. Vous pouvez lancer la transcription.');
 });
 
-// Associer chaque mot (avec son heure) à son segment
+// Découper une longue phrase en sous-titres courts (MAX_WORDS mots maximum)
+function splitSegment(seg) {
+  const words = seg.text.split(/\s+/).filter(Boolean);
+  const n = words.length;
+  if (n <= MAX_WORDS) return [seg];
+
+  let starts = seg.starts;
+  let ends = seg.ends;
+  const exact = starts && starts.length === n;
+
+  if (!exact) {
+    // Pas d'heures précises : on répartit les mots sur la durée
+    starts = Array.from(
+      { length: n },
+      (_, i) => seg.start + ((seg.end - seg.start) * i) / n
+    );
+    ends = null;
+  }
+
+  const parts = Math.ceil(n / MAX_WORDS);
+  const per = Math.ceil(n / parts);
+  const out = [];
+
+  for (let i = 0; i < n; i += per) {
+    const last = i + per >= n;
+    const st = starts.slice(i, i + per);
+    const nextStart = last ? seg.end : starts[i + per];
+    let end = nextStart;
+
+    if (!last && ends && ends[i + per - 1] !== undefined) {
+      end = Math.min(nextStart, Math.max(ends[i + per - 1] + 0.4, st[0] + 0.3));
+    }
+
+    out.push({
+      start: i === 0 ? seg.start : st[0],
+      end,
+      text: words.slice(i, i + per).join(' '),
+      starts: st
+    });
+  }
+
+  return out;
+}
+
+// Associer chaque mot (avec son heure) à son segment, puis découper
 function buildSegments(rawSegments, rawWords) {
-  const list = rawSegments.map(s => ({
+  const base = rawSegments.map(s => ({
     start: s.start,
     end: s.end,
     text: (s.text || '').trim(),
-    starts: []
+    starts: [],
+    ends: []
   }));
 
   (rawWords || []).forEach(w => {
-    const seg = list.find(
+    const seg = base.find(
       s => w.start >= s.start - 0.05 && w.start < s.end + 0.05
     );
-    if (seg) seg.starts.push(w.start);
+    if (seg) {
+      seg.starts.push(w.start);
+      seg.ends.push(w.end);
+    }
   });
 
-  return list;
+  const out = [];
+  base.forEach(seg => {
+    splitSegment(seg).forEach(part => out.push(part));
+  });
+  return out;
 }
 
 // Transcription avec Groq
@@ -790,11 +845,10 @@ function renderCaption(text, emptyLabel, count, mode) {
     const first = safe.slice(0, split).map((w, i) => show(w, i));
     const second = safe.slice(split).map((w, i) => show(w, i + split));
 
+    // Retour à la ligne automatique (taille de texte fixe)
     captionPreview.innerHTML =
       first.join(' ') +
-      '<br><b>' +
-      second.join(' ') +
-      '</b>';
+      (second.length ? ' <b>' + second.join(' ') + '</b>' : '');
   }
 
   captionPreview.classList.toggle('kwon', kwMode !== 'off');
@@ -997,34 +1051,28 @@ function drawCaption(ctx, w, h, t) {
   const family = f[1] || cfg.family;
   const weight = f[1] ? f[2] : cfg.weight;
   const basePx = f[1] && f[3] ? parseFloat(f[3]) : cfg.size;
-  const sc = h / 240;
+
+  // Échelle : taille de texte fixe, adaptée à la largeur ET à la hauteur
+  const sc = Math.min(h / 240, w / 200);
   const conv = x => (cfg.upper ? x.toUpperCase() : x);
 
-  // Construire les lignes (comme l'aperçu : moitié / moitié)
   const words = st.words;
   const n = words.length;
   const kwSet = keywordIndexes(words, kwMode);
-  let lines = [];
+  const split = Math.ceil(n / 2);
+
+  // Mots à dessiner (la 2e moitié prend la couleur d'accentuation)
+  let items = words.map((x, i) => ({
+    text: x,
+    second: i >= split,
+    show: displayMode !== 'progressive' || i < st.count,
+    kw: kwSet.has(i)
+  }));
 
   if (displayMode === 'single') {
     const i = Math.min(st.count, n) - 1;
     if (i < 0) return;
-    lines = [{
-      items: [{ text: words[i], show: true, kw: kwSet.has(i) }],
-      second: true
-    }];
-  } else {
-    const split = Math.ceil(n / 2);
-    const mk = (a, b, second) => ({
-      second,
-      items: words.slice(a, b).map((x, k) => ({
-        text: x,
-        show: displayMode !== 'progressive' || a + k < st.count,
-        kw: kwSet.has(a + k)
-      }))
-    });
-    lines.push(mk(0, split, false));
-    if (n > split) lines.push(mk(split, n, true));
+    items = [{ text: words[i], second: true, show: true, kw: kwSet.has(i) }];
   }
 
   const fontFor = (second, px) =>
@@ -1037,29 +1085,56 @@ function drawCaption(ctx, w, h, t) {
     ctx.letterSpacing = ((cfg.spacing || 0) * sc) + 'px';
   }
 
-  const measure = px =>
-    lines.map(l => {
-      ctx.font = fontFor(l.second, px);
-      return ctx.measureText(
-        l.items.map(i => conv(i.text)).join(' ')
-      ).width;
+  const boxPadX = cfg.box ? cfg.box.padX * sc : 0;
+  const boxPadY = cfg.box ? cfg.box.padY * sc : 0;
+  const maxWidth = Math.max(40, w * 0.9 - boxPadX * 2);
+
+  // Retour à la ligne automatique
+  const layout = px => {
+    const result = [];
+    let cur = { items: [], width: 0 };
+
+    ctx.font = fontFor(false, px);
+    const space = ctx.measureText(' ').width;
+
+    items.forEach(it => {
+      ctx.font = fontFor(it.second, px);
+      const ww = ctx.measureText(conv(it.text)).width;
+
+      if (cur.items.length && cur.width + space + ww > maxWidth) {
+        result.push(cur);
+        cur = { items: [], width: 0 };
+      }
+
+      const x = cur.items.length ? cur.width + space : 0;
+      cur.items.push({ it, x, ww });
+      cur.width = x + ww;
     });
 
-  let size = basePx * sc;
-  let widths = measure(size);
-  const boxPad = cfg.box ? cfg.box.padX * sc * 2 : 0;
-  const available = w * 0.92 - boxPad;
-  const widest = Math.max(...widths);
+    if (cur.items.length) result.push(cur);
+    return result;
+  };
 
-  if (widest > available && available > 0) {
-    size *= available / widest;
-    widths = measure(size);
+  let size = basePx * sc;
+  let lines = layout(size);
+  const widest = ls => Math.max(...ls.map(l => l.width));
+
+  // Réduction seulement si vraiment trop de lignes ou un mot trop large
+  let guard = 0;
+  while (
+    guard++ < 6 &&
+    (lines.length > 3 || widest(lines) > maxWidth * 1.001) &&
+    size > basePx * sc * 0.5
+  ) {
+    size *= 0.9;
+    lines = layout(size);
   }
 
   const lh = size * 1.2;
   const totalH = lines.length * lh;
   const bottomY = h * (1 - positionPercent / 100);
-  const top = Math.max(4, bottomY - totalH);
+  let top = bottomY - totalH;
+  top = Math.max(4 + boxPadY, Math.min(top, h - totalH - 4 - boxPadY));
 
   if (cfg.rotate) {
     const cy0 = top + totalH / 2;
@@ -1070,11 +1145,11 @@ function drawCaption(ctx, w, h, t) {
 
   // Boîte de fond
   if (cfg.box) {
-    const bw = Math.max(...widths) + cfg.box.padX * sc * 2;
-    const bh = totalH + cfg.box.padY * sc * 2;
+    const bw = widest(lines) + boxPadX * 2;
+    const bh = totalH + boxPadY * 2;
     ctx.save();
     roundRectPath(
-      ctx, w / 2 - bw / 2, top - cfg.box.padY * sc, bw, bh,
+      ctx, w / 2 - bw / 2, top - boxPadY, bw, bh,
       cfg.box.radius * sc
     );
     ctx.fillStyle = cfg.box.bg === 'accent' ? accent : cfg.box.bg;
@@ -1090,47 +1165,43 @@ function drawCaption(ctx, w, h, t) {
   ctx.textBaseline = 'middle';
   ctx.textAlign = 'left';
 
-  lines.forEach((l, li) => {
-    const second = l.second;
-    const lw = widths[li];
-    const x0 = w / 2 - lw / 2;
+  lines.forEach((line, li) => {
+    const x0 = w / 2 - line.width / 2;
     const cy = top + li * lh + lh / 2;
 
-    ctx.font = fontFor(second, size);
-
-    // Avec les mots-clés, tout le texte garde la couleur de base
-    const colorKey = kwOn ? cfg.c1 : (second ? cfg.c2 : cfg.c1);
-    const color = colorKey === 'accent' ? accent : colorKey;
-    let fill = color;
-
-    if (cfg.grad) {
-      const g = cfg.gradDir === 'h'
-        ? ctx.createLinearGradient(x0, 0, x0 + lw, 0)
-        : ctx.createLinearGradient(0, cy - lh / 2, 0, cy + lh / 2);
-      cfg.grad.forEach((c, i) =>
-        g.addColorStop(i / (cfg.grad.length - 1), c)
-      );
-      fill = g;
-    }
-
-    l.items.forEach((it, k) => {
+    line.items.forEach(entry => {
+      const it = entry.it;
       if (!it.show) return;
 
-      const prefix = k
-        ? ctx.measureText(
-            l.items.slice(0, k).map(i => conv(i.text)).join(' ') + ' '
-          ).width
-        : 0;
-      const x = x0 + prefix;
+      ctx.font = fontFor(it.second, size);
+
+      const x = x0 + entry.x;
       const txt = conv(it.text);
+
+      // Avec les mots-clés, tout le texte garde la couleur de base
+      const colorKey = kwOn ? cfg.c1 : (it.second ? cfg.c2 : cfg.c1);
+      let fill = colorKey === 'accent' ? accent : colorKey;
+
+      if (cfg.grad) {
+        const g = cfg.gradDir === 'h'
+          ? ctx.createLinearGradient(x0, 0, x0 + line.width, 0)
+          : ctx.createLinearGradient(0, cy - lh / 2, 0, cy + lh / 2);
+        cfg.grad.forEach((c, i) =>
+          g.addColorStop(i / (cfg.grad.length - 1), c)
+        );
+        fill = g;
+      }
+
       const itemFill = it.kw ? kwColor : fill;
 
-      // Surligneur : fond de couleur derrière la 2e ligne (ou les mots-clés)
-      const marked = cfg.marker && (kwOn ? it.kw : second);
+      // Surligneur : fond de couleur derrière les mots-clés (ou la 2e moitié)
+      const marked = cfg.marker && (kwOn ? it.kw : it.second);
       if (marked) {
-        const ww = ctx.measureText(txt).width;
         ctx.save();
-        roundRectPath(ctx, x - 6 * sc, cy - lh * 0.45, ww + 12 * sc, lh * 0.9, 4 * sc);
+        roundRectPath(
+          ctx, x - 6 * sc, cy - lh * 0.45,
+          entry.ww + 12 * sc, lh * 0.9, 4 * sc
+        );
         ctx.fillStyle = kwOn ? kwColor : accent;
         ctx.fill();
         ctx.restore();
@@ -1155,7 +1226,7 @@ function drawCaption(ctx, w, h, t) {
         ctx.lineWidth = Math.max(1.5, cfg.stroke * sc * 1.3);
         ctx.strokeStyle = it.kw
           ? kwColor
-          : (second && !kwOn ? accent : '#fff');
+          : (it.second && !kwOn ? accent : '#fff');
         ctx.lineJoin = 'round';
         ctx.strokeText(txt, x, cy);
       } else {

@@ -10,9 +10,34 @@ const toast = document.getElementById('toast');
 
 const API_URL = 'https://justevivo-backend.onrender.com';
 
+// Liste des styles : [identifiant, nom affiché]
+const STYLES = [
+  ['pop', 'POP'],
+  ['neon', 'NÉON'],
+  ['clean', 'ÉPURÉ'],
+  ['impact', 'IMPACT'],
+  ['tiktok', 'TIKTOK'],
+  ['boite', 'BOÎTE'],
+  ['marker', 'SURLIGNEUR'],
+  ['retro3d', 'RÉTRO 3D'],
+  ['degrade', 'DÉGRADÉ'],
+  ['cinema', 'CINÉMA'],
+  ['machine', 'MACHINE'],
+  ['comic', 'COMIC'],
+  ['rose', 'NÉON ROSE'],
+  ['verre', 'VERRE'],
+  ['fin', 'FIN'],
+  ['feu', 'FEU'],
+  ['elegant', 'ÉLÉGANT'],
+  ['contour', 'CONTOUR'],
+  ['glace', 'GLACE'],
+  ['or', 'OR']
+];
+
 let activeStyle = 'pop';
 let selectedFile = null;
 let segments = []; // [{ start, end, text }]
+let lastShown = null;
 
 function showToast(message) {
   toast.textContent = message;
@@ -23,6 +48,31 @@ function showToast(message) {
     4000
   );
 }
+
+// Créer les boutons de style
+const styleBox = document.querySelector('.style-options');
+styleBox.innerHTML = '';
+STYLES.forEach(([id, label]) => {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.className = 'style-option' + (id === activeStyle ? ' selected' : '');
+  b.dataset.style = id;
+  b.textContent = label;
+  styleBox.appendChild(b);
+});
+
+styleBox.addEventListener('click', event => {
+  const button = event.target.closest('.style-option');
+  if (!button) return;
+
+  styleBox.querySelectorAll('.style-option')
+    .forEach(b => b.classList.remove('selected'));
+
+  button.classList.add('selected');
+  activeStyle = button.dataset.style;
+  lastShown = null;
+  updateCaption();
+});
 
 // Ajouter le bouton de transcription IA
 const transcribeButton = document.createElement('button');
@@ -201,13 +251,11 @@ function updateCaption() {
     renderCaption(captionText.value, 'VOTRE TEXTE');
   }
 
-  previewFrame.classList.remove('pop', 'neon', 'clean');
+  previewFrame.classList.remove(...STYLES.map(s => s[0]));
   previewFrame.classList.add(activeStyle);
 }
 
 // Synchronisation avec la vidéo
-let lastShown = null;
-
 function syncCaption() {
   if (!segments.length) return;
   const text = currentSegmentText();
@@ -238,19 +286,6 @@ captionText.addEventListener('input', () => {
     lastShown = null;
   }
   updateCaption();
-});
-
-// Styles
-document.querySelectorAll('.style-option').forEach(button => {
-  button.addEventListener('click', () => {
-    document.querySelectorAll('.style-option')
-      .forEach(b => b.classList.remove('selected'));
-
-    button.classList.add('selected');
-    activeStyle = button.dataset.style;
-    lastShown = null;
-    updateCaption();
-  });
 });
 
 // Aperçu

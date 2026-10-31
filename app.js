@@ -31,7 +31,19 @@ const STYLES = [
   ['elegant', 'ÉLÉGANT'],
   ['contour', 'CONTOUR'],
   ['glace', 'GLACE'],
-  ['or', 'OR']
+  ['or', 'OR'],
+  ['bande', 'BANDEAU'],
+  ['ombre', 'OMBRE'],
+  ['neonvert', 'NÉON VERT'],
+  ['neonjaune', 'NÉON JAUNE'],
+  ['sunset', 'COUCHER'],
+  ['ocean', 'OCÉAN'],
+  ['chrome', 'CHROME'],
+  ['sticker', 'AUTOCOLLANT'],
+  ['jaune', 'JAUNE'],
+  ['blanc', 'BLANC'],
+  ['minimal', 'MINIMAL'],
+  ['pixel', 'PIXEL']
 ];
 
 // Liste des polices : [nom affiché, famille CSS, graisse, taille]
@@ -66,6 +78,13 @@ const MODES = [
   ['single', 'Un seul mot à la fois']
 ];
 
+// Modes de mots-clés : [identifiant, nom affiché]
+const KEYWORD_MODES = [
+  ['off', 'Aucun'],
+  ['auto', 'Automatique'],
+  ['strong', 'Automatique (plus de mots)']
+];
+
 // Positions prédéfinies : [identifiant, nom affiché, distance du bas en %]
 const POSITIONS = [
   ['top', 'Haut', 78],
@@ -73,6 +92,19 @@ const POSITIONS = [
   ['bottom', 'Bas', 14],
   ['custom', 'Personnalisée (curseur)', null]
 ];
+
+// Mots courants à ne jamais surligner
+const STOPWORDS = new Set((
+  'alors aucun aussi autre autres avant avec avoir avez avons avait bien beaucoup ' +
+  'cette ceux chaque comme comment dans donc elle elles encore entre être était ' +
+  'étaient fait faire mais même moins notre nous nouveau votre vous leur leurs ' +
+  'parce pendant plus pour pourquoi quand quel quelle quels sans selon sont sous ' +
+  'tout tous toute toutes très trop vers voici voilà cela celui celle ces cet ceci ' +
+  'ainsi après depuis enfin jamais déjà peut peux veux veut dont lorsque puisque ' +
+  'rien chose choses about because their there these those would could should ' +
+  'which where while with from have this that what when your just like really ' +
+  'going know think being other every again still much very'
+).split(' '));
 
 // Apparence de chaque style pour l'export vidéo (dessin sur canvas)
 const STYLE_BASE = {
@@ -169,11 +201,62 @@ const STYLE_CFG = {
     family: "Georgia, serif", weight: '900', size: 25,
     grad: ['#fff3b0', '#e0a800', '#8a5a00'], gradDir: 'v',
     shadows: [{ c: '#000', x: 0, y: 2, b: 3 }]
+  },
+  bande: {
+    weight: '700', c1: '#fff', shadows: [],
+    box: { bg: '#000', border: 'accent', padX: 22, padY: 8, radius: 2 }
+  },
+  ombre: {
+    weight: '700', c1: '#fff',
+    shadows: [{ c: '#000', x: 0, y: 6, b: 18 }, { c: '#000', x: 0, y: 2, b: 4 }]
+  },
+  neonvert: {
+    c1: '#9dffb0',
+    shadows: [{ c: '#3dff7a', x: 0, y: 0, b: 8 }, { c: '#3dff7a', x: 0, y: 0, b: 22 }]
+  },
+  neonjaune: {
+    c1: '#fff9a8',
+    shadows: [{ c: '#ffe600', x: 0, y: 0, b: 8 }, { c: '#ffe600', x: 0, y: 0, b: 22 }]
+  },
+  sunset: {
+    weight: '900', grad: ['#ff9a3c', '#ff4e8b', '#a855f7'], gradDir: 'h',
+    shadows: [{ c: '#000', x: 0, y: 2, b: 4 }]
+  },
+  ocean: {
+    weight: '900', grad: ['#b6fff0', '#00e0c6', '#0088ff'], gradDir: 'v',
+    shadows: [{ c: '#000', x: 0, y: 2, b: 4 }]
+  },
+  chrome: {
+    weight: '900', grad: ['#fff', '#b8c4d6', '#5d6b82', '#c9d5e6'], gradDir: 'v',
+    stroke: 1, strokeColor: '#1b2433',
+    shadows: [{ c: '#000', x: 0, y: 2, b: 3 }]
+  },
+  sticker: {
+    weight: '900', c1: '#111', c2: 'accent', stroke: 3, strokeColor: '#fff',
+    shadows: [{ c: 'rgba(0,0,0,0.55)', x: 0, y: 4, b: 8 }]
+  },
+  jaune: {
+    weight: '900', c1: '#000', c2: '#000', shadows: [],
+    box: { bg: '#ffe600', padX: 14, padY: 6, radius: 4 }
+  },
+  blanc: {
+    weight: '800', c1: '#111', c2: 'accent', shadows: [],
+    box: { bg: '#fff', padX: 14, padY: 6, radius: 8 }
+  },
+  minimal: {
+    weight: '500', size: 18, c1: '#fff', c2: '#fff', line2Weight: '700',
+    shadows: [{ c: '#000', x: 0, y: 1, b: 4 }]
+  },
+  pixel: {
+    family: "'Press Start 2P', monospace", weight: '400', size: 13,
+    c1: '#ffe600', c2: '#fff',
+    shadows: [{ c: '#000', x: 2, y: 2, b: 0 }]
   }
 };
 
 let activeStyle = 'pop';
 let displayMode = 'all';
+let kwMode = 'off';
 let positionPercent = 14; // distance du bas de la vidéo, en %
 let captionAttached = false;
 let selectedFile = null;
@@ -218,10 +301,32 @@ fontLink.href =
   '&display=swap';
 document.head.appendChild(fontLink);
 
-// Évite le faux gras sur les polices à une seule graisse
+// CSS ajouté par le script : polices, mots-clés et nouveaux styles
 const fontStyle = document.createElement('style');
-fontStyle.textContent =
-  '#captionPreview.custom-font b{font-weight:inherit;font-family:inherit}';
+fontStyle.textContent = `
+#captionPreview.custom-font b{font-weight:inherit;font-family:inherit}
+#captionPreview.kwon b{color:inherit!important;background:none!important;padding:0!important;-webkit-text-stroke-color:inherit!important}
+.preview-frame.contour #captionPreview.kwon .kw{-webkit-text-stroke-color:var(--kw)!important}
+
+.preview-frame.bande .preview-caption{background:#000;color:#fff;font-weight:700;padding:8px 22px!important;border:1px solid var(--accent);border-radius:2px;text-shadow:none}
+.preview-frame.ombre .preview-caption{color:#fff;font-weight:700;text-shadow:0 6px 18px #000,0 2px 4px #000}
+.preview-frame.neonvert .preview-caption{color:#9dffb0;font-weight:800;text-shadow:0 0 8px #3dff7a,0 0 22px #3dff7a}
+.preview-frame.neonjaune .preview-caption{color:#fff9a8;font-weight:800;text-shadow:0 0 8px #ffe600,0 0 22px #ffe600}
+.preview-frame.sunset .preview-caption{font-weight:900;background:linear-gradient(90deg,#ff9a3c,#ff4e8b,#a855f7);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 4px #000)}
+.preview-frame.sunset .preview-caption b{color:transparent!important}
+.preview-frame.ocean .preview-caption{font-weight:900;background:linear-gradient(180deg,#b6fff0,#00e0c6,#0088ff);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 4px #000)}
+.preview-frame.ocean .preview-caption b{color:transparent!important}
+.preview-frame.chrome .preview-caption{font-weight:900;background:linear-gradient(180deg,#fff,#b8c4d6,#5d6b82,#c9d5e6);-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:1px #1b2433;paint-order:stroke fill;filter:drop-shadow(0 2px 3px #000)}
+.preview-frame.chrome .preview-caption b{color:transparent!important}
+.preview-frame.sticker .preview-caption{font-weight:900;color:#111;-webkit-text-stroke:6px #fff;paint-order:stroke fill;text-shadow:none;filter:drop-shadow(0 4px 6px #0008)}
+.preview-frame.jaune .preview-caption{background:#ffe600;color:#000;font-weight:900;padding:6px 14px!important;border-radius:4px;text-shadow:none}
+.preview-frame.jaune .preview-caption b{color:#000!important}
+.preview-frame.blanc .preview-caption{background:#fff;color:#111;font-weight:800;padding:6px 14px!important;border-radius:8px;text-shadow:none}
+.preview-frame.minimal .preview-caption{font-weight:500;font-size:18px;color:#fff;text-shadow:0 1px 4px #000}
+.preview-frame.minimal .preview-caption b{color:#fff!important;font-weight:700}
+.preview-frame.pixel .preview-caption{font-family:'Press Start 2P',monospace;font-weight:400;font-size:13px;line-height:1.7;color:#ffe600;text-shadow:2px 2px 0 #000}
+.preview-frame.pixel .preview-caption b{color:#fff!important;font-weight:400}
+`;
 document.head.appendChild(fontStyle);
 
 // Style commun des menus déroulants
@@ -324,6 +429,49 @@ Object.assign(posSlider.style, {
 colorLabel.parentNode.insertBefore(posLabel, colorLabel);
 colorLabel.parentNode.insertBefore(posSelect, colorLabel);
 colorLabel.parentNode.insertBefore(posSlider, colorLabel);
+
+// Menu des mots-clés surlignés
+const kwLabel = document.createElement('label');
+kwLabel.className = 'field-label';
+kwLabel.htmlFor = 'keywordMode';
+kwLabel.textContent = 'Mots-clés surlignés';
+
+const kwSelect = document.createElement('select');
+kwSelect.id = 'keywordMode';
+styleSelect(kwSelect);
+
+KEYWORD_MODES.forEach(([id, label]) => {
+  const option = document.createElement('option');
+  option.value = id;
+  option.textContent = label;
+  kwSelect.appendChild(option);
+});
+
+const kwColorLabel = document.createElement('label');
+kwColorLabel.className = 'field-label';
+kwColorLabel.htmlFor = 'keywordColor';
+kwColorLabel.textContent = 'Couleur des mots-clés';
+
+const kwColorInput = document.createElement('input');
+kwColorInput.type = 'color';
+kwColorInput.id = 'keywordColor';
+kwColorInput.value = '#ffe600';
+
+colorLabel.parentNode.insertBefore(kwLabel, colorLabel);
+colorLabel.parentNode.insertBefore(kwSelect, colorLabel);
+colorLabel.parentNode.insertBefore(kwColorLabel, colorLabel);
+colorLabel.parentNode.insertBefore(kwColorInput, colorLabel);
+
+kwSelect.addEventListener('change', () => {
+  kwMode = kwSelect.value;
+  lastShown = null;
+  updateCaption();
+});
+
+kwColorInput.addEventListener('input', () => {
+  lastShown = null;
+  updateCaption();
+});
 
 function applyPosition() {
   if (!captionAttached) return;
@@ -577,24 +725,67 @@ function escapeWord(w) {
   }[c]));
 }
 
+// Choisir les mots-clés d'une phrase (retourne les positions des mots)
+function keywordIndexes(words, mode) {
+  const set = new Set();
+  if (mode === 'off' || !words.length) return set;
+
+  const per = mode === 'strong' ? 3 : 6;
+  const max = Math.max(1, Math.round(words.length / per));
+  const cands = [];
+
+  words.forEach((w, i) => {
+    const clean = w.toLowerCase().replace(/[^\p{L}\p{N}]/gu, '');
+    if (!clean) return;
+
+    if (/\d/.test(clean)) {
+      cands.push({ i, len: 10 });
+    } else if (clean.length >= 5 && !STOPWORDS.has(clean)) {
+      cands.push({ i, len: clean.length });
+    }
+  });
+
+  cands.sort((a, b) => b.len - a.len || a.i - b.i);
+  cands.slice(0, max).forEach(c => set.add(c.i));
+  return set;
+}
+
+// HTML d'un mot dans l'aperçu
+function wordHtml(w, i, hidden, kwSet) {
+  const isKw = kwSet.has(i);
+  let style = '';
+
+  if (hidden) style += 'visibility:hidden;';
+
+  if (isKw) {
+    style += activeStyle === 'marker'
+      ? 'background:' + kwColorInput.value +
+        ';color:#000 !important;padding:0 6px;border-radius:4px;'
+      : 'color:' + kwColorInput.value + ' !important;';
+  }
+
+  return '<span' + (isKw ? ' class="kw"' : '') +
+    (style ? ' style="' + style + '"' : '') + '>' + w + '</span>';
+}
+
 // Afficher un texte dans l'aperçu
 // count = nombre de mots visibles (-1 = tous), mode = all | progressive | single
 function renderCaption(text, emptyLabel, count, mode) {
   const words = text.trim().split(/\s+/).filter(Boolean);
   const safe = words.map(escapeWord);
+  const kwSet = keywordIndexes(words, kwMode);
 
   if (!safe.length) {
     captionPreview.innerHTML = '';
     captionPreview.textContent = emptyLabel || '';
   } else if (mode === 'single') {
     const i = Math.min(count, safe.length) - 1;
-    captionPreview.innerHTML = i >= 0 ? '<b>' + safe[i] + '</b>' : '';
+    captionPreview.innerHTML =
+      i >= 0 ? '<b>' + wordHtml(safe[i], i, false, kwSet) + '</b>' : '';
   } else {
     const split = Math.ceil(safe.length / 2);
     const show = (w, i) =>
-      mode === 'progressive' && i >= count
-        ? '<span style="visibility:hidden">' + w + '</span>'
-        : '<span>' + w + '</span>';
+      wordHtml(w, i, mode === 'progressive' && i >= count, kwSet);
 
     const first = safe.slice(0, split).map((w, i) => show(w, i));
     const second = safe.slice(split).map((w, i) => show(w, i + split));
@@ -606,10 +797,14 @@ function renderCaption(text, emptyLabel, count, mode) {
       '</b>';
   }
 
+  captionPreview.classList.toggle('kwon', kwMode !== 'off');
   captionPreview.style.setProperty('--accent', colorInput.value);
+  captionPreview.style.setProperty('--kw', kwColorInput.value);
 
-  captionPreview.querySelector('b')
-    ?.style.setProperty('color', colorInput.value);
+  if (kwMode === 'off') {
+    captionPreview.querySelector('b')
+      ?.style.setProperty('color', colorInput.value);
+  }
 }
 
 // Combien de mots ont déjà été prononcés dans ce segment
@@ -796,6 +991,8 @@ function drawCaption(ctx, w, h, t) {
 
   const cfg = Object.assign({}, STYLE_BASE, STYLE_CFG[activeStyle] || {});
   const accent = colorInput.value;
+  const kwOn = kwMode !== 'off';
+  const kwColor = kwColorInput.value;
   const f = FONTS[Number(fontSelect.value)];
   const family = f[1] || cfg.family;
   const weight = f[1] ? f[2] : cfg.weight;
@@ -806,19 +1003,24 @@ function drawCaption(ctx, w, h, t) {
   // Construire les lignes (comme l'aperçu : moitié / moitié)
   const words = st.words;
   const n = words.length;
+  const kwSet = keywordIndexes(words, kwMode);
   let lines = [];
 
   if (displayMode === 'single') {
     const i = Math.min(st.count, n) - 1;
     if (i < 0) return;
-    lines = [{ items: [{ text: words[i], show: true }], second: true }];
+    lines = [{
+      items: [{ text: words[i], show: true, kw: kwSet.has(i) }],
+      second: true
+    }];
   } else {
     const split = Math.ceil(n / 2);
     const mk = (a, b, second) => ({
       second,
       items: words.slice(a, b).map((x, k) => ({
         text: x,
-        show: displayMode !== 'progressive' || a + k < st.count
+        show: displayMode !== 'progressive' || a + k < st.count,
+        kw: kwSet.has(a + k)
       }))
     });
     lines.push(mk(0, split, false));
@@ -878,7 +1080,7 @@ function drawCaption(ctx, w, h, t) {
     ctx.fillStyle = cfg.box.bg === 'accent' ? accent : cfg.box.bg;
     ctx.fill();
     if (cfg.box.border) {
-      ctx.strokeStyle = cfg.box.border;
+      ctx.strokeStyle = cfg.box.border === 'accent' ? accent : cfg.box.border;
       ctx.lineWidth = Math.max(1, sc);
       ctx.stroke();
     }
@@ -896,7 +1098,8 @@ function drawCaption(ctx, w, h, t) {
 
     ctx.font = fontFor(second, size);
 
-    const colorKey = second ? cfg.c2 : cfg.c1;
+    // Avec les mots-clés, tout le texte garde la couleur de base
+    const colorKey = kwOn ? cfg.c1 : (second ? cfg.c2 : cfg.c1);
     const color = colorKey === 'accent' ? accent : colorKey;
     let fill = color;
 
@@ -920,13 +1123,15 @@ function drawCaption(ctx, w, h, t) {
         : 0;
       const x = x0 + prefix;
       const txt = conv(it.text);
+      const itemFill = it.kw ? kwColor : fill;
 
-      // Surligneur : fond de couleur derrière la 2e ligne
-      if (cfg.marker && second) {
+      // Surligneur : fond de couleur derrière la 2e ligne (ou les mots-clés)
+      const marked = cfg.marker && (kwOn ? it.kw : second);
+      if (marked) {
         const ww = ctx.measureText(txt).width;
         ctx.save();
         roundRectPath(ctx, x - 6 * sc, cy - lh * 0.45, ww + 12 * sc, lh * 0.9, 4 * sc);
-        ctx.fillStyle = accent;
+        ctx.fillStyle = kwOn ? kwColor : accent;
         ctx.fill();
         ctx.restore();
         ctx.fillStyle = '#000';
@@ -941,24 +1146,26 @@ function drawCaption(ctx, w, h, t) {
         ctx.shadowBlur = (sh.b || 0) * sc;
         ctx.shadowOffsetX = (sh.x || 0) * sc;
         ctx.shadowOffsetY = (sh.y || 0) * sc;
-        ctx.fillStyle = cfg.hollow ? 'rgba(0,0,0,0)' : fill;
+        ctx.fillStyle = cfg.hollow ? 'rgba(0,0,0,0)' : itemFill;
         ctx.fillText(txt, x, cy);
         ctx.restore();
       });
 
       if (cfg.hollow) {
         ctx.lineWidth = Math.max(1.5, cfg.stroke * sc * 1.3);
-        ctx.strokeStyle = second ? accent : '#fff';
+        ctx.strokeStyle = it.kw
+          ? kwColor
+          : (second && !kwOn ? accent : '#fff');
         ctx.lineJoin = 'round';
         ctx.strokeText(txt, x, cy);
       } else {
         if (cfg.stroke) {
           ctx.lineWidth = cfg.stroke * sc * 2;
-          ctx.strokeStyle = '#000';
+          ctx.strokeStyle = cfg.strokeColor || '#000';
           ctx.lineJoin = 'round';
           ctx.strokeText(txt, x, cy);
         }
-        ctx.fillStyle = fill;
+        ctx.fillStyle = itemFill;
         ctx.fillText(txt, x, cy);
       }
     });
@@ -1003,6 +1210,18 @@ exportVideoButton.addEventListener('click', async () => {
   let objectUrl = null;
 
   try {
+    // S'assurer que la police du style / choisie est bien chargée
+    try {
+      const fsel = FONTS[Number(fontSelect.value)];
+      const cfgNow = Object.assign({}, STYLE_BASE, STYLE_CFG[activeStyle] || {});
+      const fam = fsel[1] || cfgNow.family;
+      const wt = fsel[1] ? fsel[2] : cfgNow.weight;
+      await document.fonts.load(wt + ' 20px ' + fam);
+      await document.fonts.load('700 20px ' + fam);
+    } catch (e) {
+      console.warn('Chargement de police :', e);
+    }
+
     if (document.fonts && document.fonts.ready) {
       await document.fonts.ready;
     }

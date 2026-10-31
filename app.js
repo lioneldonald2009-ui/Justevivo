@@ -113,14 +113,6 @@ const STYLE_TABS = [
   ['mine', 'Mes styles', null]
 ];
 
-// Musiques créées par l'application : [identifiant, nom affiché]
-const MUSIC_TRACKS = [
-  ['calm', 'Calme (doux)'],
-  ['energy', 'Énergique (rythme)'],
-  ['suspense', 'Suspense'],
-  ['lofi', 'Lo-fi (détente)']
-];
-
 // Clé de sauvegarde des styles de l'utilisateur (dans son navigateur)
 const PRESET_KEY = 'justevivo_styles_v1';
 
@@ -389,30 +381,6 @@ let hookSeconds = 3;    // durée d'affichage du titre
 let hookScale = 1;      // taille du titre
 let hookTop = 12;       // position du titre, % depuis le haut
 
-// Audio : musique, effets sonores et fondus
-const DUCK_LEVEL = 0.35;   // la musique baisse à ce niveau quand on parle
-let musicBuffer = null;    // musique décodée (créée ou importée)
-let musicToken = 0;
-let musicVolume = 0.3;
-let voiceVolume = 1;
-let duckOn = true;
-let sfxVolume = 0.6;
-let hookSfx = 'none';
-let zoomSfx = 'none';
-let capSfx = 'none';
-let fadeIn = 0;
-let fadeOut = 0;
-let pctx = null;           // contexte audio de l'aperçu
-let pMusic = null;         // musique en cours dans l'aperçu
-let pSfxGain = null;
-let sampleNode = null;
-let sfxPrevT = null;
-let sfxCacheKey = '';
-let sfxCache = [];
-let speechCache = { key: null, ranges: [] };
-const builtinCache = {};
-const noiseCache = new WeakMap();
-
 let baseSegments = []; // phrases d'origine (avant découpage)
 let segments = [];     // sous-titres affichés [{ start, end, text, starts: [] }]
 let edited = false;    // l'utilisateur a corrigé le texte à la main
@@ -612,44 +580,6 @@ function addCheckbox(parent, text, onChange) {
 
   input.addEventListener('change', () => onChange(input.checked));
   return input;
-}
-
-// Menu déroulant avec son titre
-function addSelect(parent, text, options, value, onChange) {
-  const label = document.createElement('label');
-  label.className = 'field-label';
-  label.textContent = text;
-
-  const select = document.createElement('select');
-  styleSelect(select);
-
-  options.forEach(([id, name]) => {
-    const option = document.createElement('option');
-    option.value = id;
-    option.textContent = name;
-    select.appendChild(option);
-  });
-
-  select.value = value;
-  select.addEventListener('change', () => onChange(select.value));
-
-  parent.appendChild(label);
-  parent.appendChild(select);
-  return select;
-}
-
-// Petit texte d'information
-function addNote(parent, text) {
-  const div = document.createElement('div');
-  div.textContent = text;
-  Object.assign(div.style, {
-    fontSize: '10px',
-    color: '#8994ad',
-    margin: '8px 0 0',
-    lineHeight: '1.5'
-  });
-  parent.appendChild(div);
-  return div;
 }
 
 const colorLabel = document.querySelector('label[for="captionColor"]');
@@ -1199,7 +1129,15 @@ addSlider(
   }
 );
 
-addNote(zoomBox, 'Le zoom se voit pendant la lecture et dans la vidéo exportée.');
+const zoomNote = document.createElement('div');
+zoomNote.textContent =
+  'Le zoom se voit pendant la lecture et dans la vidéo exportée.';
+Object.assign(zoomNote.style, {
+  fontSize: '10px',
+  color: '#8994ad',
+  margin: '8px 0 0'
+});
+zoomBox.appendChild(zoomNote);
 
 // ===== Suppression des silences =====
 const silenceBox = makeSection('Suppression des silences', false);
@@ -1235,163 +1173,12 @@ Object.assign(silenceInfo.style, {
 });
 silenceBox.appendChild(silenceInfo);
 
-// ===== Musique de fond =====
-const musicBox = makeSection('Musique de fond', false);
+// Calcul des silences (à partir des horaires des mots)
+function computeSilences() {
+  silences = [];
+  if (!silenceOn || !baseSegments.length) return;
 
-const musicSelect = addSelect(
-  musicBox,
-  'Musique',
-  [['none', 'Aucune']].concat(MUSIC_TRACKS, [['file', 'Mon fichier audio...']]),
-  'none',
-  v => onMusicChoice(v)
-);
-
-const musicFileInput = document.createElement('input');
-musicFileInput.type = 'file';
-musicFileInput.accept = 'audio/*';
-musicFileInput.style.display = 'none';
-musicBox.appendChild(musicFileInput);
-
-const musicInfo = addNote(musicBox, 'Aucune musique.');
-
-addSlider(
-  musicBox, 'Volume de la musique', 0, 100, 5, Math.round(musicVolume * 100),
-  v => v + ' %',
-  v => {
-    musicVolume = v / 100;
-  }
-);
-
-const duckInput = addCheckbox(
-  musicBox,
-  'Baisser la musique quand quelqu’un parle',
-  checked => {
-    duckOn = checked;
-  }
-);
-duckInput.checked = true;
-
-addSlider(
-  musicBox, 'Volume de la voix', 0, 100, 5, Math.round(voiceVolume * 100),
-  v => v + ' %',
-  v => {
-    voiceVolume = v / 100;
-    updateAudioMix();
-  }
-);
-
-const sampleButton = document.createElement('button');
-sampleButton.type = 'button';
-sampleButton.className = 'button ghost full';
-sampleButton.textContent = '▶ Écouter 8 secondes de la musique';
-musicBox.appendChild(sampleButton);
-
-addNote(
-  musicBox,
-  'Importez uniquement une musique dont vous avez les droits. ' +
-  'Les musiques proposées sont créées par l’application, sans droits d’auteur.'
-);
-
-sampleButton.addEventListener('click', () => playMusicSample());
-
-musicFileInput.addEventListener('change', async () => {
-  const file = musicFileInput.files && musicFileInput.files[0];
-  if (!file) return;
-
-  if (file.size > 40 * 1024 * 1024) {
-    showToast('Fichier audio trop volumineux : maximum 40 Mo.');
-    return;
-  }
-
-  const token = ++musicToken;
-  musicInfo.textContent = 'Chargement du fichier audio...';
-
-  try {
-    const ab = await file.arrayBuffer();
-    const buf = await decodeAudio(getPreviewCtx(), ab);
-    if (token !== musicToken) return;
-
-    musicBuffer = buf;
-    musicInfo.textContent =
-      file.name + ' (' + Math.round(buf.duration) + ' s, en boucle).';
-    startPreviewMusic();
-  } catch (e) {
-    console.warn('Audio illisible :', e);
-    if (token !== musicToken) return;
-    musicBuffer = null;
-    musicInfo.textContent = 'Ce fichier audio est illisible. Essayez un MP3 ou un WAV.';
-  }
-});
-
-// ===== Effets sonores =====
-const sfxBox = makeSection('Effets sonores', false);
-
-addSelect(
-  sfxBox, 'Son du titre d’accroche',
-  [['none', 'Aucun'], ['whoosh', 'Whoosh'], ['ding', 'Ding'], ['pop', 'Pop']],
-  'none',
-  v => {
-    hookSfx = v;
-  }
-);
-
-addSelect(
-  sfxBox, 'Son des zooms',
-  [['none', 'Aucun'], ['whoosh', 'Whoosh'], ['pop', 'Pop']],
-  'none',
-  v => {
-    zoomSfx = v;
-    if (v !== 'none' && !zoomOn) {
-      showToast('Activez aussi les zooms automatiques pour entendre ce son.');
-    }
-  }
-);
-
-addSelect(
-  sfxBox, 'Son à chaque nouveau sous-titre',
-  [['none', 'Aucun'], ['pop', 'Pop'], ['click', 'Clic']],
-  'none',
-  v => {
-    capSfx = v;
-    if (v !== 'none' && !segments.length) {
-      showToast('Générez d’abord les sous-titres IA pour entendre ce son.');
-    }
-  }
-);
-
-addSlider(
-  sfxBox, 'Volume des effets', 0, 100, 5, Math.round(sfxVolume * 100),
-  v => v + ' %',
-  v => {
-    sfxVolume = v / 100;
-  }
-);
-
-addNote(sfxBox, 'Les effets sont créés par l’application et se jouent pendant la lecture et dans la vidéo exportée.');
-
-// ===== Transitions : fondus =====
-const fadeBox = makeSection('Transitions : fondus', false);
-
-addSlider(
-  fadeBox, 'Fondu d’entrée (image et son)', 0, 3, 0.1, 0,
-  v => (v === 0 ? 'aucun' : v.toFixed(1) + ' s'),
-  v => {
-    fadeIn = v;
-  }
-);
-
-addSlider(
-  fadeBox, 'Fondu de sortie (image et son)', 0, 3, 0.1, 0,
-  v => (v === 0 ? 'aucun' : v.toFixed(1) + ' s'),
-  v => {
-    fadeOut = v;
-  }
-);
-
-addNote(fadeBox, 'Le fondu se voit pendant la lecture et dans la vidéo exportée.');
-
-// Liste des moments de parole (début et fin de chaque mot)
-function rawSpeech() {
+  const PAD = 0.15; // marge gardée autour de la parole
   const speech = [];
 
   baseSegments.forEach(b => {
@@ -1404,16 +1191,6 @@ function rawSpeech() {
   });
 
   speech.sort((a, b) => a[0] - b[0]);
-  return speech;
-}
-
-// Calcul des silences (à partir des horaires des mots)
-function computeSilences() {
-  silences = [];
-  if (!silenceOn || !baseSegments.length) return;
-
-  const PAD = 0.15; // marge gardée autour de la parole
-  const speech = rawSpeech();
 
   let prevEnd = 0;
   speech.forEach(([s, e]) => {
@@ -1523,20 +1300,6 @@ Object.assign(hookPreview.style, {
   boxShadow: '0 4px 14px rgba(0,0,0,0.35)'
 });
 
-// Voile noir pour les fondus (aperçu)
-const fadeOverlay = document.createElement('div');
-Object.assign(fadeOverlay.style, {
-  position: 'absolute',
-  left: '0',
-  right: '0',
-  top: '0',
-  bottom: '0',
-  background: '#000',
-  opacity: '0',
-  pointerEvents: 'none',
-  zIndex: '7'
-});
-
 function updateHook() {
   if (!captionAttached) return;
 
@@ -1550,570 +1313,6 @@ function updateHook() {
     if (hookPreview.textContent !== txt) hookPreview.textContent = txt;
     hookPreview.style.fontSize = (14 * hookScale * previewScale()) + 'px';
     hookPreview.style.top = hookTop + '%';
-  }
-}
-
-// ===== AUDIO : musique, effets sonores, fondus =====
-function getPreviewCtx() {
-  if (!pctx) {
-    const AC = window.AudioContext || window.webkitAudioContext;
-    pctx = new AC();
-  }
-  return pctx;
-}
-
-// Débloquer le son dès la première interaction de l'utilisateur
-['pointerdown', 'touchstart', 'keydown'].forEach(evName => {
-  document.addEventListener(evName, () => {
-    try {
-      const c = getPreviewCtx();
-      if (c.state === 'suspended') c.resume();
-    } catch (e) {
-      // son indisponible
-    }
-  }, { passive: true });
-});
-
-function decodeAudio(ctx, ab) {
-  return new Promise((resolve, reject) => {
-    const p = ctx.decodeAudioData(ab, resolve, reject);
-    if (p && p.catch) p.catch(reject);
-  });
-}
-
-function clamp01(x) {
-  return Math.max(0, Math.min(1, x));
-}
-
-// Facteur de fondu (1 = normal, 0 = noir et silence) à l'instant t de la vidéo
-function fadeFactor(t) {
-  if (!fadeIn && !fadeOut) return 1;
-
-  const o = outTime(t);
-  const total = outputDuration();
-  let f = 1;
-
-  if (fadeIn > 0) f = Math.min(f, o / fadeIn);
-  if (fadeOut > 0 && total > 0) f = Math.min(f, (total - o) / fadeOut);
-
-  return clamp01(f);
-}
-
-// Moments où quelqu'un parle (pour baisser la musique)
-function speechRanges() {
-  if (speechCache.key === baseSegments) return speechCache.ranges;
-
-  const merged = [];
-  rawSpeech().forEach(([s, e]) => {
-    const last = merged[merged.length - 1];
-    if (last && s - last[1] < 0.4) {
-      last[1] = Math.max(last[1], e);
-    } else {
-      merged.push([s, e]);
-    }
-  });
-
-  speechCache = { key: baseSegments, ranges: merged };
-  return merged;
-}
-
-function duckFactor(t) {
-  if (!duckOn || !baseSegments.length) return 1;
-  const inside = speechRanges().some(r => t >= r[0] - 0.1 && t <= r[1] + 0.15);
-  return inside ? DUCK_LEVEL : 1;
-}
-
-// --- Bruit blanc (pour les effets et les percussions) ---
-function makeNoise(ctx) {
-  const len = ctx.sampleRate;
-  const b = ctx.createBuffer(1, len, ctx.sampleRate);
-  const d = b.getChannelData(0);
-  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
-  return b;
-}
-
-function noiseBuf(ctx) {
-  let b = noiseCache.get(ctx);
-  if (!b) {
-    b = makeNoise(ctx);
-    noiseCache.set(ctx, b);
-  }
-  return b;
-}
-
-// --- Effets sonores créés par l'application ---
-function playSfx(ctx, dest, kind, when) {
-  const t = Math.max(when, ctx.currentTime);
-
-  if (kind === 'whoosh') {
-    const src = ctx.createBufferSource();
-    src.buffer = noiseBuf(ctx);
-    const f = ctx.createBiquadFilter();
-    f.type = 'bandpass';
-    f.Q.value = 1.2;
-    f.frequency.setValueAtTime(250, t);
-    f.frequency.exponentialRampToValueAtTime(4000, t + 0.45);
-    const g = ctx.createGain();
-    g.gain.setValueAtTime(0.0001, t);
-    g.gain.exponentialRampToValueAtTime(0.9, t + 0.2);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.55);
-    src.connect(f);
-    f.connect(g);
-    g.connect(dest);
-    src.start(t, Math.random() * 0.3);
-    src.stop(t + 0.6);
-  } else if (kind === 'ding') {
-    [[880, 0.5], [1320, 0.25]].forEach(([fr, vol]) => {
-      const o = ctx.createOscillator();
-      o.type = 'sine';
-      o.frequency.value = fr;
-      const g = ctx.createGain();
-      g.gain.setValueAtTime(vol, t);
-      g.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
-      o.connect(g);
-      g.connect(dest);
-      o.start(t);
-      o.stop(t + 0.75);
-    });
-  } else if (kind === 'pop') {
-    const o = ctx.createOscillator();
-    o.type = 'sine';
-    o.frequency.setValueAtTime(700, t);
-    o.frequency.exponentialRampToValueAtTime(180, t + 0.09);
-    const g = ctx.createGain();
-    g.gain.setValueAtTime(0.8, t);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.13);
-    o.connect(g);
-    g.connect(dest);
-    o.start(t);
-    o.stop(t + 0.15);
-  } else if (kind === 'click') {
-    const src = ctx.createBufferSource();
-    src.buffer = noiseBuf(ctx);
-    const f = ctx.createBiquadFilter();
-    f.type = 'highpass';
-    f.frequency.value = 2500;
-    const g = ctx.createGain();
-    g.gain.setValueAtTime(0.7, t);
-    g.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
-    src.connect(f);
-    f.connect(g);
-    g.connect(dest);
-    src.start(t, Math.random() * 0.5);
-    src.stop(t + 0.05);
-  }
-}
-
-function getPreviewSfxGain() {
-  const ctx = getPreviewCtx();
-  if (!pSfxGain) {
-    pSfxGain = ctx.createGain();
-    pSfxGain.connect(ctx.destination);
-  }
-  pSfxGain.gain.value = sfxVolume;
-  return pSfxGain;
-}
-
-// Liste des moments où jouer un effet (temps de la vidéo d'origine)
-function sfxEventsList() {
-  const hookOn = hookInput.value.trim().length > 0;
-  const key = [
-    hookSfx, zoomSfx, capSfx, zoomOn ? 1 : 0, hookOn ? 1 : 0,
-    segments.length, baseSegments.length, trimStart, trimEnd,
-    silenceOn ? silences.length : -1
-  ].join('|');
-
-  if (key === sfxCacheKey) return sfxCache;
-
-  const ev = [];
-  const a = trimStart;
-  const b = getTrimEnd();
-
-  if (hookSfx !== 'none' && hookOn) {
-    ev.push({ t: a + 0.05, kind: hookSfx });
-  }
-
-  if (zoomSfx !== 'none' && zoomOn) {
-    const list = baseSegments.length ? baseSegments : segments;
-    list.forEach((s, i) => {
-      if (i % 2 === 1) ev.push({ t: s.start, kind: zoomSfx });
-    });
-  }
-
-  if (capSfx !== 'none') {
-    let last = -9;
-    segments.forEach(s => {
-      if (s.text && s.start - last >= 0.25) {
-        ev.push({ t: s.start, kind: capSfx });
-        last = s.start;
-      }
-    });
-  }
-
-  const out = ev.filter(e =>
-    e.t >= a - 0.001 && e.t < b &&
-    !(silenceOn && silences.some(s => e.t >= s.from && e.t < s.to))
-  );
-
-  out.sort((x, y) => x.t - y.t);
-  sfxCacheKey = key;
-  sfxCache = out;
-  return out;
-}
-
-// Jouer les effets pendant la lecture de l'aperçu
-function previewSfxTick() {
-  if (videoPreview.paused) {
-    sfxPrevT = null;
-    return;
-  }
-
-  const t = videoPreview.currentTime;
-
-  if (sfxPrevT !== null && t > sfxPrevT && t - sfxPrevT < 0.4) {
-    const list = sfxEventsList();
-    for (const e of list) {
-      if (e.t > sfxPrevT && e.t <= t) {
-        const ctx = getPreviewCtx();
-        if (ctx.state === 'suspended') ctx.resume();
-        playSfx(ctx, getPreviewSfxGain(), e.kind, ctx.currentTime);
-      }
-    }
-  }
-
-  sfxPrevT = t;
-}
-
-// --- Musique dans l'aperçu ---
-function startPreviewMusic() {
-  stopPreviewMusic();
-  if (!musicBuffer || videoPreview.paused) return;
-
-  stopSample();
-
-  const ctx = getPreviewCtx();
-  if (ctx.state === 'suspended') ctx.resume();
-
-  const src = ctx.createBufferSource();
-  src.buffer = musicBuffer;
-  src.loop = true;
-
-  const gain = ctx.createGain();
-  gain.gain.value = 0;
-  src.connect(gain);
-  gain.connect(ctx.destination);
-
-  const off = outTime(videoPreview.currentTime || 0) % musicBuffer.duration;
-  src.start(0, off);
-
-  pMusic = { src, gain, startCtx: ctx.currentTime, startOff: off, cur: 0 };
-}
-
-function stopPreviewMusic() {
-  if (!pMusic) return;
-  try { pMusic.src.stop(); } catch (e) { /* déjà arrêtée */ }
-  try { pMusic.src.disconnect(); } catch (e) { /* rien */ }
-  try { pMusic.gain.disconnect(); } catch (e) { /* rien */ }
-  pMusic = null;
-}
-
-// Si l'utilisateur a déplacé la vidéo, recaler la musique
-function resyncMusic() {
-  if (!pMusic || !musicBuffer || videoPreview.paused) return;
-
-  const dur = musicBuffer.duration;
-  const ctx = getPreviewCtx();
-  const pos = (ctx.currentTime - pMusic.startCtx + pMusic.startOff) % dur;
-  const want = outTime(videoPreview.currentTime || 0) % dur;
-
-  let d = Math.abs(pos - want);
-  d = Math.min(d, dur - d);
-  if (d > 0.4) startPreviewMusic();
-}
-
-// Extrait de la musique (8 secondes)
-function stopSample() {
-  if (!sampleNode) return;
-  try { sampleNode.stop(); } catch (e) { /* déjà arrêté */ }
-  sampleNode = null;
-}
-
-function playMusicSample() {
-  if (!musicBuffer) {
-    showToast('Choisissez d’abord une musique.');
-    return;
-  }
-
-  stopSample();
-  stopPreviewMusic();
-
-  const ctx = getPreviewCtx();
-  if (ctx.state === 'suspended') ctx.resume();
-
-  const src = ctx.createBufferSource();
-  src.buffer = musicBuffer;
-  const g = ctx.createGain();
-  g.gain.value = Math.max(0.05, musicVolume);
-  src.connect(g);
-  g.connect(ctx.destination);
-  src.start(0);
-  src.stop(ctx.currentTime + 8);
-  sampleNode = src;
-}
-
-// Volume de la voix, de la musique et fondu dans l'aperçu
-function updateAudioMix() {
-  const t = videoPreview.currentTime || 0;
-  const playing = !videoPreview.paused;
-  const f = playing ? fadeFactor(t) : 1;
-
-  try {
-    videoPreview.volume = clamp01(voiceVolume * f);
-  } catch (e) {
-    // volume non réglable sur cet appareil
-  }
-
-  fadeOverlay.style.opacity = playing ? String(1 - f) : '0';
-
-  if (pMusic) {
-    const target = musicVolume * duckFactor(t) * f;
-    pMusic.cur += (target - pMusic.cur) * 0.2;
-    pMusic.gain.gain.value = pMusic.cur;
-  }
-}
-
-function tickAudio() {
-  updateAudioMix();
-  previewSfxTick();
-}
-
-videoPreview.addEventListener('play', () => {
-  sfxPrevT = videoPreview.currentTime;
-  startPreviewMusic();
-});
-videoPreview.addEventListener('pause', () => {
-  stopPreviewMusic();
-  sfxPrevT = null;
-  updateAudioMix();
-});
-videoPreview.addEventListener('ended', () => {
-  stopPreviewMusic();
-  sfxPrevT = null;
-});
-videoPreview.addEventListener('seeked', resyncMusic);
-
-// --- Musiques créées par l'application ---
-function midiHz(m) {
-  return 440 * Math.pow(2, (m - 69) / 12);
-}
-
-function synthNote(ctx, dest, o) {
-  if (o.d < 0.03) return;
-
-  const osc = ctx.createOscillator();
-  osc.type = o.type || 'sine';
-  osc.frequency.value = o.f;
-
-  const g = ctx.createGain();
-  const a = o.a === undefined ? 0.02 : o.a;
-  const r = o.r === undefined ? 0.2 : o.r;
-  g.gain.setValueAtTime(0, o.t);
-  g.gain.linearRampToValueAtTime(o.g, o.t + a);
-  g.gain.setValueAtTime(o.g, Math.max(o.t + a, o.t + o.d - r));
-  g.gain.linearRampToValueAtTime(0, o.t + o.d);
-
-  if (o.lp) {
-    const f = ctx.createBiquadFilter();
-    f.type = 'lowpass';
-    f.frequency.value = o.lp;
-    osc.connect(f);
-    f.connect(g);
-  } else {
-    osc.connect(g);
-  }
-
-  g.connect(dest);
-  osc.start(o.t);
-  osc.stop(o.t + o.d + 0.05);
-}
-
-function drumKick(ctx, dest, t, g) {
-  const o = ctx.createOscillator();
-  o.type = 'sine';
-  o.frequency.setValueAtTime(150, t);
-  o.frequency.exponentialRampToValueAtTime(45, t + 0.12);
-  const a = ctx.createGain();
-  a.gain.setValueAtTime(g, t);
-  a.gain.exponentialRampToValueAtTime(0.001, t + 0.3);
-  o.connect(a);
-  a.connect(dest);
-  o.start(t);
-  o.stop(t + 0.32);
-}
-
-function drumNoise(ctx, dest, noise, t, type, freq, g, d) {
-  const s = ctx.createBufferSource();
-  s.buffer = noise;
-  const f = ctx.createBiquadFilter();
-  f.type = type;
-  f.frequency.value = freq;
-  const a = ctx.createGain();
-  a.gain.setValueAtTime(g, t);
-  a.gain.exponentialRampToValueAtTime(0.001, t + d);
-  s.connect(f);
-  f.connect(a);
-  a.connect(dest);
-  s.start(t, Math.random() * 0.5);
-  s.stop(t + d + 0.02);
-}
-
-function renderTrack(id) {
-  const OAC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
-  if (!OAC) return Promise.reject(new Error('Audio non disponible'));
-
-  const SR = 44100;
-  const bpm = { calm: 72, energy: 112, suspense: 76, lofi: 82 }[id] || 90;
-  const beat = 60 / bpm;
-  const bar = beat * 4;
-  const total = bar * 4;
-  const ctx = new OAC(2, Math.ceil(total * SR), SR);
-
-  const comp = ctx.createDynamicsCompressor();
-  const master = ctx.createGain();
-  master.gain.value = 0.8;
-  master.connect(comp);
-  comp.connect(ctx.destination);
-
-  const noise = makeNoise(ctx);
-
-  // Accords : La mineur, Fa, Do, Sol
-  const chords = [[57, 60, 64], [57, 60, 65], [55, 60, 64], [55, 59, 62]];
-  const roots = [45, 41, 48, 43];
-
-  const note = (m, t, d, type, g, a, r, lp) => {
-    synthNote(ctx, master, {
-      f: midiHz(m),
-      t,
-      d: Math.min(d, total - t - 0.02),
-      type,
-      g,
-      a,
-      r,
-      lp
-    });
-  };
-
-  for (let b = 0; b < 4; b++) {
-    const t0 = b * bar;
-
-    if (id === 'calm') {
-      chords[b].forEach(m => note(m, t0, bar + 0.25, 'sine', 0.11, 0.5, 1.0));
-      note(roots[b], t0, bar, 'sine', 0.2, 0.1, 0.6);
-      for (let i = 0; i < 8; i++) {
-        note(
-          chords[b][i % 3] + 12,
-          t0 + (i * beat) / 2,
-          beat * 1.2,
-          'triangle', 0.07, 0.01, 0.5, 2500
-        );
-      }
-    }
-
-    if (id === 'energy') {
-      for (let i = 0; i < 4; i++) {
-        drumKick(ctx, master, t0 + i * beat, 0.9);
-        drumNoise(ctx, master, noise, t0 + i * beat + beat / 2, 'highpass', 7000, 0.22, 0.05);
-      }
-      drumNoise(ctx, master, noise, t0 + beat, 'bandpass', 1800, 0.45, 0.18);
-      drumNoise(ctx, master, noise, t0 + beat * 3, 'bandpass', 1800, 0.45, 0.18);
-
-      for (let i = 0; i < 8; i++) {
-        note(roots[b], t0 + (i * beat) / 2, (beat / 2) * 0.9, 'sawtooth', 0.14, 0.005, 0.08, 400);
-      }
-      [1.5, 3.5].forEach(k => {
-        chords[b].forEach(m =>
-          note(m + 12, t0 + beat * k, beat * 0.4, 'sawtooth', 0.045, 0.005, 0.15, 1800)
-        );
-      });
-    }
-
-    if (id === 'suspense') {
-      drumKick(ctx, master, t0, 0.35);
-      drumKick(ctx, master, t0 + beat * 2, 0.25);
-      note(roots[b] - 12, t0, bar, 'sine', 0.16, 0.2, 0.4);
-    }
-
-    if (id === 'lofi') {
-      [0, 2.5].forEach(k => {
-        chords[b].forEach(m =>
-          note(m, t0 + beat * k, beat * 1.8, 'triangle', 0.09, 0.01, 0.5, 1100)
-        );
-      });
-      note(roots[b], t0, beat * 1.8, 'sine', 0.2, 0.01, 0.4);
-      note(roots[b], t0 + beat * 2, beat * 1.8, 'sine', 0.2, 0.01, 0.4);
-      drumKick(ctx, master, t0, 0.8);
-      drumKick(ctx, master, t0 + beat * 2.5, 0.7);
-      drumNoise(ctx, master, noise, t0 + beat, 'bandpass', 1500, 0.35, 0.16);
-      drumNoise(ctx, master, noise, t0 + beat * 3, 'bandpass', 1500, 0.35, 0.16);
-      for (let i = 0; i < 8; i++) {
-        drumNoise(ctx, master, noise, t0 + (i * beat) / 2, 'highpass', 8000, 0.1, 0.04);
-      }
-    }
-  }
-
-  if (id === 'suspense') {
-    note(33, 0, total, 'sawtooth', 0.06, 0.05, 0.05, 180);
-    note(40, 0, total, 'sine', 0.08, 0.05, 0.05);
-
-    [3, 7, 10, 14].forEach((bt, k) => {
-      const chord = chords[Math.floor(bt / 4)];
-      note(chord[k % chord.length] + 24, bt * beat, 2.5, 'triangle', 0.07, 0.02, 2.0, 3000);
-    });
-  }
-
-  return ctx.startRendering();
-}
-
-async function getBuiltin(id) {
-  if (!builtinCache[id]) builtinCache[id] = await renderTrack(id);
-  return builtinCache[id];
-}
-
-// Choix de la musique
-async function onMusicChoice(v) {
-  const token = ++musicToken;
-  stopPreviewMusic();
-  stopSample();
-
-  if (v === 'none') {
-    musicBuffer = null;
-    musicInfo.textContent = 'Aucune musique.';
-    return;
-  }
-
-  if (v === 'file') {
-    musicBuffer = null;
-    musicInfo.textContent = 'Choisissez un fichier audio (MP3, WAV, M4A...).';
-    musicFileInput.value = '';
-    musicFileInput.click();
-    return;
-  }
-
-  musicInfo.textContent = 'Création de la musique...';
-
-  try {
-    const buf = await getBuiltin(v);
-    if (token !== musicToken) return;
-
-    musicBuffer = buf;
-    const tr = MUSIC_TRACKS.find(x => x[0] === v);
-    musicInfo.textContent = 'Prête : ' + (tr ? tr[1] : v) + ' (en boucle).';
-    startPreviewMusic();
-  } catch (e) {
-    console.warn('Musique :', e);
-    if (token !== musicToken) return;
-    musicBuffer = null;
-    musicInfo.textContent = 'Impossible de créer cette musique sur ce navigateur.';
   }
 }
 
@@ -2553,7 +1752,6 @@ function attachCaptionToVideo() {
 
   previewFrame.appendChild(captionPreview);
   previewFrame.appendChild(hookPreview);
-  previewFrame.appendChild(fadeOverlay);
 
   const s = captionPreview.style;
   s.position = 'absolute';
@@ -2589,7 +1787,6 @@ videoInput.addEventListener('change', () => {
   lastShown = null;
   trimStart = 0;
   trimEnd = 0;
-  stopPreviewMusic();
 
   const url = URL.createObjectURL(file);
   videoPreview.src = url;
@@ -2919,7 +2116,6 @@ function tick() {
   syncCaption();
   applyZoom();
   updateHook();
-  tickAudio();
 }
 
 function syncLoop() {
@@ -3400,8 +2596,6 @@ exportVideoButton.addEventListener('click', async () => {
   exportVideoButton.disabled = true;
   exportVideoButton.textContent = 'Préparation...';
   videoPreview.pause();
-  stopPreviewMusic();
-  stopSample();
 
   let audioCtx = null;
   let objectUrl = null;
@@ -3467,44 +2661,142 @@ exportVideoButton.addEventListener('click', async () => {
 
     const stream = canvas.captureStream(30);
 
-    // Son : voix + musique + effets, mélangés dans la vidéo exportée
+    // Récupérer le son de la vidéo
     let hasAudio = false;
-    let voiceGain = null;
-    let musicNode = null;
-    let sfxGain = null;
-
     try {
       const AC = window.AudioContext || window.webkitAudioContext;
       audioCtx = new AC();
       await audioCtx.resume();
-
       const srcNode = audioCtx.createMediaElementSource(vid);
       const dest = audioCtx.createMediaStreamDestination();
-
-      voiceGain = audioCtx.createGain();
-      voiceGain.gain.value = voiceVolume;
-      srcNode.connect(voiceGain);
-      voiceGain.connect(dest);
-
-      if (musicBuffer) {
-        const msrc = audioCtx.createBufferSource();
-        msrc.buffer = musicBuffer;
-        msrc.loop = true;
-        const mg = audioCtx.createGain();
-        mg.gain.value = 0;
-        msrc.connect(mg);
-        mg.connect(dest);
-        musicNode = { src: msrc, gain: mg, cur: 0 };
-      }
-
-      sfxGain = audioCtx.createGain();
-      sfxGain.gain.value = sfxVolume;
-      sfxGain.connect(dest);
-
+      srcNode.connect(dest);
       dest.stream.getAudioTracks().forEach(tr => stream.addTrack(tr));
       hasAudio = true;
     } catch (e) {
       console.warn('Son non capturé :', e);
     }
 
-   
+    const mime = MIME_CHOICES.find(m => MediaRecorder.isTypeSupported(m)) || '';
+    const recorder = new MediaRecorder(
+      stream,
+      mime
+        ? { mimeType: mime, videoBitsPerSecond: 5000000 }
+        : { videoBitsPerSecond: 5000000 }
+    );
+
+    // Découpage : partie de la vidéo à garder
+    const trimmed = isTrimmed();
+    const startT = trimmed ? trimStart : 0;
+    const endT = trimmed ? getTrimEnd() : vid.duration;
+    const fit = rr ? fitMode : 'cover';
+
+    if (startT > 0.05) {
+      await new Promise(resolve => {
+        const done = () => {
+          vid.onseeked = null;
+          resolve();
+        };
+        vid.onseeked = done;
+        setTimeout(done, 3000);
+        vid.currentTime = startT;
+      });
+    }
+
+    showToast(
+      'Export en cours : gardez cet écran ouvert jusqu’à la fin de la vidéo.' +
+      (hasAudio ? '' : ' (Son non disponible sur ce navigateur.)')
+    );
+
+    const blob = await new Promise((resolve, reject) => {
+      const chunks = [];
+
+      recorder.ondataavailable = e => {
+        if (e.data && e.data.size) chunks.push(e.data);
+      };
+
+      recorder.onstop = () =>
+        resolve(
+          new Blob(chunks, {
+            type: recorder.mimeType || mime || 'video/webm'
+          })
+        );
+
+      recorder.onerror = e =>
+        reject((e && e.error) || new Error('Erreur d’enregistrement.'));
+
+      vid.onended = () => {
+        if (recorder.state !== 'inactive') recorder.stop();
+      };
+
+      const draw = () => {
+        // Fin de la partie gardée
+        if (trimmed && vid.currentTime >= endT - 0.02) {
+          vid.pause();
+          if (recorder.state !== 'inactive') recorder.stop();
+          return;
+        }
+
+        // Sauter les silences
+        if (silenceOn && silences.length && !vid.seeking) {
+          const cur = vid.currentTime;
+          const sl = silences.find(x => cur >= x.from && cur < x.to);
+          if (sl) vid.currentTime = sl.to;
+        }
+
+        // Image de la vidéo (format choisi + zoom automatique)
+        const z = zoomAt(vid.currentTime);
+        drawVideoFrame(ctx, vid, vw, vh, w, h, z, fit);
+
+        drawCaption(ctx, w, h, vid.currentTime);
+        drawHook(ctx, w, h, vid.currentTime);
+
+        const span = Math.max(0.1, endT - startT);
+        const pct = Math.min(
+          100,
+          Math.max(0, Math.round(((vid.currentTime - startT) / span) * 100))
+        );
+        exportVideoButton.textContent = 'Export en cours... ' + pct + '%';
+
+        if (!vid.ended && recorder.state !== 'inactive') {
+          requestAnimationFrame(draw);
+        }
+      };
+
+      recorder.start(1000);
+
+      vid.play()
+        .then(() => requestAnimationFrame(draw))
+        .catch(() => {
+          reject(new Error('Lecture bloquée. Touchez de nouveau le bouton d’export.'));
+          if (recorder.state !== 'inactive') recorder.stop();
+        });
+    });
+
+    const ext = blob.type.includes('mp4') ? 'mp4' : 'webm';
+    downloadBlob(blob, baseName() + '-sous-titres.' + ext);
+    showToast('Vidéo exportée (' + ext.toUpperCase() + ') et téléchargée.');
+
+  } catch (error) {
+    console.error('Erreur export :', error);
+    showToast(error.message || 'Export impossible.');
+  } finally {
+    if (audioCtx) audioCtx.close().catch(() => {});
+    if (objectUrl) URL.revokeObjectURL(objectUrl);
+    exportVideoButton.disabled = false;
+    exportVideoButton.textContent = idleLabel;
+  }
+});
+
+// Abonnements
+document.querySelectorAll('.plan-button').forEach(button => {
+  button.addEventListener('click', () => {
+    showToast(
+      'La formule ' + button.dataset.plan +
+      ' sera disponible après activation des paiements.'
+    );
+  });
+});
+
+layoutPreview();
+updateSilenceInfo();
+updateCaption();

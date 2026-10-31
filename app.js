@@ -93,6 +93,90 @@ const POSITIONS = [
   ['custom', 'Personnalisée (curseur)', null]
 ];
 
+// Formats de sortie : [identifiant, nom affiché, rapport largeur/hauteur (0 = original)]
+const FORMATS = [
+  ['original', 'Original (comme la vidéo)', 0],
+  ['9:16', 'Vertical 9:16 (TikTok, Reels, Shorts)', 9 / 16],
+  ['1:1', 'Carré 1:1', 1],
+  ['4:5', 'Portrait 4:5 (Instagram)', 4 / 5],
+  ['16:9', 'Horizontal 16:9 (YouTube)', 16 / 9]
+];
+
+// Onglets de la galerie de styles : [identifiant, nom, styles (null = tous)]
+const STYLE_TABS = [
+  ['all', 'Tous', null],
+  ['classic', 'Classique', ['pop', 'clean', 'impact', 'cinema', 'elegant', 'minimal', 'fin', 'ombre', 'blanc', 'jaune', 'bande', 'boite']],
+  ['neon', 'Néon', ['neon', 'neonvert', 'neonjaune', 'rose', 'glace', 'feu']],
+  ['color', 'Couleur', ['degrade', 'sunset', 'ocean', 'chrome', 'or', 'marker', 'tiktok', 'retro3d', 'sticker', 'contour']],
+  ['emoji', 'Emojis', ['pop', 'tiktok', 'impact', 'comic', 'sticker', 'boite', 'jaune', 'blanc', 'verre']],
+  ['story', 'Storytelling', ['cinema', 'elegant', 'machine', 'fin', 'minimal', 'verre', 'pixel', 'bande']],
+  ['mine', 'Mes styles', null]
+];
+
+// Clé de sauvegarde des styles de l'utilisateur (dans son navigateur)
+const PRESET_KEY = 'justevivo_styles_v1';
+
+// Emojis automatiques : [emoji, mots (minuscules, sans accents)]
+const EMOJI_GROUPS = [
+  ['💰', 'argent money cash fric thune riche richesse salaire revenu euro euros dollar dollars'],
+  ['💸', 'depenser depense payer paie facture dette frais'],
+  ['📈', 'croissance croitre augmenter hausse monter progresser growth profit benefice'],
+  ['📉', 'baisse baisser perdre perte chute'],
+  ['🔥', 'feu fire chaud hot viral tendance trending'],
+  ['❤️', 'amour love coeur aimer adore passion'],
+  ['😂', 'rire drole fun lol blague funny'],
+  ['😱', 'choc wow shock peur horreur'],
+  ['🤯', 'dingue fou folie incroyable'],
+  ['⭐', 'etoile star meilleur favori'],
+  ['🏆', 'gagnant victoire champion trophee winner win succes success reussir reussite'],
+  ['🎯', 'objectif cible goal target viser'],
+  ['💡', 'idee idea astuce conseil tip secret'],
+  ['🚀', 'lancer lancement fusee rapide startup decoller'],
+  ['⏰', 'heure minute horloge time urgent'],
+  ['📱', 'telephone iphone smartphone mobile application app'],
+  ['💻', 'ordinateur computer pc code logiciel site internet web'],
+  ['🎬', 'video film cinema tournage camera'],
+  ['🎵', 'musique music chanson chanter song'],
+  ['📚', 'livre apprendre formation cours etudier lecture'],
+  ['🏠', 'maison home appartement logement domicile immobilier loyer'],
+  ['🚗', 'voiture auto car conduire route'],
+  ['✈️', 'avion voyage voyager vacances vol travel'],
+  ['🍕', 'pizza manger repas nourriture food'],
+  ['☕', 'cafe coffee'],
+  ['💪', 'force muscle sport muscler courage energie'],
+  ['🧠', 'cerveau intelligent penser pensee mental brain mind'],
+  ['👀', 'regarder regardez look attention'],
+  ['👉', 'ici voici clique cliquer lien'],
+  ['✅', 'valider vrai correct exact verifie'],
+  ['❌', 'faux erreur interdit'],
+  ['⚠️', 'danger risque piege arnaque warning'],
+  ['🙏', 'merci thanks priere'],
+  ['👍', 'super parfait genial cool excellent'],
+  ['🎉', 'fete celebrer bravo anniversaire party'],
+  ['🌍', 'monde world planete terre'],
+  ['🌞', 'soleil sun ete'],
+  ['🌙', 'nuit lune dormir sommeil'],
+  ['😍', 'magnifique beau belle beaute adorable'],
+  ['🤝', 'accord partenaire partenariat deal contrat equipe'],
+  ['🔒', 'securite secure prive'],
+  ['🛒', 'acheter achat boutique magasin shopping vendre vente'],
+  ['📞', 'appeler appel contact'],
+  ['📩', 'email mail message courriel'],
+  ['🇫🇷', 'france francais'],
+  ['🏢', 'entreprise societe business bureau company'],
+  ['📝', 'document ecrire notes'],
+  ['🧾', 'impot impots taxe taxes tva fiscal'],
+  ['😢', 'triste pleurer larmes sad'],
+  ['😎', 'swag style']
+];
+
+const EMOJI_MAP = new Map();
+EMOJI_GROUPS.forEach(([emo, words]) => {
+  words.split(' ').forEach(w => {
+    if (!EMOJI_MAP.has(w)) EMOJI_MAP.set(w, emo);
+  });
+});
+
 // Valeurs par défaut des réglages du texte
 const DEFAULTS = {
   size: 100,       // %
@@ -266,9 +350,18 @@ const STYLE_CFG = {
 let activeStyle = 'pop';
 let displayMode = 'all';
 let kwMode = 'off';
+let emojiMode = 'off';
 let positionPercent = 14; // distance du bas de la vidéo, en %
 let captionAttached = false;
 let selectedFile = null;
+let currentTab = 'all';
+let presets = loadPresets();
+
+// Format et découpage
+let formatId = 'original';
+let fitMode = 'cover';  // cover = remplir, contain = bandes noires
+let trimStart = 0;      // début gardé, en secondes
+let trimEnd = 0;        // fin gardée, en secondes (0 = jusqu'à la fin)
 
 // Réglages du texte (modifiables par l'utilisateur)
 let sizeScale = DEFAULTS.size / 100;
@@ -303,6 +396,56 @@ function showToast(message) {
   );
 }
 
+// ===== Sauvegarde des styles de l'utilisateur =====
+function loadPresets() {
+  try {
+    const raw = localStorage.getItem(PRESET_KEY);
+    const arr = raw ? JSON.parse(raw) : [];
+    return Array.isArray(arr) ? arr : [];
+  } catch (e) {
+    return [];
+  }
+}
+
+function storePresets(arr) {
+  try {
+    localStorage.setItem(PRESET_KEY, JSON.stringify(arr));
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+// ===== Emojis automatiques =====
+function normWord(w) {
+  return w.toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9]/g, '');
+}
+
+function emojiForWord(w) {
+  const n = normWord(w);
+  if (!n) return '';
+  return EMOJI_MAP.get(n) || EMOJI_MAP.get(n.replace(/(s|x)$/, '')) || '';
+}
+
+// Retourne une table position du mot -> emoji (2 emojis maximum par sous-titre)
+function emojiIndexes(words) {
+  const map = new Map();
+  if (emojiMode === 'off') return map;
+
+  const used = new Set();
+  for (let i = 0; i < words.length && map.size < 2; i++) {
+    const e = emojiForWord(words[i]);
+    if (e && !used.has(e)) {
+      map.set(i, e);
+      used.add(e);
+    }
+  }
+  return map;
+}
+
 // Charger les polices Google Fonts
 const fontLink = document.createElement('link');
 fontLink.rel = 'stylesheet';
@@ -331,7 +474,7 @@ fontLink.href =
   '&display=swap';
 document.head.appendChild(fontLink);
 
-// CSS ajouté par le script : polices, mots-clés et nouveaux styles
+// CSS ajouté par le script : polices, mots-clés, nouveaux styles et galerie
 const fontStyle = document.createElement('style');
 fontStyle.textContent = `
 #captionPreview.custom-font b{font-weight:inherit;font-family:inherit}
@@ -356,6 +499,11 @@ fontStyle.textContent = `
 .preview-frame.minimal .preview-caption b{color:#fff!important;font-weight:700}
 .preview-frame.pixel .preview-caption{font-family:'Press Start 2P',monospace;font-weight:400;font-size:13px;line-height:1.7;color:#ffe600;text-shadow:2px 2px 0 #000}
 .preview-frame.pixel .preview-caption b{color:#fff!important;font-weight:400}
+
+.style-tile:hover{border-color:#a879ff!important}
+.style-tile .preview-caption{animation:none!important}
+.style-tile .preview-frame.sticker .preview-caption{-webkit-text-stroke-width:3px!important}
+.style-tile .preview-frame.comic .preview-caption{-webkit-text-stroke-width:2px!important}
 `;
 document.head.appendChild(fontStyle);
 
@@ -582,6 +730,245 @@ kwSelect.addEventListener('change', () => {
 kwColorInput.addEventListener('input', () => {
   lastShown = null;
   updateCaption();
+});
+
+// Menu des emojis automatiques
+const emojiLabel = document.createElement('label');
+emojiLabel.className = 'field-label';
+emojiLabel.htmlFor = 'emojiMode';
+emojiLabel.textContent = 'Emojis automatiques';
+
+const emojiSelect = document.createElement('select');
+emojiSelect.id = 'emojiMode';
+styleSelect(emojiSelect);
+
+[['off', 'Aucun'], ['auto', 'Automatique']].forEach(([id, label]) => {
+  const option = document.createElement('option');
+  option.value = id;
+  option.textContent = label;
+  emojiSelect.appendChild(option);
+});
+
+colorLabel.parentNode.insertBefore(emojiLabel, colorLabel);
+colorLabel.parentNode.insertBefore(emojiSelect, colorLabel);
+
+emojiSelect.addEventListener('change', () => {
+  emojiMode = emojiSelect.value;
+  lastShown = null;
+  updateCaption();
+});
+
+// ===== Format et découpage =====
+const fmtBox = makeSection('Format et découpage', false);
+
+const fmtLabel = document.createElement('label');
+fmtLabel.className = 'field-label';
+fmtLabel.htmlFor = 'videoFormat';
+fmtLabel.textContent = 'Format de la vidéo finale';
+fmtBox.appendChild(fmtLabel);
+
+const fmtSelect = document.createElement('select');
+fmtSelect.id = 'videoFormat';
+styleSelect(fmtSelect);
+FORMATS.forEach(([id, label]) => {
+  const option = document.createElement('option');
+  option.value = id;
+  option.textContent = label;
+  fmtSelect.appendChild(option);
+});
+fmtBox.appendChild(fmtSelect);
+
+const fitLabel = document.createElement('label');
+fitLabel.className = 'field-label';
+fitLabel.htmlFor = 'videoFit';
+fitLabel.textContent = 'Ajustement de l’image';
+fmtBox.appendChild(fitLabel);
+
+const fitSelect = document.createElement('select');
+fitSelect.id = 'videoFit';
+styleSelect(fitSelect);
+[
+  ['cover', 'Remplir le cadre (recadrer)'],
+  ['contain', 'Garder toute l’image (bandes noires)']
+].forEach(([id, label]) => {
+  const option = document.createElement('option');
+  option.value = id;
+  option.textContent = label;
+  fitSelect.appendChild(option);
+});
+fmtBox.appendChild(fitSelect);
+
+const trimStartSlider = addSlider(
+  fmtBox, 'Début de la vidéo', 0, 100, 0.1, 0,
+  v => v.toFixed(1) + ' s',
+  v => {
+    const e = trimEnd > 0 ? trimEnd : (videoPreview.duration || 100);
+    if (v > e - 0.5) {
+      v = Math.max(0, e - 0.5);
+      trimStartSlider.set(v);
+    }
+    trimStart = v;
+    updateTrimInfo();
+    updateHook();
+  },
+  () => {
+    if (isFinite(videoPreview.duration)) videoPreview.currentTime = trimStart;
+  }
+);
+
+const trimEndSlider = addSlider(
+  fmtBox, 'Fin de la vidéo', 0, 100, 0.1, 100,
+  v => v.toFixed(1) + ' s',
+  v => {
+    if (v < trimStart + 0.5) {
+      v = Math.min(Number(trimEndSlider.input.max), trimStart + 0.5);
+      trimEndSlider.set(v);
+    }
+    trimEnd = v;
+    updateTrimInfo();
+  },
+  () => {
+    if (isTrimmed()) {
+      videoPreview.currentTime = Math.max(trimStart, getTrimEnd() - 1);
+    }
+  }
+);
+
+const trimInfo = document.createElement('div');
+Object.assign(trimInfo.style, {
+  fontSize: '10px',
+  color: '#8994ad',
+  margin: '8px 0 0'
+});
+fmtBox.appendChild(trimInfo);
+
+fmtSelect.addEventListener('change', () => {
+  formatId = fmtSelect.value;
+  layoutPreview();
+  lastShown = null;
+  updateCaption();
+  updateHook();
+  applyZoom();
+});
+
+fitSelect.addEventListener('change', () => {
+  fitMode = fitSelect.value;
+  layoutPreview();
+});
+
+// Durée de fin utile (la durée totale si la fin n'est pas modifiée)
+function getTrimEnd() {
+  const d = videoPreview.duration;
+  if (!isFinite(d) || !d) return Infinity;
+  return (trimEnd > 0 && trimEnd < d - 0.15) ? trimEnd : d;
+}
+
+function isTrimmed() {
+  const d = videoPreview.duration;
+  return isFinite(d) && d > 0 && (trimStart > 0.05 || getTrimEnd() < d - 0.15);
+}
+
+// Durée de la vidéo finale (après découpage et silences)
+function outputDuration() {
+  const d = videoPreview.duration;
+  if (!isFinite(d) || !d) return 0;
+
+  const a = trimStart;
+  const b = getTrimEnd();
+  let len = b - a;
+
+  if (silenceOn) {
+    silences.forEach(s => {
+      const from = Math.max(s.from, a);
+      const to = Math.min(s.to, b);
+      if (to > from) len -= to - from;
+    });
+  }
+
+  return Math.max(0, len);
+}
+
+function updateTrimInfo() {
+  const d = videoPreview.duration;
+  if (!isFinite(d) || !d) {
+    trimInfo.textContent = 'Importez une vidéo pour régler le découpage.';
+    return;
+  }
+  trimInfo.textContent =
+    'Durée finale : ' + outputDuration().toFixed(1) + ' s' +
+    (isTrimmed() ? ' (découpée)' : '');
+}
+
+function initTrim() {
+  const d = videoPreview.duration;
+  if (!isFinite(d) || !d) return;
+
+  trimStart = 0;
+  trimEnd = d;
+  trimStartSlider.input.max = String(d);
+  trimEndSlider.input.max = String(d);
+  trimStartSlider.set(0);
+  trimEndSlider.set(d);
+  updateTrimInfo();
+}
+
+// Empêcher la lecture en dehors de la partie gardée
+function enforceTrim() {
+  if (!isTrimmed() || videoPreview.paused) return;
+
+  const t = videoPreview.currentTime;
+  const e = getTrimEnd();
+
+  if (t < trimStart - 0.05) {
+    videoPreview.currentTime = trimStart;
+  } else if (t >= e - 0.02) {
+    videoPreview.pause();
+    videoPreview.currentTime = trimStart;
+  }
+}
+
+// Taille du cadre d'aperçu selon le format choisi
+function formatRatio() {
+  const f = FORMATS.find(x => x[0] === formatId);
+  return f ? f[2] : 0;
+}
+
+function layoutPreview() {
+  const r = formatRatio();
+
+  if (!r) {
+    previewFrame.style.width = '';
+    previewFrame.style.height = '';
+    previewFrame.style.margin = '';
+    videoPreview.style.objectFit = '';
+    return;
+  }
+
+  const holder = previewFrame.parentElement;
+  const cw = Math.max(120, (holder ? holder.clientWidth : 300) - 28);
+  const maxH = 380;
+  const w = Math.min(cw, maxH * r);
+  const h = w / r;
+
+  previewFrame.style.width = Math.round(w) + 'px';
+  previewFrame.style.height = Math.round(h) + 'px';
+  previewFrame.style.margin = '0 auto';
+  videoPreview.style.objectFit = fitMode === 'cover' ? 'cover' : 'contain';
+}
+
+// Échelle du texte dans l'aperçu (identique à celle de l'export)
+function previewScale() {
+  if (!formatRatio()) return 1;
+  const fw = previewFrame.clientWidth || 200;
+  const fh = previewFrame.clientHeight || 240;
+  return Math.min(fh / 240, fw / 200);
+}
+
+window.addEventListener('resize', () => {
+  layoutPreview();
+  lastShown = null;
+  updateCaption();
+  updateHook();
 });
 
 // ===== Réglages du texte (taille, mots, largeur, interligne...) =====
@@ -826,16 +1213,15 @@ function computeSilences() {
 function updateSilenceInfo() {
   if (!baseSegments.length) {
     silenceInfo.textContent = 'Générez d’abord les sous-titres IA.';
-    return;
-  }
-  if (!silenceOn) {
+  } else if (!silenceOn) {
     silenceInfo.textContent = 'Désactivé.';
-    return;
+  } else {
+    const total = silences.reduce((sum, s) => sum + (s.to - s.from), 0);
+    silenceInfo.textContent =
+      silences.length + ' silence(s) supprimé(s) · ' +
+      total.toFixed(1) + ' s gagnées';
   }
-  const total = silences.reduce((sum, s) => sum + (s.to - s.from), 0);
-  silenceInfo.textContent =
-    silences.length + ' silence(s) supprimé(s) · ' +
-    total.toFixed(1) + ' s gagnées';
+  updateTrimInfo();
 }
 
 // Temps de la vidéo finale (sans les silences supprimés)
@@ -849,8 +1235,14 @@ function compressTime(t) {
   return Math.max(0, t - removed);
 }
 
+// Temps dans la vidéo finale (après silences et découpage)
 function outTime(t) {
-  return silenceOn && silences.length ? compressTime(t) : t;
+  const useSil = silenceOn && silences.length;
+  const base = useSil ? compressTime(t) : t;
+  const off = trimStart > 0.05
+    ? (useSil ? compressTime(trimStart) : trimStart)
+    : 0;
+  return Math.max(0, base - off);
 }
 
 // Sauter les silences pendant la lecture
@@ -919,7 +1311,7 @@ function updateHook() {
 
   if (show) {
     if (hookPreview.textContent !== txt) hookPreview.textContent = txt;
-    hookPreview.style.fontSize = (14 * hookScale) + 'px';
+    hookPreview.style.fontSize = (14 * hookScale * previewScale()) + 'px';
     hookPreview.style.top = hookTop + '%';
   }
 }
@@ -984,7 +1376,7 @@ function applyTypography() {
 
   // Taille de base (selon le style / la police), puis facteur choisi
   const base = parseFloat(getComputedStyle(captionPreview).fontSize) || 23;
-  s.fontSize = (base * sizeScale) + 'px';
+  s.fontSize = (base * sizeScale * previewScale()) + 'px';
 
   s.lineHeight = String(lineHeight);
   s.letterSpacing = letterGap ? letterGap + 'em' : '';
@@ -997,30 +1389,325 @@ fontSelect.addEventListener('change', () => {
   updateCaption();
 });
 
-// Créer les boutons de style
+// ===== Galerie de styles (onglets, aperçus, mes styles) =====
 const styleBox = document.querySelector('.style-options');
-styleBox.innerHTML = '';
-STYLES.forEach(([id, label]) => {
-  const b = document.createElement('button');
-  b.type = 'button';
-  b.className = 'style-option' + (id === activeStyle ? ' selected' : '');
-  b.dataset.style = id;
-  b.textContent = label;
-  styleBox.appendChild(b);
+
+const tabsBar = document.createElement('div');
+Object.assign(tabsBar.style, {
+  display: 'flex',
+  gap: '6px',
+  overflowX: 'auto',
+  marginBottom: '8px',
+  paddingBottom: '4px'
 });
+styleBox.parentNode.insertBefore(tabsBar, styleBox);
 
-styleBox.addEventListener('click', event => {
-  const button = event.target.closest('.style-option');
-  if (!button) return;
+// Une vignette de style avec son aperçu
+function makeTile(styleId, label) {
+  const tile = document.createElement('button');
+  tile.type = 'button';
+  tile.className = 'style-tile';
+  tile.dataset.style = styleId;
+  Object.assign(tile.style, {
+    background: '#0c1325',
+    border: '1px solid #35415f',
+    borderRadius: '8px',
+    padding: '4px',
+    cursor: 'pointer',
+    color: '#aeb8d0',
+    fontSize: '9px',
+    fontWeight: '800',
+    textAlign: 'center',
+    position: 'relative',
+    fontFamily: 'inherit',
+    minWidth: '0'
+  });
 
-  styleBox.querySelectorAll('.style-option')
-    .forEach(b => b.classList.remove('selected'));
+  const frame = document.createElement('div');
+  frame.className = 'preview-frame ' + styleId;
+  Object.assign(frame.style, {
+    height: '44px',
+    width: '100%',
+    borderRadius: '6px',
+    background: '#1a2340'
+  });
 
-  button.classList.add('selected');
-  activeStyle = button.dataset.style;
+  const cap = document.createElement('div');
+  cap.className = 'preview-caption';
+  cap.innerHTML = 'Texte <b>clé</b>';
+  cap.style.setProperty('font-size', styleId === 'pixel' ? '8px' : '13px', 'important');
+  cap.style.setProperty('padding', '3px 7px', 'important');
+  cap.style.setProperty('line-height', '1.2', 'important');
+  cap.style.setProperty('--accent', '#a879ff');
+  cap.style.setProperty('--kw', '#ffe600');
+  frame.appendChild(cap);
+
+  const name = document.createElement('div');
+  name.textContent = label;
+  Object.assign(name.style, {
+    marginTop: '4px',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap'
+  });
+
+  tile.appendChild(frame);
+  tile.appendChild(name);
+  return tile;
+}
+
+function markSelected() {
+  styleBox.querySelectorAll('.style-tile').forEach(t => {
+    const on = t.dataset.preset === undefined && t.dataset.style === activeStyle;
+    t.style.borderColor = on ? '#a879ff' : '#35415f';
+    t.style.background = on ? '#2b2050' : '#0c1325';
+  });
+}
+
+function renderGallery() {
+  // Onglets
+  tabsBar.innerHTML = '';
+  STYLE_TABS.forEach(([id, name]) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.dataset.tab = id;
+    b.textContent = name;
+    const on = id === currentTab;
+    Object.assign(b.style, {
+      padding: '6px 10px',
+      borderRadius: '16px',
+      fontSize: '10px',
+      fontWeight: '800',
+      whiteSpace: 'nowrap',
+      cursor: 'pointer',
+      fontFamily: 'inherit',
+      border: '1px solid ' + (on ? '#a879ff' : '#35415f'),
+      background: on ? '#2b2050' : '#0c1325',
+      color: on ? '#d9c2ff' : '#aeb8d0'
+    });
+    tabsBar.appendChild(b);
+  });
+
+  // Vignettes
+  styleBox.innerHTML = '';
+  Object.assign(styleBox.style, {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, minmax(0, 1fr))',
+    gap: '6px',
+    maxHeight: '250px',
+    overflowY: 'auto'
+  });
+
+  if (currentTab === 'mine') {
+    const add = document.createElement('button');
+    add.type = 'button';
+    add.dataset.save = '1';
+    add.textContent = '＋ Enregistrer le style actuel';
+    Object.assign(add.style, {
+      gridColumn: '1 / -1',
+      padding: '10px',
+      background: '#2b2050',
+      border: '1px solid #a879ff',
+      color: '#d9c2ff',
+      borderRadius: '8px',
+      fontSize: '11px',
+      fontWeight: '800',
+      cursor: 'pointer',
+      fontFamily: 'inherit'
+    });
+    styleBox.appendChild(add);
+
+    if (!presets.length) {
+      const note = document.createElement('div');
+      note.textContent =
+        'Aucun style enregistré. Réglez votre style, puis touchez le bouton ci-dessus.';
+      Object.assign(note.style, {
+        gridColumn: '1 / -1',
+        fontSize: '10px',
+        color: '#8994ad',
+        lineHeight: '1.5'
+      });
+      styleBox.appendChild(note);
+    }
+
+    presets.forEach((p, i) => {
+      const tile = makeTile(p.style, p.name);
+      tile.dataset.preset = String(i);
+
+      const del = document.createElement('span');
+      del.dataset.del = String(i);
+      del.textContent = '×';
+      Object.assign(del.style, {
+        position: 'absolute',
+        top: '0',
+        right: '4px',
+        fontSize: '15px',
+        lineHeight: '1.2',
+        color: '#ff8aa0',
+        zIndex: '2',
+        padding: '0 2px'
+      });
+      tile.appendChild(del);
+      styleBox.appendChild(tile);
+    });
+  } else {
+    const tab = STYLE_TABS.find(t => t[0] === currentTab);
+    const ids = tab && tab[2] ? tab[2] : STYLES.map(s => s[0]);
+
+    ids.forEach(id => {
+      const st = STYLES.find(s => s[0] === id);
+      if (st) styleBox.appendChild(makeTile(id, st[1]));
+    });
+  }
+
+  markSelected();
+}
+
+function selectStyle(id, fromEmojiTab) {
+  activeStyle = id;
+
+  if (fromEmojiTab && emojiMode === 'off') {
+    emojiMode = 'auto';
+    emojiSelect.value = 'auto';
+    showToast('Emojis automatiques activés.');
+  }
+
+  lastShown = null;
+  markSelected();
+  updateCaption();
+}
+
+// Enregistrer le style actuel dans « Mes styles »
+function saveCurrentStyle() {
+  const name = (prompt('Nom de ce style :', 'Mon style ' + (presets.length + 1)) || '')
+    .trim()
+    .slice(0, 20);
+  if (!name) return;
+
+  if (presets.length >= 30) {
+    showToast('Maximum 30 styles enregistrés. Supprimez-en un d’abord.');
+    return;
+  }
+
+  presets.push({
+    name,
+    style: activeStyle,
+    font: fontSelect.value,
+    color: colorInput.value,
+    kwColor: kwColorInput.value,
+    kwMode,
+    emoji: emojiMode,
+    display: displayMode,
+    size: Math.round(sizeScale * 100),
+    words: maxWords,
+    width: widthPercent,
+    lineHeight: Math.round(lineHeight * 100),
+    spacing: Math.round(letterGap * 100),
+    upper: upperCase,
+    pos: positionPercent
+  });
+
+  if (storePresets(presets)) {
+    showToast('Style « ' + name + ' » enregistré.');
+  } else {
+    showToast('Style gardé pour cette session seulement (enregistrement impossible).');
+  }
+
+  renderGallery();
+}
+
+// Appliquer un style enregistré
+function applyPreset(p) {
+  if (!p) return;
+
+  activeStyle = STYLES.some(s => s[0] === p.style) ? p.style : 'pop';
+  fontSelect.value = String(Math.min(Number(p.font) || 0, FONTS.length - 1));
+
+  colorInput.value = p.color || '#a879ff';
+  kwColorInput.value = p.kwColor || '#ffe600';
+
+  kwMode = p.kwMode || 'off';
+  kwSelect.value = kwMode;
+
+  emojiMode = p.emoji || 'off';
+  emojiSelect.value = emojiMode;
+
+  displayMode = p.display || 'all';
+  modeSelect.value = displayMode;
+
+  const size = p.size || 100;
+  sizeScale = size / 100;
+  sizeSlider.set(size);
+
+  widthPercent = p.width || 90;
+  widthSlider.set(widthPercent);
+
+  const lh = p.lineHeight || 120;
+  lineHeight = lh / 100;
+  lineSlider.set(lh);
+
+  const sp = p.spacing || 0;
+  letterGap = sp / 100;
+  spacingSlider.set(sp);
+
+  upperCase = !!p.upper;
+  upperInput.checked = upperCase;
+
+  const pos = Math.max(4, Math.min(80, Number(p.pos) || 14));
+  positionPercent = pos;
+  posSlider.value = String(pos);
+  posSelect.value = 'custom';
+  applyPosition();
+
+  if (p.words && p.words !== maxWords) {
+    wordsSlider.set(p.words);
+    applyMaxWords(p.words);
+  }
+
+  markSelected();
   lastShown = null;
   updateCaption();
+  showToast('Style « ' + p.name + ' » appliqué.');
+}
+
+styleBox.addEventListener('click', event => {
+  const del = event.target.closest('[data-del]');
+  if (del) {
+    event.stopPropagation();
+    const i = Number(del.dataset.del);
+    const p = presets[i];
+    if (p && confirm('Supprimer le style « ' + p.name + ' » ?')) {
+      presets.splice(i, 1);
+      storePresets(presets);
+      renderGallery();
+    }
+    return;
+  }
+
+  if (event.target.closest('[data-save]')) {
+    saveCurrentStyle();
+    return;
+  }
+
+  const tile = event.target.closest('.style-tile');
+  if (!tile) return;
+
+  if (tile.dataset.preset !== undefined) {
+    applyPreset(presets[Number(tile.dataset.preset)]);
+    return;
+  }
+
+  selectStyle(tile.dataset.style, currentTab === 'emoji');
 });
+
+tabsBar.addEventListener('click', event => {
+  const b = event.target.closest('[data-tab]');
+  if (!b) return;
+  currentTab = b.dataset.tab;
+  renderGallery();
+});
+
+renderGallery();
 
 // Ajouter le bouton de transcription IA
 const transcribeButton = document.createElement('button');
@@ -1098,6 +1785,8 @@ videoInput.addEventListener('change', () => {
   silences = [];
   edited = false;
   lastShown = null;
+  trimStart = 0;
+  trimEnd = 0;
 
   const url = URL.createObjectURL(file);
   videoPreview.src = url;
@@ -1106,6 +1795,7 @@ videoInput.addEventListener('change', () => {
   fileName.textContent = file.name;
 
   attachCaptionToVideo();
+  layoutPreview();
   captionText.value = '';
   updateCaption();
   updateSilenceInfo();
@@ -1304,7 +1994,7 @@ function keywordIndexes(words, mode) {
 }
 
 // HTML d'un mot dans l'aperçu
-function wordHtml(w, i, hidden, kwSet) {
+function wordHtml(w, i, hidden, kwSet, emo) {
   const isKw = kwSet.has(i);
   let style = '';
 
@@ -1317,8 +2007,10 @@ function wordHtml(w, i, hidden, kwSet) {
       : 'color:' + kwColorInput.value + ' !important;';
   }
 
+  const extra = emo && emo.has(i) ? '\u00A0' + emo.get(i) : '';
+
   return '<span' + (isKw ? ' class="kw"' : '') +
-    (style ? ' style="' + style + '"' : '') + '>' + w + '</span>';
+    (style ? ' style="' + style + '"' : '') + '>' + w + extra + '</span>';
 }
 
 // Afficher un texte dans l'aperçu
@@ -1327,6 +2019,7 @@ function renderCaption(text, emptyLabel, count, mode) {
   const words = text.trim().split(/\s+/).filter(Boolean);
   const safe = words.map(escapeWord);
   const kwSet = keywordIndexes(words, kwMode);
+  const emo = emojiIndexes(words);
 
   if (!safe.length) {
     captionPreview.innerHTML = '';
@@ -1334,11 +2027,11 @@ function renderCaption(text, emptyLabel, count, mode) {
   } else if (mode === 'single') {
     const i = Math.min(count, safe.length) - 1;
     captionPreview.innerHTML =
-      i >= 0 ? '<b>' + wordHtml(safe[i], i, false, kwSet) + '</b>' : '';
+      i >= 0 ? '<b>' + wordHtml(safe[i], i, false, kwSet, emo) + '</b>' : '';
   } else {
     const split = Math.ceil(safe.length / 2);
     const show = (w, i) =>
-      wordHtml(w, i, mode === 'progressive' && i >= count, kwSet);
+      wordHtml(w, i, mode === 'progressive' && i >= count, kwSet, emo);
 
     const first = safe.slice(0, split).map((w, i) => show(w, i));
     const second = safe.slice(split).map((w, i) => show(w, i + split));
@@ -1418,6 +2111,7 @@ function syncCaption() {
 }
 
 function tick() {
+  enforceTrim();
   skipSilence();
   syncCaption();
   applyZoom();
@@ -1437,8 +2131,11 @@ videoPreview.addEventListener('seeked', tick);
 videoPreview.addEventListener('pause', tick);
 videoPreview.addEventListener('ended', tick);
 videoPreview.addEventListener('loadedmetadata', () => {
+  initTrim();
   computeSilences();
   updateSilenceInfo();
+  layoutPreview();
+  updateCaption();
   updateHook();
 });
 
@@ -1492,12 +2189,15 @@ function stamp(sec, sep) {
 function buildSubtitles(kind) {
   const sep = kind === 'vtt' ? '.' : ',';
 
-  // Les horaires suivent la vidéo raccourcie si les silences sont supprimés
+  // Les horaires suivent la vidéo finale (découpage et silences supprimés)
+  const a = trimStart;
+  const b = getTrimEnd();
+
   const rows = segments
-    .filter(s => s.text)
+    .filter(s => s.text && s.end > a && s.start < b)
     .map(s => ({
-      start: outTime(s.start),
-      end: outTime(s.end),
+      start: outTime(Math.max(s.start, a)),
+      end: outTime(Math.min(s.end, b)),
       text: s.text
     }))
     .filter(r => r.end - r.start > 0.04);
@@ -1562,6 +2262,24 @@ function getCaptionState(t) {
 
   const count = displayMode === 'all' ? -1 : visibleCount(seg, t);
   return { words, count };
+}
+
+// Image de la vidéo adaptée au format choisi (avec zoom automatique)
+function drawVideoFrame(ctx, vid, vw, vh, w, h, z, fit) {
+  ctx.fillStyle = '#000';
+  ctx.fillRect(0, 0, w, h);
+
+  if (fit === 'cover') {
+    const scz = Math.max(w / vw, h / vh) * z;
+    const sw = w / scz;
+    const sh = h / scz;
+    ctx.drawImage(vid, (vw - sw) / 2, (vh - sh) / 2, sw, sh, 0, 0, w, h);
+  } else {
+    const scz = Math.min(w / vw, h / vh) * z;
+    const dw = vw * scz;
+    const dh = vh * scz;
+    ctx.drawImage(vid, 0, 0, vw, vh, (w - dw) / 2, (h - dh) / 2, dw, dh);
+  }
 }
 
 // Titre d'accroche dessiné dans la vidéo exportée
@@ -1645,11 +2363,13 @@ function drawCaption(ctx, w, h, t) {
   const words = st.words;
   const n = words.length;
   const kwSet = keywordIndexes(words, kwMode);
+  const emo = emojiIndexes(words);
   const split = Math.ceil(n / 2);
+  const withEmoji = (x, i) => x + (emo.has(i) ? '\u00A0' + emo.get(i) : '');
 
   // Mots à dessiner (la 2e moitié prend la couleur d'accentuation)
   let items = words.map((x, i) => ({
-    text: x,
+    text: withEmoji(x, i),
     second: i >= split,
     show: displayMode !== 'progressive' || i < st.count,
     kw: kwSet.has(i)
@@ -1658,7 +2378,12 @@ function drawCaption(ctx, w, h, t) {
   if (displayMode === 'single') {
     const i = Math.min(st.count, n) - 1;
     if (i < 0) return;
-    items = [{ text: words[i], second: true, show: true, kw: kwSet.has(i) }];
+    items = [{
+      text: withEmoji(words[i], i),
+      second: true,
+      show: true,
+      kw: kwSet.has(i)
+    }];
   }
 
   const fontFor = (second, px) =>
@@ -1904,12 +2629,30 @@ exportVideoButton.addEventListener('click', async () => {
       vid.onerror = () => reject(new Error('Lecture de la vidéo impossible.'));
     });
 
-    // Taille de sortie (maximum 1280 px sur le grand côté)
+    // Taille de sortie selon le format choisi
     const vw = vid.videoWidth || 720;
     const vh = vid.videoHeight || 1280;
-    const ratio = Math.min(1, 1280 / Math.max(vw, vh));
-    const w = Math.max(2, Math.round((vw * ratio) / 2) * 2);
-    const h = Math.max(2, Math.round((vh * ratio) / 2) * 2);
+    const rr = formatRatio();
+    let w;
+    let h;
+
+    if (!rr) {
+      const ratio = Math.min(1, 1280 / Math.max(vw, vh));
+      w = Math.max(2, Math.round((vw * ratio) / 2) * 2);
+      h = Math.max(2, Math.round((vh * ratio) / 2) * 2);
+    } else {
+      const cap = rr === 1 ? 1080 : 1280;
+      const long = Math.min(cap, Math.max(720, Math.max(vw, vh)));
+      if (rr < 1) {
+        h = long;
+        w = long * rr;
+      } else {
+        w = long;
+        h = long / rr;
+      }
+      w = Math.max(2, Math.round(w / 2) * 2);
+      h = Math.max(2, Math.round(h / 2) * 2);
+    }
 
     const canvas = document.createElement('canvas');
     canvas.width = w;
@@ -1941,6 +2684,24 @@ exportVideoButton.addEventListener('click', async () => {
         : { videoBitsPerSecond: 5000000 }
     );
 
+    // Découpage : partie de la vidéo à garder
+    const trimmed = isTrimmed();
+    const startT = trimmed ? trimStart : 0;
+    const endT = trimmed ? getTrimEnd() : vid.duration;
+    const fit = rr ? fitMode : 'cover';
+
+    if (startT > 0.05) {
+      await new Promise(resolve => {
+        const done = () => {
+          vid.onseeked = null;
+          resolve();
+        };
+        vid.onseeked = done;
+        setTimeout(done, 3000);
+        vid.currentTime = startT;
+      });
+    }
+
     showToast(
       'Export en cours : gardez cet écran ouvert jusqu’à la fin de la vidéo.' +
       (hasAudio ? '' : ' (Son non disponible sur ce navigateur.)')
@@ -1968,6 +2729,13 @@ exportVideoButton.addEventListener('click', async () => {
       };
 
       const draw = () => {
+        // Fin de la partie gardée
+        if (trimmed && vid.currentTime >= endT - 0.02) {
+          vid.pause();
+          if (recorder.state !== 'inactive') recorder.stop();
+          return;
+        }
+
         // Sauter les silences
         if (silenceOn && silences.length && !vid.seeking) {
           const cur = vid.currentTime;
@@ -1975,22 +2743,18 @@ exportVideoButton.addEventListener('click', async () => {
           if (sl) vid.currentTime = sl.to;
         }
 
-        // Image de la vidéo (avec zoom automatique)
+        // Image de la vidéo (format choisi + zoom automatique)
         const z = zoomAt(vid.currentTime);
-        if (z > 1.0005) {
-          const sw = vw / z;
-          const sh = vh / z;
-          ctx.drawImage(vid, (vw - sw) / 2, (vh - sh) / 2, sw, sh, 0, 0, w, h);
-        } else {
-          ctx.drawImage(vid, 0, 0, w, h);
-        }
+        drawVideoFrame(ctx, vid, vw, vh, w, h, z, fit);
 
         drawCaption(ctx, w, h, vid.currentTime);
         drawHook(ctx, w, h, vid.currentTime);
 
-        const pct = vid.duration
-          ? Math.min(100, Math.round((vid.currentTime / vid.duration) * 100))
-          : 0;
+        const span = Math.max(0.1, endT - startT);
+        const pct = Math.min(
+          100,
+          Math.max(0, Math.round(((vid.currentTime - startT) / span) * 100))
+        );
         exportVideoButton.textContent = 'Export en cours... ' + pct + '%';
 
         if (!vid.ended && recorder.state !== 'inactive') {
@@ -2033,5 +2797,6 @@ document.querySelectorAll('.plan-button').forEach(button => {
   });
 });
 
+layoutPreview();
 updateSilenceInfo();
 updateCaption();

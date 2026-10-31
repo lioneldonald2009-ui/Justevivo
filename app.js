@@ -34,6 +34,31 @@ const STYLES = [
   ['or', 'OR']
 ];
 
+// Liste des polices : [nom affiché, famille CSS, graisse, taille]
+const FONTS = [
+  ['Auto (selon le style)', '', '', ''],
+  ['Montserrat', "'Montserrat', sans-serif", '800', ''],
+  ['Poppins', "'Poppins', sans-serif", '700', ''],
+  ['Inter', "'Inter', sans-serif", '800', ''],
+  ['Roboto', "'Roboto', sans-serif", '900', ''],
+  ['Raleway', "'Raleway', sans-serif", '800', ''],
+  ['Oswald', "'Oswald', sans-serif", '700', ''],
+  ['Anton', "'Anton', sans-serif", '400', '26px'],
+  ['Bebas Neue', "'Bebas Neue', sans-serif", '400', '28px'],
+  ['Archivo Black', "'Archivo Black', sans-serif", '400', ''],
+  ['Russo One', "'Russo One', sans-serif", '400', ''],
+  ['Righteous', "'Righteous', sans-serif", '400', ''],
+  ['Bangers', "'Bangers', cursive", '400', '27px'],
+  ['Luckiest Guy', "'Luckiest Guy', cursive", '400', '25px'],
+  ['Permanent Marker', "'Permanent Marker', cursive", '400', ''],
+  ['Pacifico', "'Pacifico', cursive", '400', ''],
+  ['Lobster', "'Lobster', cursive", '400', '26px'],
+  ['Dancing Script', "'Dancing Script', cursive", '700', '26px'],
+  ['Caveat', "'Caveat', cursive", '700', '28px'],
+  ['Playfair Display', "'Playfair Display', serif", '800', ''],
+  ['Press Start 2P (rétro)', "'Press Start 2P', monospace", '400', '13px']
+];
+
 let activeStyle = 'pop';
 let selectedFile = null;
 let segments = []; // [{ start, end, text }]
@@ -48,6 +73,92 @@ function showToast(message) {
     4000
   );
 }
+
+// Charger les polices Google Fonts
+const fontLink = document.createElement('link');
+fontLink.rel = 'stylesheet';
+fontLink.href =
+  'https://fonts.googleapis.com/css2' +
+  '?family=Anton' +
+  '&family=Archivo+Black' +
+  '&family=Bangers' +
+  '&family=Bebas+Neue' +
+  '&family=Caveat:wght@700' +
+  '&family=Dancing+Script:wght@700' +
+  '&family=Inter:wght@800' +
+  '&family=Lobster' +
+  '&family=Luckiest+Guy' +
+  '&family=Montserrat:wght@800' +
+  '&family=Oswald:wght@700' +
+  '&family=Pacifico' +
+  '&family=Permanent+Marker' +
+  '&family=Playfair+Display:wght@800' +
+  '&family=Poppins:wght@700' +
+  '&family=Press+Start+2P' +
+  '&family=Raleway:wght@800' +
+  '&family=Righteous' +
+  '&family=Roboto:wght@900' +
+  '&family=Russo+One' +
+  '&display=swap';
+document.head.appendChild(fontLink);
+
+// Évite le faux gras sur les polices à une seule graisse
+const fontStyle = document.createElement('style');
+fontStyle.textContent =
+  '#captionPreview.custom-font b{font-weight:inherit;font-family:inherit}';
+document.head.appendChild(fontStyle);
+
+// Créer le menu des polices (au-dessus de la couleur)
+const fontLabel = document.createElement('label');
+fontLabel.className = 'field-label';
+fontLabel.htmlFor = 'captionFont';
+fontLabel.textContent = 'Police';
+
+const fontSelect = document.createElement('select');
+fontSelect.id = 'captionFont';
+Object.assign(fontSelect.style, {
+  width: '100%',
+  padding: '10px',
+  background: '#0b1122',
+  color: '#fff',
+  border: '1px solid #34405f',
+  borderRadius: '8px',
+  fontSize: '12px',
+  fontFamily: 'inherit'
+});
+
+FONTS.forEach((f, i) => {
+  const option = document.createElement('option');
+  option.value = String(i);
+  option.textContent = f[0];
+  fontSelect.appendChild(option);
+});
+
+const colorLabel = document.querySelector('label[for="captionColor"]');
+colorLabel.parentNode.insertBefore(fontLabel, colorLabel);
+colorLabel.parentNode.insertBefore(fontSelect, colorLabel);
+
+function applyFont() {
+  const f = FONTS[Number(fontSelect.value)];
+
+  if (f[1]) {
+    captionPreview.style.fontFamily = f[1];
+    captionPreview.style.fontWeight = f[2];
+    captionPreview.style.fontSize = f[3];
+    captionPreview.classList.add('custom-font');
+  } else {
+    captionPreview.style.fontFamily = '';
+    captionPreview.style.fontWeight = '';
+    captionPreview.style.fontSize = '';
+    captionPreview.classList.remove('custom-font');
+  }
+}
+
+fontSelect.addEventListener('change', () => {
+  applyFont();
+  lastShown = null;
+  updateCaption();
+});
 
 // Créer les boutons de style
 const styleBox = document.querySelector('.style-options');

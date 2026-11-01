@@ -1,10 +1,23 @@
-// ===== JUSTEVIVO · app4.js · vidéos de plus de 25 Mo =====
+// ===== JUSTEVIVO · app4.js (version 2) · vidéos de plus de 25 Mo =====
 (function () {
   const SMALL_LIMIT = 24 * 1024 * 1024;  // en dessous : envoi direct de la vidéo
   const MAX_FILE = 600 * 1024 * 1024;    // taille maximale acceptée
   const RATE = 16000;                    // fréquence du son envoyé
   const CHUNK_SEC = 540;                 // environ 9 minutes par morceau
   const LABEL = 'Générer les sous-titres IA';
+
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+  // Aperçu léger : ne charge pas toute la vidéo d'avance
+  videoPreview.preload = 'metadata';
+
+  // Sécurité : le défilement de la page ne doit jamais rester bloqué
+  const unlockStyle = document.createElement('style');
+  unlockStyle.textContent = 'html:root{overflow-x:clip}';
+  document.head.appendChild(unlockStyle);
+  videoInput.addEventListener('change', () => {
+    document.body.style.overflow = '';
+  });
 
   // On remplace le bouton pour retirer l'ancienne limite de 25 Mo
   const oldBtn = transcribeButton;
@@ -18,20 +31,25 @@
     });
   }
 
-  // Passe le son à 16 000 Hz (suffisant pour la voix, et bien plus léger)
-  function resample(data, from, to) {
+  // Passe le son à 16 000 Hz, par petites étapes pour que la page reste fluide
+  async function resample(data, from, to) {
     if (from === to) return data;
 
     const ratio = from / to;
     const outLen = Math.floor(data.length / ratio);
     const out = new Float32Array(outLen);
+    const STEP = 1 << 18;
 
-    for (let i = 0; i < outLen; i++) {
-      const a = Math.floor(i * ratio);
-      const b = Math.min(data.length, Math.max(a + 1, Math.floor((i + 1) * ratio)));
-      let sum = 0;
-      for (let j = a; j < b; j++) sum += data[j];
-      out[i] = sum / (b - a);
+    for (let s = 0; s < outLen; s += STEP) {
+      const e = Math.min(outLen, s + STEP);
+      for (let i = s; i < e; i++) {
+        const a = Math.floor(i * ratio);
+        const b = Math.min(data.length, Math.max(a + 1, Math.floor((i + 1) * ratio)));
+        let sum = 0;
+        for (let j = a; j < b; j++) sum += data[j];
+        out[i] = sum / (b - a);
+      }
+      await sleep(0);
     }
 
     return out;
@@ -40,7 +58,8 @@
   // Extrait le son de la vidéo, en mono, à 16 000 Hz
   async function extractAudio(file, setStatus) {
     setStatus('Lecture du fichier...');
-    const ab = await file.arrayBuffer();
+    await sleep(30);
+    let ab = await file.arrayBuffer();
 
     const AC = window.AudioContext || window.webkitAudioContext;
     let ctx;
@@ -53,21 +72,31 @@
     let buf;
     try {
       setStatus('Extraction du son...');
+      await sleep(30);
       buf = await decodeAB(ctx, ab);
     } finally {
+      ab = null;
       try { ctx.close(); } catch (e) { /* rien */ }
     }
 
+    setStatus('Préparation du son...');
     const ch = buf.numberOfChannels;
     const len = buf.length;
+    const rate = buf.sampleRate;
     const mono = new Float32Array(len);
+    const STEP = 1 << 20;
 
     for (let c = 0; c < ch; c++) {
       const d = buf.getChannelData(c);
-      for (let i = 0; i < len; i++) mono[i] += d[i] / ch;
+      for (let s = 0; s < len; s += STEP) {
+        const e = Math.min(len, s + STEP);
+        for (let i = s; i < e; i++) mono[i] += d[i] / ch;
+        await sleep(0);
+      }
     }
 
-    return resample(mono, buf.sampleRate, RATE);
+    buf = null;
+    return resample(mono, rate, RATE);
   }
 
   // Coupe le son en morceaux, de préférence dans un moment calme
@@ -199,6 +228,24 @@
       return;
     }
 
+    const big = selectedFile.size > SMALL_LIMIT;
+
+    // Vidéo longue : on prévient avant de lancer le travail lourd
+    if (big) {
+      const dur = videoPreview.duration;
+      const mem = navigator.deviceMemory || 4;
+      const safeSeconds = mem * 200;
+
+      if (isFinite(dur) && dur > safeSeconds) {
+        const ok = confirm(
+          'Cette vidéo dure environ ' + Math.round(dur / 60) + ' minutes. ' +
+          'Sur cet appareil, l’extraction du son peut ralentir ou bloquer la page. ' +
+          'Un ordinateur est plus sûr pour une longue vidéo. Continuer quand même ?'
+        );
+        if (!ok) return;
+      }
+    }
+
     const setStatus = t => {
       btn.textContent = t;
     };
@@ -211,7 +258,7 @@
       let text = '';
       let language = '';
 
-      if (selectedFile.size <= SMALL_LIMIT) {
+      if (!big) {
         setStatus('Transcription en cours...');
         const data = await postAudio(selectedFile, selectedFile.name);
         (data.segments || []).forEach(s => segs.push(s));
@@ -234,6 +281,7 @@
 
         for (let k = 0; k < parts; k++) {
           setStatus('Transcription ' + (k + 1) + '/' + parts + '...');
+          await sleep(30);
 
           const blob = toWav(samples, cuts[k], cuts[k + 1]);
           const data = await postAudio(blob, 'partie' + (k + 1) + '.wav');
@@ -267,6 +315,7 @@
       console.error('Erreur JUSTEVIVO :', error);
       showToast(error.message || 'Impossible de contacter le serveur.');
     } finally {
+      document.body.style.overflow = '';
       btn.disabled = false;
       btn.textContent = LABEL;
     }

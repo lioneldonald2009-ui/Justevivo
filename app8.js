@@ -1,5 +1,6 @@
+
 // JUSTEVIVO — app8.js
-// Barre d'outils du studio, avec ouverture fiable des scènes et coupures.
+// Barre d'outils du studio — correction de la recherche des scènes
 (function () {
   "use strict";
 
@@ -10,14 +11,16 @@
     #${TOOL_ID}{
       display:flex;gap:8px;align-items:stretch;overflow-x:auto;
       padding:10px;margin:16px 0 14px;background:#0b1122;
-      border:1px solid #293554;border-radius:13px;scrollbar-width:thin
+      border:1px solid #293554;border-radius:13px;
+      scrollbar-width:thin
     }
     #${TOOL_ID} .jv-tool{
       flex:0 0 82px;min-height:66px;padding:9px 7px;
       display:flex;flex-direction:column;align-items:center;
       justify-content:center;gap:6px;color:#aeb8d0;
       background:#121a30;border:1px solid #35415f;
-      border-radius:10px;font:700 10px/1.2 inherit;cursor:pointer
+      border-radius:10px;font:700 10px/1.2 Arial,sans-serif;
+      cursor:pointer;transition:background .18s,border-color .18s
     }
     #${TOOL_ID} .jv-tool:hover{
       border-color:#9b65ff;background:#211a3d
@@ -33,40 +36,43 @@
     }
     @media(max-width:600px){
       #${TOOL_ID}{margin:12px 0;padding:8px;gap:7px}
-      #${TOOL_ID} .jv-tool{
-        flex-basis:72px;min-height:62px
-      }
+      #${TOOL_ID} .jv-tool{flex-basis:72px;min-height:62px}
     }
   `;
 
   function addStyles() {
     if (document.getElementById("justevivo-app8-css")) return;
-
     const style = document.createElement("style");
     style.id = "justevivo-app8-css";
     style.textContent = css;
     document.head.appendChild(style);
   }
 
-  // Recherche la section Scènes dans toute l'interface.
+  // Recherche dans toutes les sections, pas seulement dans workspace.
   function findSceneSection() {
-    return Array.from(document.querySelectorAll("details"))
-      .find(el => {
-        const summary = el.querySelector("summary");
-        return summary &&
-          /scènes et coupures/i.test(summary.textContent.trim());
-      });
+    return Array.from(document.querySelectorAll("details")).find(el => {
+      const summary = el.querySelector("summary");
+      if (!summary) return false;
+
+      const title = summary.textContent
+        .replace(/\s+/g, " ")
+        .trim()
+        .toLowerCase();
+
+      return title.includes("scènes") && title.includes("coupures");
+    });
   }
 
   function focusCaption() {
     const caption = document.getElementById("captionText");
-    if (!caption) return;
+    if (!caption) {
+      if (typeof showToast === "function") {
+        showToast("La zone de texte est introuvable.");
+      }
+      return;
+    }
 
-    caption.scrollIntoView({
-      behavior: "smooth",
-      block: "center"
-    });
-
+    caption.scrollIntoView({ behavior: "smooth", block: "center" });
     caption.focus({ preventScroll: true });
     caption.classList.add("jv-tool-focus");
 
@@ -105,50 +111,50 @@
   // Attend la création de la section par app7.js.
   function openScenes(mode) {
     let attempts = 0;
+    const maxAttempts = 40;
 
     function tryOpen() {
       const section = findSceneSection();
 
-      if (!section) {
-        attempts++;
+      if (section) {
+        section.open = true;
 
-        if (attempts < 30) {
-          setTimeout(tryOpen, 300);
-          return;
-        }
+        section.scrollIntoView({
+          behavior: "smooth",
+          block: "center"
+        });
 
-        if (typeof showToast === "function") {
-          showToast(
-            "La section Scènes est introuvable. Vérifiez le chargement de app7.js."
+        if (mode === "cuts") {
+          const clearButton = Array.from(
+            section.querySelectorAll("button")
+          ).find(btn =>
+            /annuler toutes les coupures/i.test(btn.textContent)
           );
-        } else {
-          alert(
-            "La section Scènes est introuvable. Vérifiez le chargement de app7.js."
-          );
+
+          if (clearButton && clearButton.previousElementSibling) {
+            clearButton.previousElementSibling.scrollIntoView({
+              behavior: "smooth",
+              block: "center"
+            });
+          }
         }
 
         return;
       }
 
-      section.open = true;
+      attempts++;
 
-      section.scrollIntoView({
-        behavior: "smooth",
-        block: "center"
-      });
-
-      if (mode === "cuts") {
-        const clearButton = Array.from(
-          section.querySelectorAll("button")
-        ).find(btn =>
-          /annuler toutes les coupures/i.test(btn.textContent)
-        );
-
-        if (clearButton && clearButton.previousElementSibling) {
-          clearButton.previousElementSibling.scrollIntoView({
-            behavior: "smooth",
-            block: "center"
-          });
+      if (attempts < maxAttempts) {
+        setTimeout(tryOpen, 250);
+      } else {
+        if (typeof showToast === "function") {
+          showToast(
+            "La section Scènes et coupures n'a pas été créée. Vérifie le chargement de app7.js."
+          );
+        } else {
+          alert(
+            "La section Scènes et coupures n'a pas été créée. Vérifie le chargement de app7.js."
+          );
         }
       }
     }
@@ -159,9 +165,7 @@
   function openExport() {
     if (typeof exportVideo !== "function") {
       if (typeof showToast === "function") {
-        showToast(
-          "La fonction d'export n'est pas disponible pour le moment."
-        );
+        showToast("La fonction d'export n'est pas disponible.");
       }
       return;
     }
@@ -170,16 +174,14 @@
       const result = exportVideo();
 
       if (result && typeof result.catch === "function") {
-        result.catch(err =>
-          console.error("JUSTEVIVO export:", err)
-        );
+        result.catch(err => console.error("JUSTEVIVO export:", err));
       }
     } catch (err) {
       console.error("JUSTEVIVO export:", err);
 
       if (typeof showToast === "function") {
         showToast(
-          "Impossible de lancer l'export. Vérifiez la vidéo et les sous-titres."
+          "Impossible de lancer l'export. Vérifie la vidéo et les sous-titres."
         );
       }
     }
@@ -208,7 +210,6 @@
 
     const toolbar = document.createElement("nav");
     toolbar.id = TOOL_ID;
-
     toolbar.setAttribute(
       "aria-label",
       "Outils de montage JUSTEVIVO"
@@ -223,11 +224,9 @@
           const link = document.querySelector(
             ".sidebar .side-link"
           );
-
           if (link) link.click();
 
           const upload = document.querySelector(".upload-zone");
-
           if (upload) {
             upload.scrollIntoView({
               behavior: "smooth",
@@ -270,11 +269,9 @@
 
     tools.forEach((tool, index) => {
       const button = document.createElement("button");
-
       button.type = "button";
       button.className = "jv-tool";
       button.dataset.tool = tool.id;
-
       button.setAttribute(
         "aria-pressed",
         String(index === 0)
@@ -300,7 +297,6 @@
     });
 
     head.insertAdjacentElement("afterend", toolbar);
-
     return true;
   }
 
@@ -329,17 +325,13 @@
       subtree: true
     });
 
-    setTimeout(() => {
-      observer.disconnect();
-    }, 30000);
+    setTimeout(() => observer.disconnect(), 30000);
   }
 
   if (document.readyState === "loading") {
-    document.addEventListener(
-      "DOMContentLoaded",
-      start,
-      { once: true }
-    );
+    document.addEventListener("DOMContentLoaded", start, {
+      once: true
+    });
   } else {
     start();
   }

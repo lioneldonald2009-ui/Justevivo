@@ -13,11 +13,15 @@
     originalDrawCaption = window.drawCaption;
 
     window.drawCaption = function(ctx, w, h, t) {
-      if (!zoomEnabled || window.displayMode !== 'karaoke') {
+      const state = typeof window.JVGetKaraokeState === 'function'
+        ? window.JVGetKaraokeState()
+        : null;
+
+      if (!zoomEnabled || !state || state.displayMode !== 'karaoke') {
         return originalDrawCaption.apply(this, arguments);
       }
 
-      const segments = window.segments;
+      const segments = state.segments;
       if (!Array.isArray(segments)) {
         return originalDrawCaption.apply(this, arguments);
       }

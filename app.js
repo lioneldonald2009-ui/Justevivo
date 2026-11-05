@@ -1929,6 +1929,13 @@ layoutPreview();
 updateSilenceInfo();
 updateCaption();
 
+// État partagé explicitement avec les extensions (ex. app10.js).
+// displayMode et segments sont des variables lexicales : elles ne sont pas
+// automatiquement disponibles via window.
+window.JVGetKaraokeState = function () {
+  return { displayMode: displayMode, segments: segments };
+};
+
 // ===== Chargement de la partie 2 =====
 (function loadPart2() {
   const s = document.createElement('script');

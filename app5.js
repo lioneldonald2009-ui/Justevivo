@@ -176,11 +176,12 @@
     logoutBtn.style.display = '';
 
     if (me) {
-      barText.textContent =
-        session.email + ' · Formule ' + me.planName + ' · ' +
-        me.videosUsed + '/' + me.videosLimit + ' vidéos ce mois-ci · ' +
-        'durée max ' + fmtSec(me.maxSeconds);
-      if (sideBottom) sideBottom.textContent = 'Formule ' + me.planName;
+      barText.textContent = me.isAdmin
+        ? session.email + ' · Administrateur JUSTEVIVO · Tous les accès illimités'
+        : session.email + ' · Formule ' + me.planName + ' · ' +
+          me.videosUsed + '/' + me.videosLimit + ' vidéos ce mois-ci · ' +
+          'durée max ' + fmtSec(me.maxSeconds);
+      if (sideBottom) sideBottom.textContent = me.isAdmin ? 'Administrateur · Accès illimité' : 'Formule ' + me.planName;
     } else {
       barText.textContent = 'Connecté : ' + (session.email || '');
       if (sideBottom) sideBottom.textContent = 'Connecté';
@@ -407,8 +408,9 @@
     const isMe = isApi && url.indexOf('/api/me') > 0;
     const isTranscribe = isApi && url.indexOf('/api/transcribe') > 0;
     const isGenerate = isApi && url.indexOf('/api/generate') > 0;
+    const isTranslate = isApi && url.indexOf('/api/translate') > 0;
 
-    if (!(isMe || isTranscribe || isGenerate)) return origFetch(input, init);
+    if (!(isMe || isTranscribe || isGenerate || isTranslate)) return origFetch(input, init);
 
     if (cfgPromise) await cfgPromise;
     if (!cfg.enabled) return origFetch(input, init);
@@ -437,7 +439,7 @@
 
     if (res.status === 401 || res.status === 403) {
       res.clone().json().then(handleApiError).catch(() => {});
-    } else if (res.ok && (isTranscribe || isGenerate)) {
+    } else if (res.ok && (isTranscribe || isGenerate || isTranslate)) {
       setTimeout(refreshMe, 600);
     }
 

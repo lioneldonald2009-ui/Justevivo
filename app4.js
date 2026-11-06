@@ -306,6 +306,7 @@
       }
 
       applyResult(segs, words, text);
+      if (window.JVSetTranscriptionLanguage) window.JVSetTranscriptionLanguage(language);
 
       showToast(
         'Transcription réussie ! Langue : ' + (language || 'détectée') +

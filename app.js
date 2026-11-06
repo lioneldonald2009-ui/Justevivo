@@ -4,6 +4,9 @@ const videoPreview = document.getElementById('videoPreview');
 const placeholder = document.getElementById('placeholderPreview');
 const fileName = document.getElementById('fileName');
 const captionText = document.getElementById('captionText');
+const subtitleLanguage = document.getElementById('subtitleLanguage');
+const translateSubtitlesButton = document.getElementById('translateSubtitlesButton');
+const detectedAudioLanguageLabel = document.getElementById('detectedAudioLanguage');
 const captionPreview = document.getElementById('captionPreview');
 const previewFrame = document.getElementById('previewFrame');
 const colorInput = document.getElementById('captionColor');
@@ -209,6 +212,8 @@ let hookScale = 1;
 let hookTop = 12;
 
 let baseSegments = [];
+let originalBaseSegments = [];
+let detectedAudioLanguage = '';
 let segments = [];
 let edited = false;
 let lastShown = null;
@@ -1580,6 +1585,19 @@ function makeBase(rawSegments, rawWords) {
   return base;
 }
 
+function setTranscriptionLanguage(language) {
+  detectedAudioLanguage = String(language || '').trim();
+  originalBaseSegments = baseSegments.map(s => ({
+    start: s.start, end: s.end, text: s.text,
+    starts: (s.starts || []).slice(), ends: (s.ends || []).slice()
+  }));
+  if (detectedAudioLanguageLabel) {
+    detectedAudioLanguageLabel.textContent = detectedAudioLanguage || 'Non déterminée';
+  }
+  if (subtitleLanguage) subtitleLanguage.value = 'original';
+}
+window.JVSetTranscriptionLanguage = setTranscriptionLanguage;
+
 function rebuildSegments() {
   segments = [];
   baseSegments.forEach(b => {
@@ -1591,6 +1609,78 @@ function rebuildSegments() {
         starts: (p.starts || []).slice()
       });
     });
+  });
+}
+
+// ===== Choix de la langue des sous-titres =====
+if (subtitleLanguage && translateSubtitlesButton) {
+  subtitleLanguage.addEventListener('change', () => {
+    if (subtitleLanguage.value === 'original' && originalBaseSegments.length) {
+      baseSegments = originalBaseSegments.map(s => ({
+        start: s.start, end: s.end, text: s.text,
+        starts: (s.starts || []).slice(), ends: (s.ends || []).slice()
+      }));
+      rebuildSegments();
+      edited = false;
+      captionText.value = segments.map(s => s.text).join('\n');
+      lastShown = null;
+      updateCaption();
+    }
+  });
+
+  translateSubtitlesButton.addEventListener('click', async () => {
+    const target = subtitleLanguage.value;
+    if (!originalBaseSegments.length) {
+      showToast('Transcrivez d’abord la vidéo avant de choisir une langue.');
+      return;
+    }
+    if (target === 'original') {
+      baseSegments = originalBaseSegments.map(s => ({
+        start: s.start, end: s.end, text: s.text,
+        starts: (s.starts || []).slice(), ends: (s.ends || []).slice()
+      }));
+      rebuildSegments();
+      edited = false;
+      captionText.value = segments.map(s => s.text).join('\n');
+      lastShown = null;
+      updateCaption();
+      showToast('Sous-titres rétablis dans la langue originale.');
+      return;
+    }
+
+    translateSubtitlesButton.disabled = true;
+    const oldLabel = translateSubtitlesButton.textContent;
+    translateSubtitlesButton.textContent = 'Traduction en cours...';
+    try {
+      const response = await fetch(API_URL + '/api/translate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sourceLanguage: detectedAudioLanguage || 'auto',
+          targetLanguage: target,
+          segments: originalBaseSegments.map(s => ({
+            start: s.start, end: s.end, text: s.text
+          }))
+        })
+      });
+      const result = await response.json();
+      if (!response.ok) throw new Error(result.error || 'La traduction a échoué.');
+      baseSegments = (result.segments || []).map(s => ({
+        start: s.start, end: s.end, text: s.text,
+        starts: [], ends: []
+      }));
+      rebuildSegments();
+      edited = false;
+      captionText.value = segments.map(s => s.text).join('\n');
+      lastShown = null;
+      updateCaption();
+      showToast('Sous-titres traduits. Les timings vidéo sont conservés.');
+    } catch (error) {
+      showToast(error.message || 'Impossible de traduire les sous-titres.');
+    } finally {
+      translateSubtitlesButton.disabled = false;
+      translateSubtitlesButton.textContent = oldLabel;
+    }
   });
 }
 
@@ -1638,6 +1728,7 @@ transcribeButton.addEventListener('click', async () => {
       captionText.value = result.text;
     }
 
+    setTranscriptionLanguage(result.language || '');
     computeSilences();
     updateSilenceInfo();
     lastShown = null;

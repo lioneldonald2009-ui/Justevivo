@@ -1,0 +1,86 @@
+/* JUSTEVIVO Studio Pro — identité originale, ergonomie inspirée des éditeurs vidéo SaaS */
+:root{
+  --jv-bg:#080b12;--jv-surface:#101521;--jv-surface-2:#151d2b;--jv-surface-3:#1b2637;
+  --jv-line:rgba(166,183,211,.14);--jv-text:#f4f7fb;--jv-muted:#91a0b8;
+  --jv-accent:#8b5cf6;--jv-accent-2:#38bdf8;--jv-good:#34d399;
+  --jv-radius:16px;--jv-shadow:0 22px 70px rgba(0,0,0,.35)
+}
+html{scroll-behavior:smooth;scroll-padding-top:90px}
+body{background:var(--jv-bg);color:var(--jv-text);font-family:Inter,"DM Sans",system-ui,sans-serif;letter-spacing:-.01em}
+body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;background:radial-gradient(ellipse at 78% 0%,rgba(116,72,220,.12),transparent 34%),radial-gradient(ellipse at 0% 60%,rgba(24,148,190,.07),transparent 32%)}
+.topbar{height:68px;padding:0 clamp(18px,4vw,64px);background:rgba(8,11,18,.88);border-bottom:1px solid var(--jv-line);backdrop-filter:blur(18px)}
+.brand{font-size:20px;letter-spacing:-.8px}.brand-mark{background:linear-gradient(135deg,var(--jv-accent),var(--jv-accent-2));box-shadow:0 5px 22px rgba(139,92,246,.3)}
+.topbar nav{font-size:12px;gap:28px}.topbar nav a{transition:color .2s}.top-cta{border:1px solid rgba(167,139,250,.45);background:rgba(139,92,246,.1);border-radius:11px;padding:10px 15px}
+.hero{padding:76px clamp(22px,7vw,100px) 62px;min-height:520px;gap:clamp(28px,5vw,72px)}
+.hero h1{font-size:clamp(42px,5.3vw,68px);letter-spacing:-3.5px}.hero-copy>p{font-size:15px;line-height:1.85;color:#aab6ca}
+.button{border-radius:11px;min-height:42px;font-size:12px;transition:transform .18s,border-color .18s,filter .18s}.primary{background:linear-gradient(105deg,#7c3aed,#4f7df3);box-shadow:0 10px 30px rgba(111,75,220,.24)}.ghost{background:#151d2b;border:1px solid var(--jv-line);color:#dbe5f5}
+.video-card{border-radius:20px;background:#101725;border:1px solid rgba(165,180,210,.2);box-shadow:var(--jv-shadow);transform:none}.video-scene{border-radius:13px}
+.feature-strip{background:rgba(16,21,33,.86);border-color:var(--jv-line);border-radius:16px;padding:20px 24px;backdrop-filter:blur(12px)}
+.studio-section{padding:76px clamp(16px,5vw,72px) 88px}.section-heading{margin:0 auto 24px;max-width:1320px}.section-heading h2{font-size:clamp(27px,3vw,36px);letter-spacing:-1.4px}.section-heading>p{font-size:12px}
+.studio{max-width:1320px;margin:0 auto;grid-template-columns:208px minmax(0,1fr);border:1px solid var(--jv-line);border-radius:20px;background:rgba(13,18,29,.94);box-shadow:var(--jv-shadow);overflow:hidden}
+.sidebar{background:#0c111c;border-right:1px solid var(--jv-line);padding:22px 13px;min-height:680px}.mini-brand{font-size:13px;letter-spacing:.2px;margin:2px 0 34px 5px}.side-link{display:flex;align-items:center;gap:9px;padding:12px 12px;margin:4px 0;border-radius:10px;color:#93a2b9;font-size:12px;transition:background .18s,color .18s}.side-link.active{background:linear-gradient(90deg,rgba(139,92,246,.2),rgba(56,189,248,.06));color:#e7ddff;border:1px solid rgba(167,139,250,.18)}.side-link:hover{background:#172033;color:#fff}.side-bottom{color:#8392a9;font-size:10px}
+.workspace{min-width:0;padding:clamp(18px,2.5vw,32px);background:linear-gradient(145deg,rgba(17,24,38,.96),rgba(12,17,28,.96))}.workspace-head{align-items:center;margin-bottom:18px}.workspace-head h3{font-size:20px;letter-spacing:-.6px}.workspace-head p{font-size:11px;color:var(--jv-muted)}.status{background:rgba(52,211,153,.08);border-color:rgba(52,211,153,.28);color:#6ee7b7;font-size:9px;letter-spacing:.7px}
+.upload-zone{min-height:128px;border:1px dashed rgba(139,160,194,.42);border-radius:15px;background:linear-gradient(135deg,rgba(139,92,246,.08),rgba(56,189,248,.035));transition:border-color .2s,background .2s}.upload-zone:hover{border-color:#a78bfa;background:rgba(139,92,246,.1)}.upload-zone strong{font-size:13px}.upload-zone span,.upload-zone small{font-size:10px;color:#9eacc2}.upload-icon{background:linear-gradient(135deg,#7543d9,#397ed8);box-shadow:0 8px 24px rgba(124,58,237,.25)}
+.editor-grid{grid-template-columns:minmax(0,1.15fr) minmax(320px,.85fr);gap:16px;margin-top:16px;align-items:start}.preview-panel,.controls-panel{background:#101827;border:1px solid var(--jv-line);border-radius:15px;padding:16px;min-width:0}.panel-label{font-size:9px;letter-spacing:1.3px;color:#a7b5cb}.preview-frame{height:clamp(230px,30vw,420px);border-radius:12px;background:#070b13;border:1px solid rgba(255,255,255,.06)}.preview-frame video{object-fit:contain}.preview-caption{max-width:92%;font-size:clamp(20px,2.4vw,30px)}.preview-note{font-size:10px;color:#8291a8}
+.controls-panel textarea,.controls-panel input:not([type=color]),.controls-panel select,.controls-panel input[type=text],.controls-panel input[type=number]{width:100%;background:#0b1220;color:#f4f7fb;border:1px solid rgba(153,171,202,.22);border-radius:10px;padding:11px 12px;font:inherit;font-size:12px;outline:none;transition:border-color .18s,box-shadow .18s}.controls-panel textarea:focus,.controls-panel select:focus,.controls-panel input:focus{border-color:#9b7cf5;box-shadow:0 0 0 3px rgba(139,92,246,.14)}.field-label{font-size:10px;color:#b9c6d9;margin:15px 0 7px}.style-options{display:flex;flex-wrap:wrap;gap:7px}.style-option{flex:1 1 25%;min-width:74px;padding:10px 8px;border:1px solid rgba(153,171,202,.2);background:#0b1220;color:#aebbd0;border-radius:9px;font-size:9px}.style-option.selected{border-color:#a78bfa;color:#e6dcff;background:rgba(139,92,246,.17);box-shadow:0 0 0 1px rgba(167,139,250,.12) inset}
+#subtitleLanguagePanel{background:linear-gradient(145deg,rgba(139,92,246,.09),rgba(56,189,248,.035))!important;border:1px solid rgba(167,139,250,.22)!important;border-radius:13px!important;padding:14px!important}#subtitleLanguagePanel>div:first-child{font-size:9px;letter-spacing:1px;color:#c4b5fd}#subtitleLanguagePanel small{font-size:10px;line-height:1.55;color:#9eacc2}#subtitleLanguage{min-height:40px}
+#justevivo-editor-toolbar{background:#0b1220!important;border:1px solid var(--jv-line)!important;border-radius:13px!important;padding:9px!important;gap:8px!important}#justevivo-editor-toolbar .jv-tool{background:#131d2d!important;border:1px solid rgba(153,171,202,.16)!important;border-radius:10px!important;color:#b6c4d9!important;min-height:68px!important;transition:all .18s}#justevivo-editor-toolbar .jv-tool[aria-pressed=true]{background:rgba(139,92,246,.17)!important;border-color:#9b7cf5!important;color:#eee7ff!important}
+.studio-tabs{gap:7px!important}.studio-tab{background:#111a29!important;border-color:var(--jv-line)!important;border-radius:10px!important;color:#b6c4d9!important}.studio-tab:focus,.studio-tab:hover{border-color:#9b7cf5!important;color:#fff!important}
+.controls-panel details{border:1px solid var(--jv-line);border-radius:11px;background:#0c1422;padding:10px 12px;margin:9px 0}.controls-panel details summary{font-size:11px;font-weight:700;color:#dce6f5;cursor:pointer}.controls-panel details[open]{border-color:rgba(167,139,250,.3)}
+.toast{background:#172236;border:1px solid rgba(167,139,250,.35);border-radius:12px;box-shadow:var(--jv-shadow);font-size:12px;max-width:min(92vw,520px);line-height:1.5}
+.how-section{background:#0d1421;border-top:1px solid var(--jv-line);border-bottom:1px solid var(--jv-line)}.steps article{background:#111a29;border:1px solid var(--jv-line);border-radius:15px}.steps p{font-size:12px}.plans-section{background:radial-gradient(ellipse at 50% 0%,rgba(124,58,237,.1),transparent 55%)}.plan-card{background:linear-gradient(155deg,#151f30,#0f1725);border:1px solid var(--jv-line);border-radius:17px}.featured-plan{border-color:rgba(167,139,250,.65);box-shadow:0 18px 55px rgba(112,59,255,.16)}
+.site-footer,footer{border-color:var(--jv-line);color:#8998ae}
+:focus-visible{outline:2px solid #a78bfa!important;outline-offset:3px}
+@media(max-width:900px){.studio{grid-template-columns:170px minmax(0,1fr)}.editor-grid{grid-template-columns:1fr}.preview-frame{height:360px}}
+@media(max-width:650px){.topbar{height:62px}.hero{padding-top:54px}.studio-section{padding:48px 12px 60px}.studio{grid-template-columns:1fr;border-radius:15px}.sidebar{display:none}.workspace{padding:14px}.workspace-head{gap:10px}.workspace-head h3{font-size:17px}.editor-grid{grid-template-columns:minmax(0,1fr)}.preview-frame{height:min(68vw,340px)}.preview-panel,.controls-panel{padding:12px}.studio-tabs{display:flex}.feature-strip{grid-template-columns:1fr 1fr}.section-heading{padding:0 4px}.plans-grid{gap:12px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* Studio Pro v2 — harmonisation des panneaux créés dynamiquement par les modules JS */
+.workspace{position:relative}
+.workspace-head{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-bottom:16px;border-bottom:1px solid var(--jv-line)}
+.workspace-head p{margin-top:5px}
+.upload-zone{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;text-align:center}
+.upload-zone input[type=file]{max-width:100%;font-size:11px;color:var(--jv-muted)}
+.controls-panel{display:flex;flex-direction:column;gap:8px}
+.controls-panel .field-label{display:block;margin:10px 0 5px;font-weight:700;letter-spacing:.02em}
+.controls-panel button,.workspace button{font-family:inherit}
+.controls-panel details{display:block;overflow:hidden;transition:border-color .2s,background .2s}
+.controls-panel details summary{display:flex;align-items:center;gap:8px;min-height:28px;list-style:none}
+.controls-panel details summary::-webkit-details-marker{display:none}
+.controls-panel details summary:after{content:'＋';margin-left:auto;color:#a78bfa;font-size:15px}
+.controls-panel details[open] summary:after{content:'−'}
+.controls-panel details>*:not(summary){max-width:100%}
+.controls-panel details input:not([type=checkbox]):not([type=radio]):not([type=color]),
+.controls-panel details select,.controls-panel details textarea{box-sizing:border-box;width:100%;max-width:100%;background:#0a1220;color:var(--jv-text);border:1px solid var(--jv-line);border-radius:9px;padding:9px;font:inherit;font-size:12px}
+.controls-panel details button{max-width:100%;overflow-wrap:anywhere}
+.controls-panel details input[type=range]{width:100%;accent-color:#9b7cf5}
+.controls-panel details input[type=checkbox]{accent-color:#8b5cf6}
+#justevivo-editor-toolbar{position:sticky;top:8px;z-index:5;box-shadow:0 12px 32px rgba(0,0,0,.22)}
+#justevivo-editor-toolbar .jv-tool{font-family:inherit;flex:1 0 76px;max-width:120px}
+#justevivo-editor-toolbar .jv-tool:focus-visible,.studio-tab:focus-visible,.side-link:focus-visible{outline:2px solid #a78bfa;outline-offset:2px}
+.studio-tabs{scrollbar-width:thin;scrollbar-color:#66519a transparent}
+.preview-frame{position:relative;overflow:hidden;display:grid;place-items:center}
+.preview-frame video{display:block;width:100%;height:100%;max-height:100%;background:#05070c}
+.preview-caption{pointer-events:none;text-wrap:balance;text-shadow:0 3px 18px rgba(0,0,0,.65)}
+#subtitleLanguagePanel{margin-top:14px!important}
+#subtitleLanguagePanel select{box-sizing:border-box}
+.controls-panel .button.full{width:100%;justify-content:center}
+.controls-panel .button:disabled{opacity:.48;cursor:not-allowed;filter:grayscale(.3)}
+.controls-panel .field-label+input[type=color]{width:100%;height:42px;padding:4px;border:1px solid var(--jv-line);border-radius:9px;background:#0b1220}
+.demo-warning,.plans-note{color:#9aa9bf;font-size:11px;line-height:1.65}
+@media(min-width:1100px){.studio{grid-template-columns:220px minmax(0,1fr)}.workspace{padding:30px}.editor-grid{grid-template-columns:minmax(0,1.1fr) minmax(340px,.9fr)}}
+@media(max-width:900px){.controls-panel details{padding:10px}.workspace-head{align-items:flex-start}}
+@media(max-width:650px){
+  .topbar nav{display:none}
+  .top-cta{padding:9px 11px;font-size:11px}
+  .hero h1{letter-spacing:-2px}
+  .studio{overflow:visible}
+  .workspace{border-radius:0 0 14px 14px}
+  .upload-zone{min-height:116px}
+  #justevivo-editor-toolbar{position:relative;top:auto}
+  #justevivo-editor-toolbar .jv-tool{flex:0 0 70px;max-width:none}
+  .preview-frame{height:min(78vw,360px)}
+  .controls-panel{gap:6px}
+  .controls-panel details{margin:7px 0}
+  .plans-grid{grid-template-columns:1fr}
+}

@@ -34,11 +34,6 @@ const STYLES = [
   ['jaune', 'JAUNE'], ['blanc', 'BLANC'], ['minimal', 'MINIMAL'], ['pixel', 'PIXEL']
 ];
 
-// Configuration partagée des styles : requise par app3.js (export) et app7.js.
-// Les styles avancés sont ajoutés ensuite par app7.js.
-const STYLE_BASE = {};
-const STYLE_CFG = {};
-
 // [nom affiché, famille CSS, graisse, taille]
 const FONTS = [
   ['Auto (selon le style)', '', '', ''],

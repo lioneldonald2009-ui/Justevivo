@@ -1691,8 +1691,8 @@ transcribeButton.addEventListener('click', async () => {
     return;
   }
 
-  if (selectedFile.size > 25 * 1024 * 1024) {
-    showToast('Fichier trop volumineux : maximum 25 Mo.');
+  if (selectedFile.size > 100 * 1024 * 1024) {
+    showToast('Fichier trop volumineux : maximum 100 Mo.');
     return;
   }
 

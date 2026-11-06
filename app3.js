@@ -1,13 +1,13 @@
 // ===== JUSTEVIVO · app3.js · export vidéo + Outils IA =====
 
 // Apparence des styles dans la vidéo exportée (dessin sur canvas)
-const STYLE_BASE = {
+var STYLE_BASE = window.STYLE_BASE || {
   size: 23, weight: '800', family: "'DM Sans', Arial, sans-serif",
   c1: '#f7f7ff', c2: 'accent', upper: false,
   shadows: [{ c: '#000', x: 0, y: 3, b: 12 }]
 };
 
-const STYLE_CFG = {
+var STYLE_CFG = window.STYLE_CFG || {
   pop: {},
   neon: { c1: '#6ffaff', shadows: [{ c: '#3af7ff', x: 0, y: 0, b: 12 }] },
   clean: { weight: '600', box: { bg: 'rgba(0,0,0,0.6)', padX: 15, padY: 10, radius: 5 } },
@@ -41,6 +41,8 @@ const STYLE_CFG = {
   minimal: { weight: '500', size: 18, c1: '#fff', c2: '#fff', line2Weight: '700', shadows: [{ c: '#000', x: 0, y: 1, b: 4 }] },
   pixel: { family: "'Press Start 2P', monospace", weight: '400', size: 13, c1: '#ffe600', c2: '#fff', shadows: [{ c: '#000', x: 2, y: 2, b: 0 }] }
 };
+window.STYLE_BASE = STYLE_BASE;
+window.STYLE_CFG = STYLE_CFG;
 
 // ===== Dessin de la vidéo exportée =====
 function roundRectPath(ctx, x, y, w, h, r) {

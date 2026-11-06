@@ -1,0 +1,31 @@
+/* JUSTEVIVO visual system refresh — dark and light themes */
+:root{color-scheme:dark;--jv-bg:#090d18;--jv-surface:#111a2b;--jv-surface2:#17243a;--jv-text:#f4f7ff;--jv-muted:#a5b2c8;--jv-line:rgba(166,187,220,.18);--jv-primary:#8067ff;--jv-secondary:#26d6ce;--jv-warm:#ff826b;--jv-glow:rgba(128,103,255,.24)}
+html[data-theme="light"]{color-scheme:light;--jv-bg:#f4f6fc;--jv-surface:#fff;--jv-surface2:#edf1fa;--jv-text:#17213a;--jv-muted:#596781;--jv-line:rgba(43,59,91,.15);--jv-primary:#6348ed;--jv-secondary:#078f91;--jv-warm:#d94e3c;--jv-glow:rgba(99,72,237,.12)}
+html,body{background:var(--jv-bg);color:var(--jv-text)}
+body{transition:background .22s ease,color .22s ease}
+.theme-toggle{position:fixed;z-index:10000;right:16px;top:84px;display:inline-flex;align-items:center;gap:8px;padding:10px 13px;border:1px solid var(--jv-line);border-radius:999px;background:var(--jv-surface);color:var(--jv-text);box-shadow:0 8px 28px rgba(0,0,0,.16);font:700 12px/1 system-ui,sans-serif;cursor:pointer;backdrop-filter:blur(14px)}
+.theme-toggle:hover{border-color:var(--jv-primary);transform:translateY(-1px)}.theme-toggle:focus-visible{outline:3px solid var(--jv-secondary);outline-offset:3px}
+html[data-theme="light"] body:before{opacity:.18}
+html[data-theme="light"] .topbar{background:rgba(255,255,255,.9)!important;border-color:var(--jv-line)!important}
+html[data-theme="light"] .topbar nav a,html[data-theme="light"] .brand,html[data-theme="light"] .brand span{color:var(--jv-text)}
+html[data-theme="light"] .hero-copy>p,html[data-theme="light"] .section-heading>p,html[data-theme="light"] .workspace-head p{color:var(--jv-muted)!important}
+html[data-theme="light"] .feature-strip,html[data-theme="light"] .how-section,html[data-theme="light"] .plans-section{background:#edf1fa!important;border-color:var(--jv-line)!important}
+html[data-theme="light"] .studio{background:#fff!important;border-color:var(--jv-line)!important;box-shadow:0 18px 55px rgba(35,50,85,.10)!important}
+html[data-theme="light"] .sidebar,html[data-theme="light"] .workspace{background:#f8f9fd!important;border-color:var(--jv-line)!important}
+html[data-theme="light"] .preview-panel,html[data-theme="light"] .controls-panel,html[data-theme="light"] .steps article,html[data-theme="light"] .plan-card{background:#fff!important;border-color:var(--jv-line)!important;color:var(--jv-text)!important}
+html[data-theme="light"] .controls-panel details,html[data-theme="light"] #justevivo-editor-toolbar,html[data-theme="light"] .studio-tab,html[data-theme="light"] .style-option{background:#f1f4fb!important;color:var(--jv-text)!important;border-color:var(--jv-line)!important}
+html[data-theme="light"] .controls-panel details summary,html[data-theme="light"] .field-label,html[data-theme="light"] .panel-label,html[data-theme="light"] .side-link{color:var(--jv-text)!important}
+html[data-theme="light"] .controls-panel textarea,html[data-theme="light"] .controls-panel input:not([type=color]),html[data-theme="light"] .controls-panel select,html[data-theme="light"] .controls-panel input[type=text],html[data-theme="light"] .controls-panel input[type=number]{background:#fff!important;color:#17213a!important;border-color:#d8deeb!important}
+html[data-theme="light"] .ghost,html[data-theme="light"] .button.ghost{background:#fff!important;color:#273450!important;border-color:#d7deed!important}
+html[data-theme="light"] .plan-description,html[data-theme="light"] .plans-note,html[data-theme="light"] .steps p,html[data-theme="light"] .site-footer{color:var(--jv-muted)!important}
+html[data-theme="light"] .plan-price,html[data-theme="light"] .video-limit{color:#17213a!important}
+html[data-theme="light"] .theme-toggle{background:#fff;color:#17213a}
+/* Legal/contact pages */
+html[data-theme="dark"] body{background:#090d18!important;color:#eaf0ff!important}
+html[data-theme="dark"] main{background:#111a2b!important;border-color:var(--jv-line)!important;color:#eaf0ff!important}
+html[data-theme="dark"] p,html[data-theme="dark"] li,html[data-theme="dark"] .updated,html[data-theme="dark"] footer{color:#a5b2c8!important}
+html[data-theme="dark"] .notice{background:#1c2540!important;color:#dce4ff!important}
+html[data-theme="light"] main{background:#fff!important;color:#17213a!important}
+html[data-theme="light"] body{background:#f4f6fc!important}
+@media(max-width:650px){.theme-toggle{top:auto;bottom:16px;right:14px;padding:11px 13px}.theme-toggle span{display:none}}
+@media(prefers-reduced-motion:reduce){.theme-toggle,body{transition:none}}

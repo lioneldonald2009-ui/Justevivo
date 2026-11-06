@@ -34,11 +34,6 @@ const STYLES = [
   ['jaune', 'JAUNE'], ['blanc', 'BLANC'], ['minimal', 'MINIMAL'], ['pixel', 'PIXEL']
 ];
 
-// Configuration partagée des styles : requise par app3.js (export) et app7.js.
-// Les styles avancés sont ajoutés ensuite par app7.js.
-const STYLE_BASE = {};
-const STYLE_CFG = {};
-
 // [nom affiché, famille CSS, graisse, taille]
 const FONTS = [
   ['Auto (selon le style)', '', '', ''],
@@ -2034,8 +2029,11 @@ window.JVGetKaraokeState = function () {
 
 // ===== Chargement de la partie 2 =====
 (function loadPart2() {
+  if (window.__JV_APP2_LOADING__ || window.__JV_APP2_LOADED__) return;
+  window.__JV_APP2_LOADING__ = true;
   const s = document.createElement('script');
   s.src = 'app2.js?v=' + Date.now();
-  s.onerror = () => showToast('Partie 2 introuvable : créez le fichier app2.js dans le dépôt.');
+  s.onload = () => { window.__JV_APP2_LOADED__ = true; window.__JV_APP2_LOADING__ = false; };
+  s.onerror = () => { window.__JV_APP2_LOADING__ = false; showToast('Partie 2 introuvable : créez le fichier app2.js dans le dépôt.'); };
   document.body.appendChild(s);
 })();

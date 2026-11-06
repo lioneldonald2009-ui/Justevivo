@@ -1,0 +1,85 @@
+
+/* JUSTEVIVO — interface claire inspirée d'une bibliothèque numérique moderne.
+   Couche visuelle additive : ne remplace pas les feuilles de style du studio. */
+:root{
+ --jv-bg:#f5f7fb;--jv-surface:#fff;--jv-surface-2:#f8faff;--jv-text:#17243b;
+ --jv-muted:#6b7890;--jv-line:#e5eaf2;--jv-primary:#315fe8;--jv-primary-soft:#edf2ff;
+ --jv-shadow:0 12px 34px rgba(25,45,80,.07);--jv-radius:18px;
+}
+html{scroll-behavior:smooth;background:var(--jv-bg)}
+body{background:var(--jv-bg)!important;color:var(--jv-text)!important;font-family:"DM Sans",Inter,system-ui,sans-serif!important}
+.topbar{position:sticky;top:0;z-index:50;min-height:72px;padding:12px clamp(18px,4vw,56px)!important;
+ background:rgba(255,255,255,.94)!important;border-bottom:1px solid var(--jv-line)!important;
+ box-shadow:0 3px 18px rgba(30,50,90,.035);backdrop-filter:blur(14px)}
+.brand{color:#17243b!important;font-weight:800;letter-spacing:-.04em}
+.brand span:last-child{color:var(--jv-primary)!important}
+.brand-mark{display:inline-grid;place-items:center;width:34px;height:34px;border-radius:11px;
+ background:var(--jv-primary)!important;color:#fff!important;box-shadow:0 5px 12px #315fe833}
+.topbar nav a,.site-footer a{color:var(--jv-muted)!important}
+.top-cta,.button.primary{background:var(--jv-primary)!important;color:white!important;border:1px solid var(--jv-primary)!important;
+ box-shadow:0 7px 16px #315fe82a}
+.button.ghost,.button:not(.primary){background:#fff!important;color:#263753!important;border:1px solid var(--jv-line)!important}
+.hero{max-width:1440px;margin:0 auto;padding:64px clamp(20px,5vw,76px)!important;gap:48px}
+.hero-copy h1{color:#17243b!important;letter-spacing:-.055em}
+.hero-copy h1 span,.section-heading h2 span,.how-section h2 span,.plans-heading h2 span{color:var(--jv-primary)!important}
+.hero-copy p,.section-heading p,.plans-heading p{color:var(--jv-muted)!important}
+.eyebrow{color:var(--jv-primary)!important;letter-spacing:.13em}
+.hero-art .video-card{background:#fff!important;border:1px solid var(--jv-line)!important;box-shadow:var(--jv-shadow)!important}
+.video-top{color:var(--jv-muted)!important}
+.video-controls{color:var(--jv-muted)!important}
+.feature-strip{max-width:1320px;margin:0 auto 38px!important;padding:18px!important;background:#fff!important;
+ border:1px solid var(--jv-line)!important;border-radius:var(--jv-radius)!important;box-shadow:var(--jv-shadow)}
+.feature-strip>div{color:var(--jv-text)!important}
+.feature-strip small{color:var(--jv-muted)!important}
+.studio-section{max-width:1480px;margin:0 auto;padding:40px clamp(16px,3vw,42px) 72px!important}
+.section-heading{margin-bottom:24px}
+.section-heading h2,.how-section h2,.plans-heading h2{color:var(--jv-text)!important;letter-spacing:-.04em}
+.studio{display:grid!important;grid-template-columns:230px minmax(0,1fr)!important;gap:0!important;
+ background:#fff!important;border:1px solid var(--jv-line)!important;border-radius:22px!important;overflow:hidden!important;
+ box-shadow:var(--jv-shadow)!important}
+.sidebar{background:#fbfcff!important;border-right:1px solid var(--jv-line)!important;color:var(--jv-text)!important;padding:24px 16px!important}
+.mini-brand{color:var(--jv-text)!important;font-weight:800;margin-bottom:26px}
+.side-link{color:#63718a!important;border-radius:11px!important;padding:12px 13px!important;margin:4px 0!important}
+.side-link.active,.side-link:hover{background:var(--jv-primary-soft)!important;color:var(--jv-primary)!important}
+.side-bottom{color:var(--jv-muted)!important;border-top:1px solid var(--jv-line)!important;padding-top:18px!important}
+.workspace{background:#fff!important;padding:clamp(18px,3vw,34px)!important;min-width:0}
+.workspace-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:22px}
+.workspace-head h3{color:var(--jv-text)!important;font-size:1.45rem!important}
+.workspace-head p,.preview-note,.demo-warning{color:var(--jv-muted)!important}
+.status{background:var(--jv-primary-soft)!important;color:var(--jv-primary)!important;border-radius:999px;padding:8px 12px;font-weight:700}
+.upload-zone{background:#f8faff!important;border:1.5px dashed #bdc9df!important;border-radius:16px!important;color:var(--jv-text)!important}
+.upload-zone:hover{border-color:var(--jv-primary)!important;background:#f1f5ff!important}
+.upload-icon{background:var(--jv-primary-soft)!important;color:var(--jv-primary)!important}
+.editor-grid{gap:22px!important}
+.preview-panel,.controls-panel{background:#fff!important;border:1px solid var(--jv-line)!important;border-radius:16px!important;padding:18px!important;box-shadow:0 5px 20px rgba(30,50,90,.035)}
+.panel-label,.field-label{color:#4d5d78!important}
+.controls-panel input:not([type=color]),.controls-panel select,.controls-panel textarea,
+.workspace input:not([type=file]),.workspace select,.workspace textarea{
+ background:#fff!important;color:var(--jv-text)!important;border:1px solid #dce3ef!important;border-radius:10px!important}
+.controls-panel input:focus,.controls-panel select:focus,.controls-panel textarea:focus{outline:3px solid #315fe81a!important;border-color:var(--jv-primary)!important}
+.style-option{background:#fff!important;color:#34435d!important;border:1px solid var(--jv-line)!important;border-radius:10px!important}
+.style-option.selected{background:var(--jv-primary-soft)!important;color:var(--jv-primary)!important;border-color:#b8c8ff!important}
+#subtitleLanguagePanel{background:#f8faff!important;border-color:var(--jv-line)!important;color:var(--jv-text)!important}
+#subtitleLanguagePanel select{background:#fff!important;color:var(--jv-text)!important;border-color:#dce3ef!important}
+.how-section,.plans-section{max-width:1320px;margin:0 auto;padding:64px clamp(20px,4vw,52px)!important}
+.steps article,.plan-card{background:#fff!important;border:1px solid var(--jv-line)!important;border-radius:18px!important;box-shadow:var(--jv-shadow)!important}
+.steps article h3,.plan-card h3,.plan-card .plan-price{color:var(--jv-text)!important}
+.steps article p,.plan-description,.plans-note,.plan-card li{color:var(--jv-muted)!important}
+.plan-card.featured-plan{border:1.5px solid #9fb4ff!important;box-shadow:0 12px 34px rgba(49,95,232,.10)!important}
+.site-footer{background:#fff!important;border-top:1px solid var(--jv-line)!important;color:var(--jv-muted)!important}
+.toast{box-shadow:var(--jv-shadow)}
+@media(max-width:900px){
+ .topbar nav{display:none!important}
+ .studio{grid-template-columns:1fr!important}
+ .sidebar{display:flex!important;flex-wrap:wrap;gap:6px;border-right:0!important;border-bottom:1px solid var(--jv-line)!important}
+ .mini-brand{width:100%;margin-bottom:8px}
+ .side-bottom{display:none}
+ .editor-grid{grid-template-columns:1fr!important}
+}
+@media(max-width:600px){
+ .hero{padding-top:38px!important}
+ .feature-strip{margin-left:14px!important;margin-right:14px!important;grid-template-columns:1fr 1fr!important}
+ .workspace{padding:14px!important}
+ .workspace-head{align-items:flex-start;flex-direction:column}
+ .studio-section{padding-left:10px!important;padding-right:10px!important}
+}

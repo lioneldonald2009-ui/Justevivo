@@ -168,3 +168,57 @@ body{background:var(--jv-bg)!important;color:var(--jv-text)!important;font-famil
   .controls-panel{min-width:0!important}
   .controls-panel details{padding:10px!important}
 }
+
+
+/* JUSTEVIVO V4 — studio premium, contrôles texte */
+:root{
+ --jv-ink:#111827;--jv-muted:#64748b;--jv-line:#e2e8f0;
+ --jv-surface:#ffffff;--jv-soft:#f1f5f9;--jv-violet:#6d5dfb;
+ --jv-teal:#16b8a6;--jv-amber:#f59e0b;
+}
+.controls-panel{
+ background:var(--jv-surface)!important;color:var(--jv-ink)!important;
+ border:1px solid var(--jv-line)!important;border-radius:18px!important;
+ box-shadow:0 12px 36px rgba(15,23,42,.07)!important;
+ padding:18px!important;
+}
+.controls-panel .panel-label{
+ color:#475569!important;font-size:11px!important;letter-spacing:.12em!important;
+}
+.controls-panel details{
+ background:#f8fafc!important;border:1px solid #e2e8f0!important;
+ border-radius:14px!important;padding:14px!important;margin:12px 0!important;
+}
+.controls-panel details summary{
+ color:#312e81!important;font-size:13px!important;font-weight:800!important;
+}
+.controls-panel .field-label{
+ color:#334155!important;font-size:12px!important;font-weight:700!important;
+ margin:10px 0 6px!important;
+}
+.controls-panel select,.controls-panel input[type="text"],
+.controls-panel input[type="number"],.controls-panel textarea{
+ width:100%!important;box-sizing:border-box!important;background:#fff!important;
+ color:#0f172a!important;border:1px solid #cbd5e1!important;
+ border-radius:10px!important;padding:10px 12px!important;
+}
+.controls-panel input[type="range"]{width:100%!important;accent-color:var(--jv-violet)!important}
+.controls-panel input[type="checkbox"]{accent-color:var(--jv-violet)!important}
+.controls-panel input[type="color"]{
+ width:52px!important;height:38px!important;padding:3px!important;
+ background:#fff!important;border:1px solid #cbd5e1!important;border-radius:9px!important;
+}
+.controls-panel .jv-color-control{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;
+ gap:12px!important;padding:8px 0!important;border-bottom:1px solid #edf2f7!important;
+}
+.controls-panel .jv-color-control .field-label{margin:0!important}
+.controls-panel .jv-color-control input{flex:0 0 52px!important}
+.editor-grid{display:grid!important;grid-template-columns:minmax(0,1.2fr) minmax(320px,.8fr)!important;gap:20px!important}
+.preview-panel,.controls-panel{min-width:0!important}
+.preview-frame{background:#0b1220!important;border-radius:18px!important;overflow:hidden!important}
+@media(max-width:900px){
+ .editor-grid{grid-template-columns:minmax(0,1fr)!important}
+ .controls-panel{padding:13px!important}
+ .preview-frame{max-height:65vh!important}
+}

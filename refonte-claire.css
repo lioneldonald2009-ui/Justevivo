@@ -83,3 +83,88 @@ body{background:var(--jv-bg)!important;color:var(--jv-text)!important;font-famil
  .workspace-head{align-items:flex-start;flex-direction:column}
  .studio-section{padding-left:10px!important;padding-right:10px!important}
 }
+
+
+/* ===== V3 : correction du panneau de réglages injecté par app.js ===== */
+.controls-panel{
+  color:#18243a!important;
+  background:#fff!important;
+}
+.controls-panel details{
+  display:block!important;
+  margin:14px 0!important;
+  padding:12px 14px!important;
+  background:#f7f9fd!important;
+  border:1px solid #e1e7f0!important;
+  border-radius:12px!important;
+  color:#18243a!important;
+}
+.controls-panel details summary{
+  color:#243a63!important;
+  font-size:12px!important;
+  font-weight:800!important;
+  letter-spacing:.02em!important;
+  cursor:pointer!important;
+  padding:4px 0!important;
+}
+.controls-panel details[open] summary{margin-bottom:12px!important}
+.controls-panel .field-label,
+.controls-panel label{
+  color:#42516b!important;
+  font-size:12px!important;
+  font-weight:650!important;
+}
+.controls-panel input[type="range"]{
+  display:block!important;
+  width:100%!important;
+  accent-color:#315fe8!important;
+  cursor:pointer!important;
+  margin:8px 0 14px!important;
+}
+.controls-panel input[type="checkbox"]{
+  accent-color:#315fe8!important;
+  width:16px!important;height:16px!important;
+}
+.controls-panel input[type="color"]{
+  width:54px!important;height:38px!important;
+  padding:3px!important;background:#fff!important;
+  border:1px solid #dce3ef!important;border-radius:8px!important;
+}
+.controls-panel input[type="text"],
+.controls-panel input[type="number"],
+.controls-panel select,
+.controls-panel textarea{
+  background:#fff!important;color:#17243b!important;
+  border:1px solid #d7dfeb!important;border-radius:9px!important;
+  min-height:38px!important;padding:9px 11px!important;
+}
+.controls-panel option{background:#fff!important;color:#17243b!important}
+.controls-panel small,
+.controls-panel .note,
+.controls-panel details div{
+  color:#64728a!important;
+}
+.controls-panel button{
+  cursor:pointer!important;
+}
+.editor-grid{
+  display:grid!important;
+  grid-template-columns:minmax(0,1.15fr) minmax(330px,.85fr)!important;
+  align-items:start!important;
+}
+.preview-frame{
+  background:#101827!important;
+  border:1px solid #dce3ef!important;
+  border-radius:14px!important;
+  overflow:hidden!important;
+}
+.preview-caption{
+  max-width:92%!important;
+  line-height:1.18!important;
+  overflow-wrap:anywhere!important;
+}
+@media(max-width:900px){
+  .editor-grid{grid-template-columns:1fr!important}
+  .controls-panel{min-width:0!important}
+  .controls-panel details{padding:10px!important}
+}

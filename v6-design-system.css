@@ -252,3 +252,36 @@ body{margin:0!important;background:var(--jv-bg)!important;color:var(--jv-ink)!im
   .editor-grid{grid-template-columns:minmax(0,.78fr) minmax(0,1.22fr)!important}
   .preview-panel,.controls-panel{padding:6px!important}
 }
+
+
+/* Lisibilité des commandes injectées par app.js : leurs titres avaient une
+   couleur lavande claire définie en inline, invisible sur le panneau clair. */
+.controls-panel details{
+  background:#f5f7fc!important;
+  border:1px solid #dce2ef!important;
+  color:#26324a!important;
+}
+.controls-panel details summary{
+  color:#26324a!important;
+  font-size:12px!important;
+  font-weight:800!important;
+  line-height:1.45!important;
+  min-height:34px!important;
+  padding:5px 2px!important;
+  margin:0!important;
+  opacity:1!important;
+  visibility:visible!important;
+}
+.controls-panel details[open]{
+  background:#fff!important;
+  border-color:#c9cfea!important;
+}
+.controls-panel details p,
+.controls-panel details label,
+.controls-panel details small,
+.controls-panel details span{
+  color:#43516b!important;
+}
+.controls-panel details button{
+  color:#26324a;
+}

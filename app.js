@@ -2126,7 +2126,7 @@ window.JVGetKaraokeState = function () {
   window.__JV_APP2_LOADING__ = true;
   const s = document.createElement('script');
   s.src = 'app2.js?v=' + Date.now();
-  s.onload = () => { window.__JV_APP2_LOADED__ = true; window.__JV_APP2_LOADING__ = false; };
+  s.onload = () => { window.__JV_APP2_LOADED__ = true; window.__JV_APP2_LOADING__ = false; window.dispatchEvent(new CustomEvent('justevivo:app2-ready')); if (typeof window.JVCollectLateEditorControls === 'function') window.JVCollectLateEditorControls(); };
   s.onerror = () => { window.__JV_APP2_LOADING__ = false; showToast('Partie 2 introuvable : créez le fichier app2.js dans le dépôt.'); };
   document.body.appendChild(s);
 })();

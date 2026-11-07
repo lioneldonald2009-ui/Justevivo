@@ -124,7 +124,7 @@
     text: 'Texte et sous-titres',
     styles: 'Styles et apparence',
     scenes: 'Scènes et montage',
-    audio: 'Audio',
+    audio: 'Musique et effets sonores',
     export: 'Exportation'
   };
 
@@ -195,6 +195,25 @@
     Object.values(editorPanelGroups).forEach(section => controlsPanel.appendChild(section));
     controlsPanel.appendChild(settings);
     controlsPanel.dataset.jvGrouped = 'true';
+  }
+
+  function collectLateEditorControls() {
+    if (!controlsPanel) return;
+    if (!controlsPanel.dataset.jvGrouped) buildEditorPanelGroups();
+    const knownGroups = new Set(Object.values(editorPanelGroups));
+    const panelTitle = controlsPanel.querySelector('.panel-label');
+    Array.from(controlsPanel.children).forEach(node => {
+      if (node === editorPanelNav || node === editorSettingsPanel || node === panelTitle || knownGroups.has(node)) return;
+      const group = categoryForControl(node);
+      (editorPanelGroups[group] || editorPanelGroups.text).appendChild(node);
+    });
+    // Afficher les commandes réellement présentes dans Audio et retirer le texte provisoire.
+    const audioNotice = editorPanelGroups.audio?.querySelector('.jv-audio-placeholder');
+    const audioHasControls = editorPanelGroups.audio &&
+      Array.from(editorPanelGroups.audio.children).some(node =>
+        node !== audioNotice && !node.classList.contains('jv-editor-group-title')
+      );
+    if (audioHasControls && audioNotice) audioNotice.remove();
   }
 
   function showEditorPanel(id) {
@@ -411,6 +430,12 @@
   }
 
   buildEditorPanelNavigation();
+  collectLateEditorControls();
+
+  // app.js charge app2.js de manière asynchrone. On récupère ses sections audio
+  // dès que le chargement est terminé, sans recréer leurs champs ni leurs événements.
+  window.addEventListener('justevivo:app2-ready', collectLateEditorControls);
+  window.JVCollectLateEditorControls = collectLateEditorControls;
 
   document.querySelectorAll('.side-link').forEach(link => {
     // L'identifiant vient de data-page : l'ajout du tableau de bord ne décale plus les rubriques.

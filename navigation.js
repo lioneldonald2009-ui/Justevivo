@@ -118,6 +118,16 @@ document.addEventListener("DOMContentLoaded", function () {
     });
   });
 
+  // Les CTA du site pointent vers #studio : ils doivent aussi réactiver le studio
+  // après que le tableau de bord a masqué les éléments de montage.
+  document.querySelectorAll('a[href="#studio"]').forEach(link => {
+    link.addEventListener("click", () => {
+      showStudio();
+      const studio = document.getElementById("studio");
+      if (studio) requestAnimationFrame(() => studio.scrollIntoView({behavior:"smooth", block:"start"}));
+    });
+  });
+
   // Entrée initiale : conserver le dashboard comme page d'accueil.
   showDashboard();
 });

@@ -376,3 +376,25 @@ body{margin:0!important;background:var(--jv-bg)!important;color:var(--jv-ink)!im
   scroll-behavior:auto!important;
   overflow-anchor:none!important;
 }
+
+
+/* Étape 12 — rétablir l'affichage du groupe actif dans le panneau */
+.controls-panel > .jv-editor-control-group{
+  display:flex!important;
+  flex-direction:column!important;
+}
+.controls-panel > .jv-editor-control-group[hidden]{
+  display:none!important;
+}
+
+/* Le titre principal doit rester lisible en thème sombre comme en thème clair. */
+.hero h1{
+  color:var(--jv-text)!important;
+}
+html[data-theme="dark"] .hero h1,
+html:not([data-theme="light"]) .hero h1{
+  color:#f4f7ff!important;
+}
+html[data-theme="light"] .hero h1{
+  color:#17213a!important;
+}

@@ -200,8 +200,12 @@
     workspace.insertBefore(tabs, wsHead);
   }
 
-  document.querySelectorAll('.side-link').forEach((link, i) => {
-    if (ACTIONS[i]) link.addEventListener('click', () => go(ACTIONS[i][0]));
+  document.querySelectorAll('.side-link').forEach(link => {
+    // L'identifiant vient de data-page : l'ajout du tableau de bord ne décale plus les rubriques.
+    const page = link.dataset.page;
+    if (ACTIONS.some(([id]) => id === page)) {
+      link.addEventListener('click', () => go(page));
+    }
   });
 
   function go(id) {

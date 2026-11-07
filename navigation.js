@@ -55,7 +55,11 @@ document.addEventListener("DOMContentLoaded", function () {
   createVideo.addEventListener("click", () => showPage("studio"));
   const openProjects = make("button", "button ghost", "Voir mes projets");
   openProjects.type = "button";
-  openProjects.addEventListener("click", () => showPage("projects"));
+  openProjects.addEventListener("click", () => {
+    // Réutilise la vraie gestion des projets de app6.js (Supabase).
+    const projectsLink = document.querySelector('.sidebar .side-link[data-page="projects"]');
+    if (projectsLink) projectsLink.click();
+  });
   dashActions.append(createVideo, openProjects);
   const recent = make("article", "dashboard-card dashboard-recent");
   recent.append(make("h4", "dashboard-section-title", "Vos projets"));
@@ -180,6 +184,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
   links.forEach(link => {
     link.style.cursor = "pointer";
+    // « Mes projets » est géré par app6.js et sa vraie persistance Supabase.
+    if (link.dataset.page === "projects") return;
     link.addEventListener("click", () => showPage(link.dataset.page));
   });
   showPage("dashboard");

@@ -1322,6 +1322,56 @@ function renderGallery() {
     });
     styleBox.appendChild(add);
 
+    const backupActions = document.createElement('div');
+    Object.assign(backupActions.style, {
+      gridColumn: '1 / -1',
+      display: 'flex',
+      flexDirection: 'row',
+      flexWrap: 'nowrap',
+      alignItems: 'stretch',
+      justifyContent: 'stretch',
+      gap: '6px',
+      width: '100%',
+      minWidth: '0',
+      minHeight: '38px',
+      visibility: 'visible',
+      opacity: '1',
+      position: 'relative',
+      zIndex: '5'
+    });
+
+    const exportButton = document.createElement('button');
+    exportButton.type = 'button';
+    exportButton.textContent = '↓ Exporter mes styles';
+    Object.assign(exportButton.style, {
+      display: 'block', flex: '1 1 50%', minWidth: '0', minHeight: '38px',
+      padding: '9px 6px', background: '#17243b', border: '1px solid #8294b5',
+      color: '#ffffff', borderRadius: '8px', fontSize: '10px', fontWeight: '800',
+      cursor: 'pointer', fontFamily: 'inherit', visibility: 'visible', opacity: '1'
+    });
+
+    const importButton = document.createElement('button');
+    importButton.type = 'button';
+    importButton.textContent = '↑ Importer des styles';
+    Object.assign(importButton.style, {
+      display: 'block', flex: '1 1 50%', minWidth: '0', minHeight: '38px',
+      padding: '9px 6px', background: '#17243b', border: '1px solid #8294b5',
+      color: '#ffffff', borderRadius: '8px', fontSize: '10px', fontWeight: '800',
+      cursor: 'pointer', fontFamily: 'inherit', visibility: 'visible', opacity: '1'
+    });
+
+    const importInput = document.createElement('input');
+    importInput.type = 'file';
+    importInput.accept = '.json,application/json';
+    importInput.hidden = true;
+    importInput.setAttribute('aria-label', 'Choisir une sauvegarde de styles JUSTEVIVO');
+
+    exportButton.addEventListener('click', exportStyleBackup);
+    importButton.addEventListener('click', () => importInput.click());
+    importInput.addEventListener('change', () => importStyleBackup(importInput));
+    backupActions.append(exportButton, importButton);
+    styleBox.append(backupActions, importInput);
+
     if (!presets.length) {
       const note = document.createElement('div');
       note.textContent = 'Aucun style enregistré. Réglez votre style, puis touchez le bouton ci-dessus.';
@@ -1379,6 +1429,98 @@ function selectStyle(id, fromEmojiTab) {
   lastShown = null;
   markSelected();
   updateCaption();
+}
+
+function exportStyleBackup() {
+  if (!presets.length) {
+    showToast('Aucun style personnalisé à exporter.');
+    return;
+  }
+
+  const backup = {
+    app: 'JUSTEVIVO',
+    type: 'style-presets',
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    styles: presets
+  };
+  const blob = new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.download = 'justevivo-styles-' + new Date().toISOString().slice(0, 10) + '.json';
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  URL.revokeObjectURL(url);
+  showToast(presets.length + ' style(s) exporté(s).');
+}
+
+function importStyleBackup(input) {
+  const file = input.files && input.files[0];
+  if (!file) return;
+  if (file.size > 1024 * 1024) {
+    showToast('Fichier trop volumineux : sélectionnez une sauvegarde JUSTEVIVO valide.');
+    input.value = '';
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const backup = JSON.parse(String(reader.result || ''));
+      if (!backup || backup.app !== 'JUSTEVIVO' || backup.type !== 'style-presets' ||
+          backup.version !== 1 || !Array.isArray(backup.styles)) {
+        throw new Error('Format de sauvegarde non reconnu.');
+      }
+
+      const allowed = new Set([
+        'name', 'style', 'font', 'color', 'kwColor', 'kwMode', 'emoji', 'display',
+        'size', 'words', 'width', 'lineHeight', 'spacing', 'upper', 'pos',
+        'textFillColor', 'textStrokeColor', 'textStrokeWidth', 'textShadowOn',
+        'textBackgroundOn', 'textBackgroundColor', 'textBackgroundOpacity',
+        'textBoldOn', 'textAlignMode'
+      ]);
+      const valid = backup.styles.filter(item => item && typeof item === 'object' &&
+        typeof item.name === 'string' && item.name.trim() &&
+        typeof item.style === 'string' && STYLES.some(style => style[0] === item.style));
+
+      if (!valid.length) throw new Error('Aucun style valide trouvé dans ce fichier.');
+
+      let added = 0;
+      let skipped = 0;
+      valid.forEach(item => {
+        const clean = {};
+        Object.keys(item).forEach(key => {
+          if (allowed.has(key)) clean[key] = item[key];
+        });
+        clean.name = clean.name.trim().slice(0, 20);
+        if (!clean.name || presets.some(existing => existing.name.toLowerCase() === clean.name.toLowerCase())) {
+          skipped++;
+          return;
+        }
+        if (presets.length >= 30) {
+          skipped++;
+          return;
+        }
+        presets.push(clean);
+        added++;
+      });
+
+      if (!storePresets(presets)) throw new Error('Enregistrement impossible dans ce navigateur.');
+      renderGallery();
+      showToast(added + ' style(s) importé(s), ' + skipped + ' ignoré(s).');
+    } catch (error) {
+      showToast(error.message || 'Impossible de lire cette sauvegarde.');
+    } finally {
+      input.value = '';
+    }
+  };
+  reader.onerror = () => {
+    showToast('Lecture du fichier impossible.');
+    input.value = '';
+  };
+  reader.readAsText(file);
 }
 
 function saveCurrentStyle() {

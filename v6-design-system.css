@@ -65,3 +65,28 @@ body{margin:0!important;background:var(--jv-bg)!important;color:var(--jv-ink)!im
 .toast{border-radius:12px!important}
 @media(max-width:900px){.studio{grid-template-columns:1fr!important}.sidebar{display:flex!important;gap:7px;align-items:center;overflow:auto;padding:12px!important}.mini-brand{margin:0 12px 0 0!important;white-space:nowrap}.side-link{white-space:nowrap;margin:0!important;padding:9px 11px!important}.side-bottom{display:none!important}.editor-grid{grid-template-columns:1fr!important}.preview-frame{min-height:220px!important}.featured-plan{transform:none}}
 @media(max-width:600px){.topbar nav{display:none!important}.hero{padding-top:42px!important}.feature-strip{margin:0 12px 40px!important;grid-template-columns:1fr 1fr!important}.workspace-head{align-items:flex-start;flex-direction:column}.status{font-size:10px}.controls-panel{padding:14px!important}}
+
+
+/* JUSTEVIVO V6 — première étape : tableau de bord */
+.workspace-page { margin-top: 18px; }
+.workspace-page-title { margin: 0 0 8px; color: #f7f8ff; font-size: clamp(22px, 3vw, 30px); letter-spacing: -.04em; }
+.workspace-page-intro { margin: 0 0 22px; color: #aab4cc; line-height: 1.6; }
+.dashboard-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+.dashboard-card { min-width: 0; padding: 20px; border: 1px solid rgba(155,174,220,.17); border-radius: 18px; background: linear-gradient(145deg, rgba(27,39,68,.92), rgba(15,23,42,.92)); box-shadow: 0 12px 30px rgba(0,0,0,.12); }
+.dashboard-kicker { display: block; margin-bottom: 13px; color: #a9b5d1; font-size: 10px; font-weight: 800; letter-spacing: .13em; }
+.dashboard-value { display: block; overflow-wrap: anywhere; color: #fff; font-size: clamp(20px, 2.8vw, 28px); line-height: 1.25; }
+.dashboard-muted { color: #aab4cc; font-size: 13px; line-height: 1.6; }
+.dashboard-account .dashboard-value { font-size: 18px; }
+.dashboard-progress { height: 8px; margin-top: 16px; overflow: hidden; border-radius: 99px; background: rgba(255,255,255,.1); }
+.dashboard-progress-fill { display: block; width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #8b6cff, #46c9d8); transition: width .25s ease; }
+.dashboard-actions { display: flex; flex-wrap: wrap; gap: 10px; margin: 18px 0; }
+.dashboard-recent { padding: 18px 20px; }
+.dashboard-section-title { margin: 0; color: #f7f8ff; font-size: 16px; }
+.dashboard-recent p { margin-bottom: 0; }
+.saved-project-card { margin-top: 12px; padding: 16px; border: 1px solid rgba(155,174,220,.17); border-radius: 14px; background: rgba(255,255,255,.035); }
+.saved-project-card h4 { margin: 0 0 6px; color: #fff; }
+.saved-project-card p { overflow-wrap: anywhere; }
+.saved-project-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.sidebar .side-link { cursor: pointer; }
+.sidebar .side-link.active { border-color: rgba(160,133,255,.35); background: rgba(137,105,255,.14); color: #e7ddff; }
+@media (max-width: 640px) { .dashboard-grid { grid-template-columns: 1fr; } .dashboard-card { padding: 17px; } .dashboard-actions > button { flex: 1 1 100%; } }

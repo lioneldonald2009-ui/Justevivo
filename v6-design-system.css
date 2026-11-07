@@ -285,3 +285,14 @@ body{margin:0!important;background:var(--jv-bg)!important;color:var(--jv-ink)!im
 .controls-panel details button{
   color:#26324a;
 }
+
+
+/* Étape 7 — vrais groupes de commandes du panneau de personnalisation */
+.jv-editor-control-group{display:flex;flex-direction:column;gap:10px;min-width:0}
+.jv-editor-control-group[hidden],.jv-editor-settings-panel[hidden]{display:none!important}
+.jv-editor-group-title{margin:4px 0 8px;color:#27324a;font-size:14px;font-weight:800}
+.jv-editor-control-group details{display:block!important;width:100%;box-sizing:border-box;margin:8px 0!important}
+.jv-editor-control-group label{display:block!important}
+.jv-editor-control-group select,.jv-editor-control-group textarea,.jv-editor-control-group input:not([type=checkbox]):not([type=radio]){max-width:100%;box-sizing:border-box}
+.jv-editor-control-group .style-options{display:flex;flex-wrap:wrap;gap:7px}
+.jv-audio-placeholder{padding:14px;border:1px dashed #cbd2e5;border-radius:12px;color:#68748e;background:#f8f9ff;font-size:12px;line-height:1.5}

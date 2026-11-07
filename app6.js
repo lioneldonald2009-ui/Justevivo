@@ -115,40 +115,96 @@
         button.disabled = false;
       }
     });
+    buildEditorPanelGroups();
     showEditorPanel('text');
   }
+
+  const editorPanelGroups = {};
+  const editorPanelGroupLabels = {
+    text: 'Texte et sous-titres',
+    styles: 'Styles et apparence',
+    scenes: 'Scènes et montage',
+    audio: 'Audio',
+    export: 'Exportation'
+  };
 
   function categoryForDetail(detail) {
     const title = (detail.querySelector('summary')?.textContent || '').toLowerCase();
     if (/format|découpage|export/.test(title)) return 'export';
     if (/zoom|silence|scène|coupure|accroche/.test(title)) return 'scenes';
-    if (/apparence|style|police|couleur/.test(title)) return 'styles';
+    if (/apparence|réglages du texte/.test(title)) return 'styles';
     if (/audio|musique|son/.test(title)) return 'audio';
+    return 'styles';
+  }
+
+  function categoryForControl(node) {
+    if (node.matches('details')) return categoryForDetail(node);
+    if (node.matches('.panel-label, .jv-editor-panel-nav, .jv-editor-settings-panel')) return 'system';
+    if (node.matches('#subtitleLanguagePanel, #captionText, textarea[ id="captionText" ]')) return 'text';
+    if (node.matches('.style-options, #captionColor, #previewButton') || node.querySelector('[data-tab]')) return 'styles';
+
+    const id = (node.id || '').toLowerCase();
+    const htmlFor = (node.htmlFor || '').toLowerCase();
+    const target = id || htmlFor;
+
+    if (['captionfont','captionmode','captionposition','captionpositionslider','keywordmode','keywordcolor','emojimode'].includes(target)) return 'styles';
+    if (['subtitlelanguage','translatesubtitlesbutton'].includes(target)) return 'text';
+    if (/audio|music|sound/.test(target)) return 'audio';
+    if (/format|export|trim/.test(target)) return 'export';
+    if (/scene|cut|silence|zoom|hook/.test(target)) return 'scenes';
+
+    const label = (node.textContent || '').trim().toLowerCase();
+    if (/générer les sous-titres|langue audio|appliquer la langue/.test(label)) return 'text';
+    if (/exporter|télécharger srt|télécharger vtt/.test(label)) return 'export';
+
+    // Les éléments non identifiés restent visibles dans Texte : aucun contrôle n'est perdu.
     return 'text';
   }
 
-  function panelCategory(el) {
-    if (el.matches('details')) return categoryForDetail(el);
-    const id = (el.id || '').toLowerCase();
-    const cls = el.className && typeof el.className === 'string' ? el.className : '';
-    if (cls.includes('panel-label') || cls.includes('jv-editor-panel-nav') || cls.includes('jv-editor-settings-panel')) return 'system';
-    if (id === 'captionColor' || id === 'captionFont' || cls.includes('style-options') || cls.includes('style-gallery')) return 'styles';
-    if (/audio|music|sound/.test(id)) return 'audio';
-    if (/format|export/.test(id)) return 'export';
-    if (/scene|cut|silence|zoom|hook/.test(id)) return 'scenes';
-    return 'text';
+  function buildEditorPanelGroups() {
+    if (!controlsPanel || controlsPanel.dataset.jvGrouped === 'true') return;
+    const nav = editorPanelNav;
+    const settings = editorSettingsPanel;
+    const panelTitle = controlsPanel.querySelector('.panel-label');
+
+    Object.entries(editorPanelGroupLabels).forEach(([id, label]) => {
+      const section = document.createElement('section');
+      section.className = 'jv-editor-control-group';
+      section.dataset.group = id;
+      const heading = document.createElement('h4');
+      heading.className = 'jv-editor-group-title';
+      heading.textContent = label;
+      section.appendChild(heading);
+      editorPanelGroups[id] = section;
+    });
+
+    const audioNotice = document.createElement('p');
+    audioNotice.className = 'jv-audio-placeholder';
+    audioNotice.textContent = 'Les commandes audio ne sont pas encore présentes dans cette version du studio.';
+    editorPanelGroups.audio.appendChild(audioNotice);
+
+    const children = Array.from(controlsPanel.children);
+    children.forEach(node => {
+      if (node === nav || node === settings || node === panelTitle) return;
+      const group = categoryForControl(node);
+      (editorPanelGroups[group] || editorPanelGroups.text).appendChild(node);
+    });
+
+    // Structure stable : titre, onglets, groupe actif, paramètres du compte.
+    if (panelTitle) panelTitle.insertAdjacentElement('afterend', nav);
+    Object.values(editorPanelGroups).forEach(section => controlsPanel.appendChild(section));
+    controlsPanel.appendChild(settings);
+    controlsPanel.dataset.jvGrouped = 'true';
   }
 
   function showEditorPanel(id) {
     editorPanelTab = id;
     if (!controlsPanel) return;
     if (!editorPanelNav) buildEditorPanelNavigation();
+    if (!controlsPanel.dataset.jvGrouped) buildEditorPanelGroups();
 
-    // Ne jamais masquer les commandes existantes : certains outils sont injectés
-    // dynamiquement par app4/app5 et ne possèdent pas de catégorie déclarée.
-    Array.from(controlsPanel.children).forEach(el => {
-      if (el === editorPanelNav || el === editorSettingsPanel) return;
-      el.hidden = false;
+    Object.entries(editorPanelGroups).forEach(([key, section]) => {
+      section.hidden = key !== id;
     });
     if (editorSettingsPanel) editorSettingsPanel.hidden = id !== 'settings';
 
@@ -159,25 +215,7 @@
         button.setAttribute('aria-pressed', active ? 'true' : 'false');
       });
     }
-
-    let target = null;
-    if (id === 'styles') target = controlsPanel.querySelector('.style-options');
-    else if (id === 'scenes') target = Array.from(controlsPanel.querySelectorAll('details')).find(d => /scène|silence|zoom|coupure|accroche/i.test(d.textContent));
-    else if (id === 'audio') target = Array.from(controlsPanel.querySelectorAll('details')).find(d => /audio|musique|son/i.test(d.textContent));
-    else if (id === 'export') target = Array.from(controlsPanel.querySelectorAll('details')).find(d => /export|format|résolution/i.test(d.textContent));
-    else if (id === 'settings') target = editorSettingsPanel;
-    else target = controlsPanel.querySelector('#captionText');
-
-    if (target && typeof target.scrollIntoView === 'function') {
-      const panelTop = controlsPanel.getBoundingClientRect().top;
-      const targetTop = target.getBoundingClientRect().top;
-      controlsPanel.scrollTo({
-        top: controlsPanel.scrollTop + targetTop - panelTop - 12,
-        behavior: 'smooth'
-      });
-    } else {
-      controlsPanel.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    controlsPanel.scrollTo({ top: 0, behavior: 'smooth' });
     if (id === 'settings') refreshEmbeddedSettings();
   }
 

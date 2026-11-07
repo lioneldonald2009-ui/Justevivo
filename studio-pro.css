@@ -34,3 +34,53 @@ body:before{content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;bac
 @media(max-width:900px){.studio{grid-template-columns:170px minmax(0,1fr)}.editor-grid{grid-template-columns:1fr}.preview-frame{height:360px}}
 @media(max-width:650px){.topbar{height:62px}.hero{padding-top:54px}.studio-section{padding:48px 12px 60px}.studio{grid-template-columns:1fr;border-radius:15px}.sidebar{display:none}.workspace{padding:14px}.workspace-head{gap:10px}.workspace-head h3{font-size:17px}.editor-grid{grid-template-columns:minmax(0,1fr)}.preview-frame{height:min(68vw,340px)}.preview-panel,.controls-panel{padding:12px}.studio-tabs{display:flex}.feature-strip{grid-template-columns:1fr 1fr}.section-heading{padding:0 4px}.plans-grid{gap:12px}}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* Studio Pro v2 — harmonisation des panneaux créés dynamiquement par les modules JS */
+.workspace{position:relative}
+.workspace-head{display:flex;justify-content:space-between;flex-wrap:wrap;gap:12px;padding-bottom:16px;border-bottom:1px solid var(--jv-line)}
+.workspace-head p{margin-top:5px}
+.upload-zone{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;cursor:pointer;text-align:center}
+.upload-zone input[type=file]{max-width:100%;font-size:11px;color:var(--jv-muted)}
+.controls-panel{display:flex;flex-direction:column;gap:8px}
+.controls-panel .field-label{display:block;margin:10px 0 5px;font-weight:700;letter-spacing:.02em}
+.controls-panel button,.workspace button{font-family:inherit}
+.controls-panel details{display:block;overflow:hidden;transition:border-color .2s,background .2s}
+.controls-panel details summary{display:flex;align-items:center;gap:8px;min-height:28px;list-style:none}
+.controls-panel details summary::-webkit-details-marker{display:none}
+.controls-panel details summary:after{content:'＋';margin-left:auto;color:#a78bfa;font-size:15px}
+.controls-panel details[open] summary:after{content:'−'}
+.controls-panel details>*:not(summary){max-width:100%}
+.controls-panel details input:not([type=checkbox]):not([type=radio]):not([type=color]),
+.controls-panel details select,.controls-panel details textarea{box-sizing:border-box;width:100%;max-width:100%;background:#0a1220;color:var(--jv-text);border:1px solid var(--jv-line);border-radius:9px;padding:9px;font:inherit;font-size:12px}
+.controls-panel details button{max-width:100%;overflow-wrap:anywhere}
+.controls-panel details input[type=range]{width:100%;accent-color:#9b7cf5}
+.controls-panel details input[type=checkbox]{accent-color:#8b5cf6}
+#justevivo-editor-toolbar{position:sticky;top:8px;z-index:5;box-shadow:0 12px 32px rgba(0,0,0,.22)}
+#justevivo-editor-toolbar .jv-tool{font-family:inherit;flex:1 0 76px;max-width:120px}
+#justevivo-editor-toolbar .jv-tool:focus-visible,.studio-tab:focus-visible,.side-link:focus-visible{outline:2px solid #a78bfa;outline-offset:2px}
+.studio-tabs{scrollbar-width:thin;scrollbar-color:#66519a transparent}
+.preview-frame{position:relative;overflow:hidden;display:grid;place-items:center}
+.preview-frame video{display:block;width:100%;height:100%;max-height:100%;background:#05070c}
+.preview-caption{pointer-events:none;text-wrap:balance;text-shadow:0 3px 18px rgba(0,0,0,.65)}
+#subtitleLanguagePanel{margin-top:14px!important}
+#subtitleLanguagePanel select{box-sizing:border-box}
+.controls-panel .button.full{width:100%;justify-content:center}
+.controls-panel .button:disabled{opacity:.48;cursor:not-allowed;filter:grayscale(.3)}
+.controls-panel .field-label+input[type=color]{width:100%;height:42px;padding:4px;border:1px solid var(--jv-line);border-radius:9px;background:#0b1220}
+.demo-warning,.plans-note{color:#9aa9bf;font-size:11px;line-height:1.65}
+@media(min-width:1100px){.studio{grid-template-columns:220px minmax(0,1fr)}.workspace{padding:30px}.editor-grid{grid-template-columns:minmax(0,1.1fr) minmax(340px,.9fr)}}
+@media(max-width:900px){.controls-panel details{padding:10px}.workspace-head{align-items:flex-start}}
+@media(max-width:650px){
+  .topbar nav{display:none}
+  .top-cta{padding:9px 11px;font-size:11px}
+  .hero h1{letter-spacing:-2px}
+  .studio{overflow:visible}
+  .workspace{border-radius:0 0 14px 14px}
+  .upload-zone{min-height:116px}
+  #justevivo-editor-toolbar{position:relative;top:auto}
+  #justevivo-editor-toolbar .jv-tool{flex:0 0 70px;max-width:none}
+  .preview-frame{height:min(78vw,360px)}
+  .controls-panel{gap:6px}
+  .controls-panel details{margin:7px 0}
+  .plans-grid{grid-template-columns:1fr}
+}

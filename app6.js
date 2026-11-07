@@ -40,7 +40,7 @@
 .jv-settings-message{font-size:12px;min-height:18px;color:#5e4ac8}
 .editor-grid{align-items:start}
 .preview-panel{position:sticky;top:14px;align-self:start}
-@media(max-width:700px){.preview-panel{position:static}.jv-editor-panel-nav{margin:8px 0;padding:6px}.jv-editor-panel-tab{padding:8px 10px}}
+@media(max-width:700px){.jv-editor-panel-nav{margin:8px 0;padding:6px}.jv-editor-panel-tab{padding:8px 10px}}
 `;
 
   document.head.appendChild(css);

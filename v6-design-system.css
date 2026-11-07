@@ -123,3 +123,55 @@ body{margin:0!important;background:var(--jv-bg)!important;color:var(--jv-ink)!im
 }
 
 .jv-audio-placeholder{padding:14px;border:1px dashed #cbd2e5;border-radius:12px;color:#68748e;background:#f8f9ff;font-size:12px;line-height:1.5}
+
+
+/* JUSTEVIVO — aperçu vidéo persistant, défilement indépendant des réglages */
+.editor-grid{
+  height: min(760px, calc(100dvh - 150px)) !important;
+  min-height: 480px !important;
+  overflow: visible !important;
+  align-items: stretch !important;
+}
+.preview-panel{
+  position: sticky !important;
+  top: 84px !important;
+  align-self: start !important;
+  max-height: calc(100dvh - 105px) !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+}
+.controls-panel{
+  height: 100% !important;
+  max-height: 100% !important;
+  overflow-y: auto !important;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  -webkit-overflow-scrolling: touch;
+}
+.workspace,.workspace-page,.editor-grid{overflow:visible!important}
+@media(max-width:700px){
+  .editor-grid{
+    height: min(72dvh, 690px) !important;
+    min-height: 420px !important;
+    grid-template-columns: minmax(0,.86fr) minmax(0,1.14fr) !important;
+    gap: 8px !important;
+    overflow: visible !important;
+  }
+  .preview-panel{
+    position: sticky !important;
+    top: 76px !important;
+    align-self: start !important;
+    max-height: calc(72dvh - 12px) !important;
+    overflow-y: auto !important;
+  }
+  .controls-panel{
+    height: 100% !important;
+    max-height: 100% !important;
+    overflow-y: auto !important;
+    padding-bottom: 24px !important;
+  }
+}
+@media(max-width:390px){
+  .editor-grid{grid-template-columns:minmax(0,.78fr) minmax(0,1.22fr)!important}
+  .preview-panel,.controls-panel{padding:6px!important}
+}

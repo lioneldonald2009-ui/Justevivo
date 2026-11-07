@@ -175,3 +175,80 @@ body{margin:0!important;background:var(--jv-bg)!important;color:var(--jv-ink)!im
   .editor-grid{grid-template-columns:minmax(0,.78fr) minmax(0,1.22fr)!important}
   .preview-panel,.controls-panel{padding:6px!important}
 }
+
+
+/* JUSTEVIVO V6 — panneau droit défilant, aperçu toujours visible */
+.editor-grid{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(320px,.9fr)!important;
+  align-items:start!important;
+  height:auto!important;
+  min-height:0!important;
+  overflow:visible!important;
+}
+.preview-panel{
+  position:sticky!important;
+  top:18px!important;
+  align-self:start!important;
+  height:auto!important;
+  max-height:calc(100vh - 36px)!important;
+  overflow:auto!important;
+  overscroll-behavior:contain!important;
+}
+.controls-panel{
+  position:relative!important;
+  height:calc(100vh - 145px)!important;
+  min-height:440px!important;
+  max-height:760px!important;
+  overflow-y:auto!important;
+  overflow-x:hidden!important;
+  overscroll-behavior:contain!important;
+  -webkit-overflow-scrolling:touch!important;
+  scrollbar-gutter:stable!important;
+}
+.controls-panel [hidden]{
+  display:none!important;
+}
+@media(max-width:900px){
+  .editor-grid{
+    grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr)!important;
+    gap:10px!important;
+  }
+  .preview-panel{
+    position:sticky!important;
+    top:12px!important;
+    max-height:calc(100vh - 24px)!important;
+  }
+  .controls-panel{
+    height:calc(100vh - 130px)!important;
+    min-height:420px!important;
+    max-height:720px!important;
+    overflow-y:auto!important;
+  }
+}
+@media(max-width:600px){
+  .editor-grid{
+    grid-template-columns:minmax(0,.84fr) minmax(0,1.16fr)!important;
+    gap:7px!important;
+    height:auto!important;
+    min-height:0!important;
+  }
+  .preview-panel{
+    position:sticky!important;
+    top:8px!important;
+    max-height:calc(100dvh - 100px)!important;
+    overflow:auto!important;
+  }
+  .controls-panel{
+    height:calc(100dvh - 150px)!important;
+    min-height:380px!important;
+    max-height:none!important;
+    overflow-y:auto!important;
+    padding:8px!important;
+    -webkit-overflow-scrolling:touch!important;
+  }
+}
+@media(max-width:390px){
+  .editor-grid{grid-template-columns:minmax(0,.78fr) minmax(0,1.22fr)!important}
+  .preview-panel,.controls-panel{padding:6px!important}
+}

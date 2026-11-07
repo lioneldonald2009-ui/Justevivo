@@ -143,21 +143,15 @@
     editorPanelTab = id;
     if (!controlsPanel) return;
     if (!editorPanelNav) buildEditorPanelNavigation();
+
+    // Ne jamais masquer les commandes existantes : certains outils sont injectés
+    // dynamiquement par app4/app5 et ne possèdent pas de catégorie déclarée.
     Array.from(controlsPanel.children).forEach(el => {
       if (el === editorPanelNav || el === editorSettingsPanel) return;
-      const category = panelCategory(el);
-      if (category !== 'system') el.hidden = category !== id;
+      el.hidden = false;
     });
-    // Les labels et contrôles natifs sont des éléments frères des sections :
-    // on les filtre aussi pour éviter qu'ils restent visibles dans le mauvais onglet.
-    Array.from(controlsPanel.children).forEach(el => {
-      if (el === editorPanelNav || el === editorSettingsPanel || el.classList.contains('panel-label')) return;
-      if (el.matches('label')) {
-        const target = el.htmlFor ? document.getElementById(el.htmlFor) : null;
-        const targetCategory = target ? panelCategory(target) : 'text';
-        el.hidden = targetCategory !== id;
-      }
-    });
+    if (editorSettingsPanel) editorSettingsPanel.hidden = id !== 'settings';
+
     if (editorPanelNav) {
       editorPanelNav.querySelectorAll('button').forEach(button => {
         const active = button.dataset.panel === id;
@@ -165,16 +159,25 @@
         button.setAttribute('aria-pressed', active ? 'true' : 'false');
       });
     }
-    if (editorSettingsPanel) editorSettingsPanel.hidden = id !== 'settings';
-    let audioNotice = controlsPanel.querySelector('.jv-audio-placeholder');
-    if (!audioNotice) {
-      audioNotice = document.createElement('div');
-      audioNotice.className = 'jv-audio-placeholder';
-      audioNotice.textContent = 'Les réglages audio seront regroupés ici lorsqu’ils seront disponibles dans le studio.';
-      audioNotice.hidden = true;
-      controlsPanel.appendChild(audioNotice);
+
+    let target = null;
+    if (id === 'styles') target = controlsPanel.querySelector('.style-options');
+    else if (id === 'scenes') target = Array.from(controlsPanel.querySelectorAll('details')).find(d => /scène|silence|zoom|coupure|accroche/i.test(d.textContent));
+    else if (id === 'audio') target = Array.from(controlsPanel.querySelectorAll('details')).find(d => /audio|musique|son/i.test(d.textContent));
+    else if (id === 'export') target = Array.from(controlsPanel.querySelectorAll('details')).find(d => /export|format|résolution/i.test(d.textContent));
+    else if (id === 'settings') target = editorSettingsPanel;
+    else target = controlsPanel.querySelector('#captionText');
+
+    if (target && typeof target.scrollIntoView === 'function') {
+      const panelTop = controlsPanel.getBoundingClientRect().top;
+      const targetTop = target.getBoundingClientRect().top;
+      controlsPanel.scrollTo({
+        top: controlsPanel.scrollTop + targetTop - panelTop - 12,
+        behavior: 'smooth'
+      });
+    } else {
+      controlsPanel.scrollTo({ top: 0, behavior: 'smooth' });
     }
-    audioNotice.hidden = id !== 'audio';
     if (id === 'settings') refreshEmbeddedSettings();
   }
 

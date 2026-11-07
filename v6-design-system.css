@@ -296,3 +296,33 @@ body{margin:0!important;background:var(--jv-bg)!important;color:var(--jv-ink)!im
 .jv-editor-control-group select,.jv-editor-control-group textarea,.jv-editor-control-group input:not([type=checkbox]):not([type=radio]){max-width:100%;box-sizing:border-box}
 .jv-editor-control-group .style-options{display:flex;flex-wrap:wrap;gap:7px}
 .jv-audio-placeholder{padding:14px;border:1px dashed #cbd2e5;border-radius:12px;color:#68748e;background:#f8f9ff;font-size:12px;line-height:1.5}
+
+
+/* Étape 9 — barre d'onglets entièrement visible, sans barre de défilement horizontale */
+.jv-editor-panel-nav{
+  display:grid!important;
+  grid-template-columns:repeat(3,minmax(0,1fr))!important;
+  gap:7px!important;
+  overflow:visible!important;
+  width:100%!important;
+  box-sizing:border-box!important;
+  scrollbar-width:none!important;
+}
+.jv-editor-panel-nav::-webkit-scrollbar{display:none!important}
+.jv-editor-panel-tab{
+  width:100%!important;
+  min-width:0!important;
+  white-space:normal!important;
+  text-align:center!important;
+  min-height:38px!important;
+  padding:8px 6px!important;
+  line-height:1.2!important;
+  overflow-wrap:anywhere!important;
+}
+@media(min-width:900px){
+  .jv-editor-panel-nav{grid-template-columns:repeat(6,minmax(0,1fr))!important}
+}
+@media(max-width:520px){
+  .jv-editor-panel-nav{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important}
+  .jv-editor-panel-tab{font-size:11px!important}
+}

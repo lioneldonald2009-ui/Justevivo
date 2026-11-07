@@ -210,9 +210,7 @@
     // Afficher les commandes réellement présentes dans Audio et retirer le texte provisoire.
     const audioNotice = editorPanelGroups.audio?.querySelector('.jv-audio-placeholder');
     const audioHasControls = editorPanelGroups.audio &&
-      Array.from(editorPanelGroups.audio.children).some(node =>
-        node !== audioNotice && !node.classList.contains('jv-editor-group-title')
-      );
+      editorPanelGroups.audio.querySelectorAll('details').length > 0;
     if (audioHasControls && audioNotice) audioNotice.remove();
   }
 

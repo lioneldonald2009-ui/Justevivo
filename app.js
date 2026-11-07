@@ -436,7 +436,9 @@ function makeSection(title, open) {
   });
   details.appendChild(summary);
 
-  colorLabel.parentNode.insertBefore(details, colorLabel);
+  const controlsRoot = colorLabel.closest('.controls-panel') || colorLabel.parentNode;
+  const firstGroup = controlsRoot.querySelector(':scope > .jv-editor-control-group');
+  controlsRoot.insertBefore(details, firstGroup || colorLabel);
   return details;
 }
 

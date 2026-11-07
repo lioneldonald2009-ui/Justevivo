@@ -658,14 +658,22 @@
     showToast('Projet remis en place. Vous pouvez lire et exporter la vidéo.');
   });
 
-  function openProject(row) {
+  async function openProject(row) {
     pending = { data: row.data || {}, videoName: row.video_name || '' };
     restore(row.data || {});
     pm.hide();
-    showToast(
-      'Projet « ' + row.name + ' » ouvert. Importez la même vidéo' +
-      (row.video_name ? ' (' + row.video_name + ')' : '') + ' pour la lire et l’exporter.'
-    );
+    try {
+      const saved = await window.JVVideoStore?.get(row.id);
+      if (saved && saved.file) {
+        attachProjectVideo(saved.file);
+        pending = null;
+        showToast('Projet « ' + row.name + ' » restauré avec sa vidéo.');
+      } else {
+        showToast('Projet « ' + row.name + ' » ouvert. Vidéo non sauvegardée sur cet appareil : réimportez-la une fois pour la rattacher.');
+      }
+    } catch (error) {
+      showToast('Projet ouvert, mais vidéo locale inaccessible : ' + (error.message || 'stockage indisponible.'));
+    }
     if (workspace) workspace.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
 
@@ -696,12 +704,22 @@
         throw new Error('Maximum 30 projets. Supprimez-en un dans « Mes projets ».');
       }
 
-      await sb(
+      const created = await sb(
         'POST', 'projects',
         { name, video_name: selectedFile ? selectedFile.name : '', data },
-        { Prefer: 'return=minimal' }
+        { Prefer: 'return=representation' }
       );
-      showToast('Projet « ' + name + ' » enregistré.');
+      const projectId = Array.isArray(created) ? created[0]?.id : created?.id;
+      if (selectedFile && projectId && window.JVVideoStore) {
+        try {
+          await window.JVVideoStore.put(projectId, selectedFile);
+          showToast('Projet « ' + name + ' » enregistré avec sa vidéo sur cet appareil.');
+        } catch (storageError) {
+          showToast('Projet enregistré, mais vidéo non conservée localement : ' + (storageError.message || 'espace insuffisant.'));
+        }
+      } else {
+        showToast('Projet « ' + name + ' » enregistré.');
+      }
     } catch (e) {
       showToast(e.message || 'Enregistrement impossible.');
     }
@@ -725,6 +743,10 @@
         data,
         updated_at: new Date().toISOString()
       }, { Prefer: 'return=minimal' });
+      if (selectedFile && window.JVVideoStore) {
+        try { await window.JVVideoStore.put(row.id, selectedFile); }
+        catch (storageError) { throw new Error('Projet mis à jour en ligne, mais vidéo non sauvegardée sur cet appareil : ' + (storageError.message || 'espace insuffisant.')); }
+      }
       pmStatus.textContent = 'Projet « ' + row.name + ' » mis à jour.';
       loadProjects();
     } catch (error) {
@@ -812,7 +834,7 @@
     open.addEventListener('click', async () => {
       try {
         const rows = await sb(
-          'GET', 'projects?id=eq.' + encodeURIComponent(r.id) + '&select=name,video_name,data'
+          'GET', 'projects?id=eq.' + encodeURIComponent(r.id) + '&select=id,name,video_name,data'
         );
         if (!rows.length) throw new Error('Projet introuvable.');
         openProject(rows[0]);
@@ -825,6 +847,7 @@
       if (!confirm('Supprimer le projet « ' + r.name + ' » ?')) return;
       try {
         await sb('DELETE', 'projects?id=eq.' + encodeURIComponent(r.id));
+        try { await window.JVVideoStore?.remove(r.id); } catch (e) { /* le projet distant est déjà supprimé */ }
         loadProjects();
       } catch (e) {
         pmStatus.textContent = e.message;

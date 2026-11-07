@@ -187,6 +187,54 @@ let emojiMode = 'off';
 let positionPercent = 14;
 let captionAttached = false;
 let selectedFile = null;
+let activeVideoObjectUrl = null;
+
+// Stockage local des vidéos liées aux projets (IndexedDB, sans envoyer la vidéo à Supabase).
+(function initJVVideoStore() {
+  const DB_NAME = 'justevivo_local_media_v1';
+  const STORE = 'project_videos';
+  function openDB() {
+    return new Promise((resolve, reject) => {
+      if (!('indexedDB' in window)) return reject(new Error('IndexedDB n’est pas disponible dans ce navigateur.'));
+      const request = indexedDB.open(DB_NAME, 1);
+      request.onupgradeneeded = () => {
+        const db = request.result;
+        if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'projectId' });
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => reject(request.error || new Error('Ouverture du stockage local impossible.'));
+    });
+  }
+  async function run(mode, action) {
+    const db = await openDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(STORE, mode);
+      const store = tx.objectStore(STORE);
+      let request;
+      try { request = action(store); } catch (e) { db.close(); reject(e); return; }
+      tx.oncomplete = () => { db.close(); resolve(request ? request.result : true); };
+      tx.onerror = tx.onabort = () => { const err = tx.error || new Error('Opération de stockage local échouée.'); db.close(); reject(err); };
+    });
+  }
+  window.JVVideoStore = {
+    put: (projectId, file) => run('readwrite', store => store.put({ projectId: String(projectId), file, name: file.name, type: file.type, size: file.size, savedAt: Date.now() })),
+    get: projectId => run('readonly', store => store.get(String(projectId))),
+    remove: projectId => run('readwrite', store => store.delete(String(projectId)))
+  };
+})();
+
+function attachProjectVideo(file) {
+  selectedFile = file || null;
+  if (activeVideoObjectUrl) URL.revokeObjectURL(activeVideoObjectUrl);
+  activeVideoObjectUrl = file ? URL.createObjectURL(file) : null;
+  if (file) {
+    videoPreview.src = activeVideoObjectUrl;
+    videoPreview.hidden = false;
+    placeholder.hidden = true;
+    fileName.textContent = file.name;
+    videoPreview.load();
+  }
+}
 let currentTab = 'all';
 let presets = loadPresets();
 
@@ -1739,7 +1787,7 @@ videoInput.addEventListener('change', () => {
     return;
   }
 
-  selectedFile = file;
+  attachProjectVideo(file);
   baseSegments = [];
   segments = [];
   silences = [];
@@ -1748,10 +1796,6 @@ videoInput.addEventListener('change', () => {
   trimStart = 0;
   trimEnd = 0;
 
-  videoPreview.src = URL.createObjectURL(file);
-  videoPreview.hidden = false;
-  placeholder.hidden = true;
-  fileName.textContent = file.name;
 
   attachCaptionToVideo();
   layoutPreview();

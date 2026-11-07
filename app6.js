@@ -639,7 +639,7 @@
       if (d && d.payments && note) {
         note.textContent =
           'Paiement sécurisé par FedaPay, en francs CFA, pour 30 jours : ' +
-          'Starter 5 400 F, Pro 12 000 F, Business 22 800 F. ' +
+          'Starter 11 400 F, Pro 18 000 F, Business 28 800 F. ' +
           'Moyens de paiement proposés selon votre pays (Mobile Money, cartes). ' +
           'Pas de renouvellement automatique.';
       }

@@ -1294,8 +1294,11 @@ updateCreditsView();
 
 // ===== Chargement du fichier suivant (app3.js) =====
 (function loadNext() {
+  if (window.__JV_APP3_LOADING__ || window.__JV_APP3_LOADED__) return;
+  window.__JV_APP3_LOADING__ = true;
   const s = document.createElement('script');
   s.src = 'app3.js?v=' + Date.now();
-  s.onerror = () => showToast('Fichier app3.js introuvable : créez-le dans le dépôt.');
+  s.onload = () => { window.__JV_APP3_LOADED__ = true; window.__JV_APP3_LOADING__ = false; };
+  s.onerror = () => { window.__JV_APP3_LOADING__ = false; showToast('Fichier app3.js introuvable : créez-le dans le dépôt.'); };
   document.body.appendChild(s);
 })();

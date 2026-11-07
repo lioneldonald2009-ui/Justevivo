@@ -235,11 +235,38 @@
   emailInput.autocomplete = 'email';
   Object.assign(emailInput.style, FIELD);
 
+  const passWrap = document.createElement('div');
+  Object.assign(passWrap.style, {
+    position: 'relative', width: '100%', marginBottom: '10px'
+  });
+
   const passInput = document.createElement('input');
   passInput.type = 'password';
   passInput.placeholder = 'Mot de passe (8 caractères minimum)';
   passInput.autocomplete = 'current-password';
-  Object.assign(passInput.style, FIELD);
+  Object.assign(passInput.style, FIELD, {
+    width: '100%', boxSizing: 'border-box', paddingRight: '88px', marginBottom: '0'
+  });
+
+  const passToggle = document.createElement('button');
+  passToggle.type = 'button';
+  passToggle.textContent = 'Afficher';
+  passToggle.setAttribute('aria-label', 'Afficher le mot de passe');
+  passToggle.setAttribute('aria-pressed', 'false');
+  Object.assign(passToggle.style, {
+    position: 'absolute', right: '10px', top: '50%', transform: 'translateY(-50%)',
+    border: '0', background: 'transparent', color: '#c9b8ff', cursor: 'pointer',
+    font: 'inherit', fontSize: '12px', fontWeight: '800', padding: '8px 4px'
+  });
+  passToggle.addEventListener('click', () => {
+    const visible = passInput.type === 'password';
+    passInput.type = visible ? 'text' : 'password';
+    passToggle.textContent = visible ? 'Masquer' : 'Afficher';
+    passToggle.setAttribute('aria-label', visible ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+    passToggle.setAttribute('aria-pressed', visible ? 'true' : 'false');
+    passInput.focus();
+  });
+  passWrap.append(passInput, passToggle);
 
   const signInBtn = document.createElement('button');
   signInBtn.type = 'button';
@@ -256,7 +283,7 @@
   closeBtn.className = 'button ghost full';
   closeBtn.textContent = 'Fermer';
 
-  [title, msg, emailInput, passInput, signInBtn, signUpBtn, closeBtn].forEach(e => card.appendChild(e));
+  [title, msg, emailInput, passWrap, signInBtn, signUpBtn, closeBtn].forEach(e => card.appendChild(e));
   modal.appendChild(card);
   document.body.appendChild(modal);
 

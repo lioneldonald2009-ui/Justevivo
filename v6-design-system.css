@@ -93,3 +93,33 @@ body{margin:0!important;background:var(--jv-bg)!important;color:var(--jv-ink)!im
 
 /* Correctif navigation : les règles display des composants ne doivent pas annuler l'attribut hidden. */
 [hidden] { display: none !important; }
+
+
+/* JUSTEVIVO V6 — espace de montage à deux panneaux */
+.jv-editor-panel-nav{display:flex;gap:6px;overflow-x:auto;padding:8px;margin:8px 0 14px;background:#eef0fa;border:1px solid #d9def0;border-radius:12px;scrollbar-width:thin}
+.jv-editor-panel-tab{flex:0 0 auto;border:1px solid #d8dcef;background:#fff;color:#27304a;border-radius:9px;padding:9px 12px;font:700 11px/1.2 Arial,sans-serif;cursor:pointer;white-space:nowrap}
+.jv-editor-panel-tab.is-active{background:#7654ed;color:#fff;border-color:#7654ed;box-shadow:0 4px 12px #7654ed33}
+.jv-editor-settings-panel{padding:14px;border:1px solid #dce1f0;border-radius:13px;background:#f8f9ff;color:#202943}
+.jv-editor-settings-panel h4{margin:0 0 8px;font-size:15px}
+.jv-settings-intro{font-size:12px;line-height:1.5;color:#65708a}
+.jv-account-summary{white-space:pre-line;padding:12px;margin:12px 0;border-radius:10px;background:#fff;border:1px solid #e0e4f0;color:#303b56;font-size:12px;line-height:1.8}
+.jv-editor-settings-panel input{width:100%;box-sizing:border-box;padding:11px;border:1px solid #d7dced;border-radius:9px;margin:6px 0 10px;background:#fff;color:#202943}
+.jv-settings-message{font-size:12px;min-height:18px;color:#5e4ac8}
+.editor-grid{align-items:start!important}
+.preview-panel{position:sticky;top:14px;align-self:start}
+@media(max-width:900px){
+  .editor-grid{grid-template-columns:minmax(0,.88fr) minmax(0,1.12fr)!important;gap:10px!important}
+  .preview-panel,.controls-panel{padding:10px!important}
+  .preview-frame{min-height:190px!important;height:28vw!important}
+}
+@media(max-width:600px){
+  .editor-grid{grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr)!important;gap:7px!important}
+  .preview-panel,.controls-panel{padding:7px!important;border-radius:11px!important}
+  .preview-frame{min-height:150px!important;height:34vw!important}
+  .jv-editor-panel-nav{gap:4px;padding:5px;margin:6px 0 10px}
+  .jv-editor-panel-tab{padding:7px 8px;font-size:9px}
+  .controls-panel .panel-label{font-size:8px!important}
+  .preview-panel .panel-label{font-size:8px!important}
+}
+
+.jv-audio-placeholder{padding:14px;border:1px dashed #cbd2e5;border-radius:12px;color:#68748e;background:#f8f9ff;font-size:12px;line-height:1.5}

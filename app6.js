@@ -29,8 +29,177 @@
 @media(max-width:600px){.studio-tabs{display:flex}}
 .side-link{cursor:pointer}
 .side-link:hover{background:#1b2440;color:#d7c4ff}
+.jv-editor-panel-nav{display:flex;gap:6px;overflow-x:auto;padding:8px;margin:8px 0 14px;background:#eef0fa;border:1px solid #d9def0;border-radius:12px;scrollbar-width:thin}
+.jv-editor-panel-tab{flex:0 0 auto;border:1px solid #d8dcef;background:#fff;color:#27304a;border-radius:9px;padding:9px 12px;font:700 11px/1.2 inherit;cursor:pointer;white-space:nowrap}
+.jv-editor-panel-tab.is-active{background:#7654ed;color:#fff;border-color:#7654ed;box-shadow:0 4px 12px #7654ed33}
+.jv-editor-settings-panel{padding:14px;border:1px solid #dce1f0;border-radius:13px;background:#f8f9ff;color:#202943}
+.jv-editor-settings-panel h4{margin:0 0 8px;font-size:15px}
+.jv-settings-intro{font-size:12px;line-height:1.5;color:#65708a}
+.jv-account-summary{white-space:pre-line;padding:12px;margin:12px 0;border-radius:10px;background:#fff;border:1px solid #e0e4f0;color:#303b56;font-size:12px;line-height:1.8}
+.jv-editor-settings-panel input{width:100%;box-sizing:border-box;padding:11px;border:1px solid #d7dced;border-radius:9px;margin:6px 0 10px;background:#fff;color:#202943}
+.jv-settings-message{font-size:12px;min-height:18px;color:#5e4ac8}
+.editor-grid{align-items:start}
+.preview-panel{position:sticky;top:14px;align-self:start}
+@media(max-width:700px){.preview-panel{position:static}.jv-editor-panel-nav{margin:8px 0;padding:6px}.jv-editor-panel-tab{padding:8px 10px}}
 `;
+
   document.head.appendChild(css);
+
+  // Navigation interne du panneau droit : l'aperçu vidéo reste toujours visible à gauche.
+  const controlsPanel = document.querySelector('.controls-panel');
+  let editorPanelTab = 'text';
+  let editorPanelNav = null;
+  let editorSettingsPanel = null;
+
+  function buildEditorPanelNavigation() {
+    if (!controlsPanel || controlsPanel.querySelector('.jv-editor-panel-nav')) return;
+    editorPanelNav = document.createElement('nav');
+    editorPanelNav.className = 'jv-editor-panel-nav';
+    editorPanelNav.setAttribute('aria-label', 'Outils de personnalisation');
+    const tabs = [
+      ['text', 'Texte'],
+      ['styles', 'Styles'],
+      ['scenes', 'Scènes'],
+      ['audio', 'Audio'],
+      ['export', 'Export'],
+      ['settings', 'Paramètres']
+    ];
+    tabs.forEach(([id, label]) => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'jv-editor-panel-tab';
+      b.dataset.panel = id;
+      b.textContent = label;
+      b.addEventListener('click', () => showEditorPanel(id));
+      editorPanelNav.appendChild(b);
+    });
+    const panelLabel = controlsPanel.querySelector('.panel-label');
+    if (panelLabel) panelLabel.insertAdjacentElement('afterend', editorPanelNav);
+    else controlsPanel.prepend(editorPanelNav);
+
+    editorSettingsPanel = document.createElement('section');
+    editorSettingsPanel.className = 'jv-editor-settings-panel';
+    editorSettingsPanel.hidden = true;
+    editorSettingsPanel.innerHTML = `
+      <h4>Paramètres du compte</h4>
+      <p class="jv-settings-intro">Retrouvez votre formule, vos quotas et les réglages de sécurité sans quitter le studio.</p>
+      <div class="jv-account-summary" id="jv-settings-account">Chargement des informations du compte…</div>
+      <button type="button" class="button ghost full" id="jv-settings-plans">Voir les abonnements</button>
+      <label class="field-label" for="jv-new-password">Changer le mot de passe</label>
+      <input id="jv-new-password" type="password" minlength="8" autocomplete="new-password" placeholder="Nouveau mot de passe (8 caractères minimum)">
+      <button type="button" class="button primary full" id="jv-save-password">Enregistrer le mot de passe</button>
+      <p class="jv-settings-message" id="jv-settings-message" aria-live="polite"></p>
+    `;
+    controlsPanel.appendChild(editorSettingsPanel);
+    document.getElementById('jv-settings-plans').addEventListener('click', () => {
+      const plans = document.getElementById('pricing');
+      if (plans) plans.scrollIntoView({behavior:'smooth', block:'start'});
+    });
+    document.getElementById('jv-save-password').addEventListener('click', async () => {
+      const input = document.getElementById('jv-new-password');
+      const message = document.getElementById('jv-settings-message');
+      const button = document.getElementById('jv-save-password');
+      if (input.value.length < 8) {
+        message.textContent = 'Le mot de passe doit contenir au moins 8 caractères.';
+        return;
+      }
+      button.disabled = true;
+      message.textContent = 'Enregistrement…';
+      try {
+        await changePassword(input.value);
+        input.value = '';
+        message.textContent = 'Mot de passe modifié avec succès.';
+      } catch (error) {
+        message.textContent = error.message || 'Modification impossible.';
+      } finally {
+        button.disabled = false;
+      }
+    });
+    showEditorPanel('text');
+  }
+
+  function categoryForDetail(detail) {
+    const title = (detail.querySelector('summary')?.textContent || '').toLowerCase();
+    if (/format|découpage|export/.test(title)) return 'export';
+    if (/zoom|silence|scène|coupure|accroche/.test(title)) return 'scenes';
+    if (/apparence|style|police|couleur/.test(title)) return 'styles';
+    if (/audio|musique|son/.test(title)) return 'audio';
+    return 'text';
+  }
+
+  function panelCategory(el) {
+    if (el.matches('details')) return categoryForDetail(el);
+    const id = (el.id || '').toLowerCase();
+    const cls = el.className && typeof el.className === 'string' ? el.className : '';
+    if (cls.includes('panel-label') || cls.includes('jv-editor-panel-nav') || cls.includes('jv-editor-settings-panel')) return 'system';
+    if (id === 'captionColor' || id === 'captionFont' || cls.includes('style-options') || cls.includes('style-gallery')) return 'styles';
+    if (/audio|music|sound/.test(id)) return 'audio';
+    if (/format|export/.test(id)) return 'export';
+    if (/scene|cut|silence|zoom|hook/.test(id)) return 'scenes';
+    return 'text';
+  }
+
+  function showEditorPanel(id) {
+    editorPanelTab = id;
+    if (!controlsPanel) return;
+    if (!editorPanelNav) buildEditorPanelNavigation();
+    Array.from(controlsPanel.children).forEach(el => {
+      if (el === editorPanelNav || el === editorSettingsPanel) return;
+      const category = panelCategory(el);
+      if (category !== 'system') el.hidden = category !== id;
+    });
+    // Les labels et contrôles natifs sont des éléments frères des sections :
+    // on les filtre aussi pour éviter qu'ils restent visibles dans le mauvais onglet.
+    Array.from(controlsPanel.children).forEach(el => {
+      if (el === editorPanelNav || el === editorSettingsPanel || el.classList.contains('panel-label')) return;
+      if (el.matches('label')) {
+        const target = el.htmlFor ? document.getElementById(el.htmlFor) : null;
+        const targetCategory = target ? panelCategory(target) : 'text';
+        el.hidden = targetCategory !== id;
+      }
+    });
+    if (editorPanelNav) {
+      editorPanelNav.querySelectorAll('button').forEach(button => {
+        const active = button.dataset.panel === id;
+        button.classList.toggle('is-active', active);
+        button.setAttribute('aria-pressed', active ? 'true' : 'false');
+      });
+    }
+    if (editorSettingsPanel) editorSettingsPanel.hidden = id !== 'settings';
+    let audioNotice = controlsPanel.querySelector('.jv-audio-placeholder');
+    if (!audioNotice) {
+      audioNotice = document.createElement('div');
+      audioNotice.className = 'jv-audio-placeholder';
+      audioNotice.textContent = 'Les réglages audio seront regroupés ici lorsqu’ils seront disponibles dans le studio.';
+      audioNotice.hidden = true;
+      controlsPanel.appendChild(audioNotice);
+    }
+    audioNotice.hidden = id !== 'audio';
+    if (id === 'settings') refreshEmbeddedSettings();
+  }
+
+  async function refreshEmbeddedSettings() {
+    const box = document.getElementById('jv-settings-account');
+    if (!box) return;
+    if (!hasSession()) {
+      box.textContent = 'Vous n’êtes pas connecté. Connectez-vous pour consulter votre formule et vos quotas.';
+      return;
+    }
+    box.textContent = 'Chargement des informations du compte…';
+    const me = await getMe();
+    const session = readSession();
+    if (!me || !me.enabled) {
+      box.textContent = 'Compte : ' + ((session && session.email) || '') + '\\nInformations temporairement indisponibles.';
+      return;
+    }
+    box.textContent = [
+      'Email : ' + (me.email || (session && session.email) || ''),
+      'Formule : ' + (me.planName || 'Gratuit'),
+      'Vidéos ce mois-ci : ' + me.videosUsed + ' / ' + me.videosLimit,
+      'Durée maximale : ' + (me.maxSeconds >= 60 ? Math.round(me.maxSeconds / 60) + ' min' : me.maxSeconds + ' s'),
+      'Générations aujourd’hui : ' + me.genUsed + ' / ' + me.genLimit
+    ].join('\\n');
+  }
 
   // ===== Compte : session, configuration, appels =====
   let conf = null;
@@ -200,6 +369,8 @@
     workspace.insertBefore(tabs, wsHead);
   }
 
+  buildEditorPanelNavigation();
+
   document.querySelectorAll('.side-link').forEach(link => {
     // L'identifiant vient de data-page : l'ajout du tableau de bord ne décale plus les rubriques.
     const page = link.dataset.page;
@@ -210,18 +381,18 @@
 
   function go(id) {
     if (id === 'studio') {
+      showEditorPanel('text');
       if (workspace) workspace.scrollIntoView({ behavior: 'smooth', block: 'start' });
     } else if (id === 'projects') {
       openProjects();
     } else if (id === 'styles') {
-      currentTab = 'mine';
-      renderGallery();
-      const box = document.querySelector('.style-options');
-      if (box) box.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      showToast('Vos styles enregistrés. Réglez un style, puis touchez « Enregistrer le style actuel ».');
+      showEditorPanel('styles');
     } else if (id === 'settings') {
-      openSettings();
+      showEditorPanel('settings');
     }
+    document.querySelectorAll('.sidebar .side-link').forEach(link => {
+      link.classList.toggle('active', link.dataset.page === id);
+    });
   }
 
   // ===== Projets : enregistrer l'état du studio =====

@@ -90,3 +90,6 @@ body{margin:0!important;background:var(--jv-bg)!important;color:var(--jv-ink)!im
 .sidebar .side-link { cursor: pointer; }
 .sidebar .side-link.active { border-color: rgba(160,133,255,.35); background: rgba(137,105,255,.14); color: #e7ddff; }
 @media (max-width: 640px) { .dashboard-grid { grid-template-columns: 1fr; } .dashboard-card { padding: 17px; } .dashboard-actions > button { flex: 1 1 100%; } }
+
+/* Correctif navigation : les règles display des composants ne doivent pas annuler l'attribut hidden. */
+[hidden] { display: none !important; }

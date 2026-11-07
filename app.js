@@ -1099,69 +1099,6 @@ posSlider.addEventListener('input', () => {
   applyPosition();
 });
 
-
-// ===== Apparence avancée du texte : couleur, graisse, contour, ombre, fond, alignement =====
-let textFillColor = '#ffffff';
-let textStrokeColor = '#101827';
-let textStrokeWidth = 0;
-let textShadowOn = true;
-let textBackgroundOn = false;
-let textBackgroundColor = '#111827';
-let textBackgroundOpacity = 72;
-let textBoldOn = true;
-let textAlignMode = 'center';
-
-function addColorPicker(parent, labelText, initial, onChange) {
-  const wrap = document.createElement('div');
-  wrap.className = 'jv-color-control';
-  const label = document.createElement('label');
-  label.className = 'field-label';
-  label.textContent = labelText;
-  const input = document.createElement('input');
-  input.type = 'color';
-  input.value = initial;
-  input.setAttribute('aria-label', labelText);
-  input.addEventListener('input', () => onChange(input.value));
-  wrap.append(label, input);
-  parent.appendChild(wrap);
-  return input;
-}
-function hexToRgba(hex, alpha) {
-  const h = String(hex).replace('#', '');
-  const n = parseInt(h.length === 3 ? h.split('').map(x => x + x).join('') : h, 16);
-  if (!Number.isFinite(n)) return `rgba(17,24,39,${alpha})`;
-  return `rgba(${(n>>16)&255},${(n>>8)&255},${n&255},${alpha})`;
-}
-const appearanceBox = makeSection('Apparence du texte', true);
-const fillPicker = addColorPicker(appearanceBox, 'Couleur du texte', textFillColor, v => {
-  textFillColor = v; lastShown = null; updateCaption();
-});
-const strokePicker = addColorPicker(appearanceBox, 'Couleur du contour', textStrokeColor, v => {
-  textStrokeColor = v; lastShown = null; updateCaption();
-});
-const strokeSlider = addSlider(appearanceBox, 'Épaisseur du contour', 0, 8, 1, 0,
-  v => v + ' px', v => { textStrokeWidth = v; updateCaption(); });
-const boldCheck = addCheckbox(appearanceBox, 'Texte en gras', v => {
-  textBoldOn = v; updateCaption();
-});
-boldCheck.checked = textBoldOn;
-const shadowCheck = addCheckbox(appearanceBox, 'Activer l’ombre du texte', v => {
-  textShadowOn = v; updateCaption();
-});
-shadowCheck.checked = textShadowOn;
-const backgroundCheck = addCheckbox(appearanceBox, 'Activer le fond derrière le texte', v => {
-  textBackgroundOn = v; updateCaption();
-});
-backgroundCheck.checked = textBackgroundOn;
-const bgPicker = addColorPicker(appearanceBox, 'Couleur du fond', textBackgroundColor, v => {
-  textBackgroundColor = v; updateCaption();
-});
-const bgOpacitySlider = addSlider(appearanceBox, 'Opacité du fond', 0, 100, 5, textBackgroundOpacity,
-  v => v + ' %', v => { textBackgroundOpacity = v; updateCaption(); });
-const alignSelect = addSelect(appearanceBox, 'Alignement du texte', [
-  ['left','À gauche'], ['center','Centré'], ['right','À droite']
-], textAlignMode, v => { textAlignMode = v; updateCaption(); });
-
 function applyTypography() {
   const f = FONTS[Number(fontSelect.value)];
   const s = captionPreview.style;
@@ -1178,15 +1115,6 @@ function applyTypography() {
   s.letterSpacing = letterGap ? letterGap + 'em' : '';
   s.textTransform = upperCase ? 'uppercase' : '';
   s.maxWidth = widthPercent + '%';
-  s.setProperty('color', textFillColor, 'important');
-  s.setProperty('-webkit-text-stroke', textStrokeWidth > 0 ? `${textStrokeWidth}px ${textStrokeColor}` : '0 transparent', 'important');
-  s.setProperty('text-shadow', textShadowOn ? '0 2px 8px rgba(0,0,0,.72)' : 'none', 'important');
-  s.setProperty('font-weight', textBoldOn ? '800' : '500', 'important');
-  s.setProperty('text-align', textAlignMode, 'important');
-  s.setProperty('background', textBackgroundOn ? hexToRgba(textBackgroundColor, textBackgroundOpacity / 100) : 'transparent', 'important');
-  s.setProperty('padding', textBackgroundOn ? '10px 14px' : '0 12px', 'important');
-  s.setProperty('border-radius', textBackgroundOn ? '12px' : '0', 'important');
-  s.setProperty('box-decoration-break', 'clone', 'important');
 }
 
 fontSelect.addEventListener('change', () => {
@@ -1404,10 +1332,7 @@ function saveCurrentStyle() {
     lineHeight: Math.round(lineHeight * 100),
     spacing: Math.round(letterGap * 100),
     upper: upperCase,
-    pos: positionPercent,
-    textFillColor, textStrokeColor, textStrokeWidth, textShadowOn,
-    textBackgroundOn, textBackgroundColor, textBackgroundOpacity,
-    textBoldOn, textAlignMode
+    pos: positionPercent
   });
 
   if (storePresets(presets)) {
@@ -1454,24 +1379,6 @@ function applyPreset(p) {
 
   upperCase = !!p.upper;
   upperInput.checked = upperCase;
-  textFillColor = p.textFillColor || '#ffffff';
-  textStrokeColor = p.textStrokeColor || '#101827';
-  textStrokeWidth = Number(p.textStrokeWidth) || 0;
-  textShadowOn = p.textShadowOn !== false;
-  textBackgroundOn = !!p.textBackgroundOn;
-  textBackgroundColor = p.textBackgroundColor || '#111827';
-  textBackgroundOpacity = Number.isFinite(Number(p.textBackgroundOpacity)) ? Number(p.textBackgroundOpacity) : 72;
-  textBoldOn = p.textBoldOn !== false;
-  textAlignMode = p.textAlignMode || 'center';
-  fillPicker.value = textFillColor;
-  strokePicker.value = textStrokeColor;
-  strokeSlider.set(textStrokeWidth);
-  boldCheck.checked = textBoldOn;
-  shadowCheck.checked = textShadowOn;
-  backgroundCheck.checked = textBackgroundOn;
-  bgPicker.value = textBackgroundColor;
-  bgOpacitySlider.set(textBackgroundOpacity);
-  alignSelect.value = textAlignMode;
 
   const pos = Math.max(4, Math.min(80, Number(p.pos) || 14));
   positionPercent = pos;
@@ -1743,7 +1650,7 @@ if (subtitleLanguage && translateSubtitlesButton) {
 
     translateSubtitlesButton.disabled = true;
     const oldLabel = translateSubtitlesButton.textContent;
-    translateSubtitlesButton.textContent = originalBaseSegments.length > 300 ? 'Traduction longue en cours...' : 'Traduction en cours...';
+    translateSubtitlesButton.textContent = 'Traduction en cours...';
     try {
       const response = await fetch(API_URL + '/api/translate', {
         method: 'POST',
@@ -1784,8 +1691,8 @@ transcribeButton.addEventListener('click', async () => {
     return;
   }
 
-  if (selectedFile.size > 100 * 1024 * 1024) {
-    showToast('Fichier trop volumineux : maximum 100 Mo.');
+  if (selectedFile.size > 25 * 1024 * 1024) {
+    showToast('Fichier trop volumineux : maximum 25 Mo.');
     return;
   }
 
@@ -2122,11 +2029,8 @@ window.JVGetKaraokeState = function () {
 
 // ===== Chargement de la partie 2 =====
 (function loadPart2() {
-  if (window.__JV_APP2_LOADING__ || window.__JV_APP2_LOADED__) return;
-  window.__JV_APP2_LOADING__ = true;
   const s = document.createElement('script');
   s.src = 'app2.js?v=' + Date.now();
-  s.onload = () => { window.__JV_APP2_LOADED__ = true; window.__JV_APP2_LOADING__ = false; };
-  s.onerror = () => { window.__JV_APP2_LOADING__ = false; showToast('Partie 2 introuvable : créez le fichier app2.js dans le dépôt.'); };
+  s.onerror = () => showToast('Partie 2 introuvable : créez le fichier app2.js dans le dépôt.');
   document.body.appendChild(s);
 })();

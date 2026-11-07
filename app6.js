@@ -707,6 +707,45 @@
     }
   }
 
+  async function updateProject(row) {
+    if (!hasSession()) {
+      showToast('Connectez-vous pour modifier un projet.');
+      openLogin();
+      return;
+    }
+    if (!segments.length) {
+      pmStatus.textContent = 'Générez ou chargez des sous-titres avant de mettre à jour ce projet.';
+      return;
+    }
+    try {
+      const data = collect();
+      if (JSON.stringify(data).length > 450000) throw new Error('Ce projet est trop volumineux pour être enregistré.');
+      await sb('PATCH', 'projects?id=eq.' + encodeURIComponent(row.id), {
+        video_name: selectedFile ? selectedFile.name : (row.video_name || ''),
+        data,
+        updated_at: new Date().toISOString()
+      }, { Prefer: 'return=minimal' });
+      pmStatus.textContent = 'Projet « ' + row.name + ' » mis à jour.';
+      loadProjects();
+    } catch (error) {
+      pmStatus.textContent = error.message || 'Mise à jour impossible.';
+    }
+  }
+
+  async function renameProject(row) {
+    const nextName = (prompt('Nouveau nom du projet :', row.name) || '').trim().slice(0, 60);
+    if (!nextName || nextName === row.name) return;
+    try {
+      await sb('PATCH', 'projects?id=eq.' + encodeURIComponent(row.id), {
+        name: nextName, updated_at: new Date().toISOString()
+      }, { Prefer: 'return=minimal' });
+      pmStatus.textContent = 'Projet renommé en « ' + nextName + ' ».';
+      loadProjects();
+    } catch (error) {
+      pmStatus.textContent = error.message || 'Renommage impossible.';
+    }
+  }
+
   // Bouton « Enregistrer le projet » sous les boutons d'export
   const panel = document.querySelector('.controls-panel');
   if (panel) {
@@ -718,11 +757,24 @@
   // ===== Fenêtre « Mes projets » =====
   const pm = makeModal('Mes projets');
   const pmSave = btn('＋ Enregistrer le projet actuel', 'button primary full');
+  const pmSearch = el('input', {
+    type: 'search',
+    placeholder: 'Rechercher un projet…',
+    'aria-label': 'Rechercher un projet',
+    style: 'width:100%;box-sizing:border-box;margin:10px 0;padding:11px 12px;border-radius:10px;border:1px solid #34405f;background:#10162a;color:#fff'
+  });
   const pmStatus = el('div', { color: '#aeb8d0', margin: '10px 0', lineHeight: '1.5' });
   const pmList = el('div');
   pm.body.appendChild(pmSave);
+  pm.body.appendChild(pmSearch);
   pm.body.appendChild(pmStatus);
   pm.body.appendChild(pmList);
+  pmSearch.addEventListener('input', () => {
+    const q = pmSearch.value.trim().toLocaleLowerCase('fr');
+    Array.from(pmList.children).forEach(card => {
+      card.hidden = !!q && !(card.dataset.search || '').includes(q);
+    });
+  });
 
   pmSave.addEventListener('click', async () => {
     await saveProject();
@@ -731,9 +783,9 @@
 
   function projectRow(r) {
     const row = el('div', {
-      background: '#0c1325', border: '1px solid #293554', borderRadius: '10px',
-      padding: '10px', margin: '8px 0'
+      background: '#0c1325', border: '1px solid #293554', borderRadius: '10px', padding: '10px', margin: '8px 0'
     });
+    row.dataset.search = ((r.name || '') + ' ' + (r.video_name || '')).toLocaleLowerCase('fr');
 
     row.appendChild(el('div', { fontWeight: '800', fontSize: '13px', marginBottom: '4px' }, r.name));
 
@@ -744,9 +796,18 @@
       (r.video_name ? 'Vidéo : ' + r.video_name + ' · ' : '') + date
     ));
 
-    const actions = el('div', { display: 'flex', gap: '8px', marginTop: '8px' });
+    const actions = el('div', { display: 'flex', flexWrap: 'wrap', gap: '8px', marginTop: '8px' });
+    actions.className = 'jv-project-card-actions';
     const open = btn('Ouvrir', 'button primary', { padding: '8px 14px', fontSize: '11px' });
+    const update = btn('Mettre à jour', 'button ghost', { padding: '8px 14px', fontSize: '11px' });
+    const rename = btn('Renommer', 'button ghost', { padding: '8px 14px', fontSize: '11px' });
     const del = btn('Supprimer', 'button ghost', { padding: '8px 14px', fontSize: '11px' });
+
+    update.addEventListener('click', () => {
+      if (!confirm('Remplacer le contenu enregistré de « ' + r.name + ' » par le contenu actuel du studio ?')) return;
+      updateProject(r);
+    });
+    rename.addEventListener('click', () => renameProject(r));
 
     open.addEventListener('click', async () => {
       try {
@@ -771,6 +832,8 @@
     });
 
     actions.appendChild(open);
+    actions.appendChild(update);
+    actions.appendChild(rename);
     actions.appendChild(del);
     row.appendChild(actions);
     return row;
@@ -779,6 +842,7 @@
   async function loadProjects() {
     pmStatus.textContent = 'Chargement...';
     pmList.innerHTML = '';
+    pmSearch.value = '';
 
     try {
       const rows = await sb('GET', 'projects?select=id,name,video_name,updated_at&order=updated_at.desc&limit=50');

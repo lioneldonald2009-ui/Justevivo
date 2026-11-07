@@ -486,3 +486,11 @@ html[data-theme="light"] .hero h1{
   .jv-settings-card{padding:12px}
   .jv-editor-settings-panel > h4{font-size:16px}
 }
+
+
+/* Étape 15 — gestion des projets */
+.jv-project-card-actions{display:flex;flex-wrap:wrap;gap:7px}
+.jv-project-card-actions button{min-height:34px}
+@media(max-width:520px){
+  .jv-project-card-actions button{flex:1 1 calc(50% - 7px);min-width:0;white-space:normal}
+}

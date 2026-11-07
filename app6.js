@@ -162,15 +162,30 @@
   }
 
   function buildEditorPanelGroups() {
-    if (!controlsPanel || controlsPanel.dataset.jvGrouped === 'true') return;
-    const nav = editorPanelNav;
-    const settings = editorSettingsPanel;
+    if (!controlsPanel) return;
+
+    // Aplatir une éventuelle ancienne structure avant de reconstruire les groupes.
+    // Les vrais contrôles sont déplacés, jamais clonés : leurs événements restent attachés.
+    Array.from(controlsPanel.querySelectorAll(':scope > .jv-editor-control-group')).forEach(oldGroup => {
+      Array.from(oldGroup.children).forEach(child => {
+        if (child.classList.contains('jv-editor-group-title')) return;
+        controlsPanel.insertBefore(child, oldGroup);
+      });
+      oldGroup.remove();
+    });
+    Object.keys(editorPanelGroups).forEach(key => delete editorPanelGroups[key]);
+    controlsPanel.dataset.jvGrouped = '';
+
+    const nav = editorPanelNav || controlsPanel.querySelector('.jv-editor-panel-nav');
+    const settings = editorSettingsPanel || controlsPanel.querySelector('.jv-editor-settings-panel');
     const panelTitle = controlsPanel.querySelector('.panel-label');
 
     Object.entries(editorPanelGroupLabels).forEach(([id, label]) => {
       const section = document.createElement('section');
       section.className = 'jv-editor-control-group';
       section.dataset.group = id;
+      section.hidden = true;
+      section.style.setProperty('display', 'none', 'important');
       const heading = document.createElement('h4');
       heading.className = 'jv-editor-group-title';
       heading.textContent = label;
@@ -180,20 +195,21 @@
 
     const audioNotice = document.createElement('p');
     audioNotice.className = 'jv-audio-placeholder';
-    audioNotice.textContent = 'Les commandes audio ne sont pas encore présentes dans cette version du studio.';
+    audioNotice.textContent = 'Les commandes audio sont en cours de chargement.';
     editorPanelGroups.audio.appendChild(audioNotice);
 
-    const children = Array.from(controlsPanel.children);
-    children.forEach(node => {
-      if (node === nav || node === settings || node === panelTitle) return;
+    Array.from(controlsPanel.children).forEach(node => {
+      if (node === nav || node === settings || node === panelTitle ||
+          node.classList.contains('jv-editor-control-group')) return;
       const group = categoryForControl(node);
       (editorPanelGroups[group] || editorPanelGroups.text).appendChild(node);
     });
 
-    // Structure stable : titre, onglets, groupe actif, paramètres du compte.
-    if (panelTitle) panelTitle.insertAdjacentElement('afterend', nav);
+    if (panelTitle && nav) panelTitle.insertAdjacentElement('afterend', nav);
+    else if (nav && nav.parentElement !== controlsPanel) controlsPanel.prepend(nav);
+
     Object.values(editorPanelGroups).forEach(section => controlsPanel.appendChild(section));
-    controlsPanel.appendChild(settings);
+    if (settings) controlsPanel.appendChild(settings);
     controlsPanel.dataset.jvGrouped = 'true';
   }
 
@@ -219,13 +235,16 @@
     if (!controlsPanel) return;
     if (!editorPanelNav) buildEditorPanelNavigation();
     if (!controlsPanel.dataset.jvGrouped) buildEditorPanelGroups();
+    collectLateEditorControls();
 
     Object.entries(editorPanelGroups).forEach(([key, section]) => {
       const visible = key === id;
       section.hidden = !visible;
-      // Force aussi display : certaines règles des composants peuvent neutraliser hidden.
+      section.dataset.active = visible ? 'true' : 'false';
       section.style.setProperty('display', visible ? 'flex' : 'none', 'important');
+      section.scrollTop = 0;
     });
+
     if (editorSettingsPanel) {
       const visible = id === 'settings';
       editorSettingsPanel.hidden = !visible;
@@ -239,7 +258,13 @@
         button.setAttribute('aria-pressed', active ? 'true' : 'false');
       });
     }
-    controlsPanel.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Réinitialiser les deux conteneurs possibles, sans animation qui laisse
+    // temporairement apparaître la fin de l'ancien onglet.
+    controlsPanel.scrollTop = 0;
+    controlsPanel.querySelectorAll('.jv-editor-control-group').forEach(group => {
+      if (group !== editorPanelGroups[id]) group.scrollTop = 0;
+    });
     if (id === 'settings') refreshEmbeddedSettings();
   }
 

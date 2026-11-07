@@ -339,3 +339,40 @@ body{margin:0!important;background:var(--jv-bg)!important;color:var(--jv-ink)!im
   .jv-editor-panel-nav{grid-template-columns:repeat(2,minmax(0,1fr))!important}
   .jv-editor-panel-tab{font-size:10px!important;letter-spacing:0!important;padding:8px 4px!important}
 }
+
+
+/* Étape 11 — structure propre : un seul groupe actif, aucun reliquat d'onglet */
+.controls-panel > .jv-editor-control-group{
+  display:none!important;
+  min-width:0;
+  width:100%;
+  box-sizing:border-box;
+  margin:0!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  overflow:visible!important;
+}
+.controls-panel > .jv-editor-control-group[data-active="true"]{
+  display:flex!important;
+}
+.controls-panel > .jv-editor-control-group > .jv-editor-group-title{
+  display:block!important;
+  margin:4px 0 14px!important;
+  padding:0!important;
+  border:0!important;
+  background:transparent!important;
+  color:#27324a!important;
+}
+.controls-panel > .jv-editor-control-group[hidden]{
+  display:none!important;
+}
+.controls-panel > .jv-editor-panel-nav{
+  position:relative;
+  z-index:2;
+  margin-bottom:18px!important;
+}
+.controls-panel{
+  scroll-behavior:auto!important;
+  overflow-anchor:none!important;
+}

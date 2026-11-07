@@ -438,7 +438,8 @@ function makeSection(title, open) {
 
   const controlsRoot = colorLabel.closest('.controls-panel') || colorLabel.parentNode;
   const firstGroup = controlsRoot.querySelector(':scope > .jv-editor-control-group');
-  controlsRoot.insertBefore(details, firstGroup || colorLabel);
+  const nav = controlsRoot.querySelector(':scope > .jv-editor-panel-nav');
+  controlsRoot.insertBefore(details, firstGroup || nav || colorLabel);
   return details;
 }
 

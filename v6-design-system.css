@@ -398,3 +398,91 @@ html:not([data-theme="light"]) .hero h1{
 html[data-theme="light"] .hero h1{
   color:#17213a!important;
 }
+
+
+/* Étape 13 — panneau Export clair et lisible */
+.jv-export-intro{
+  margin:0 0 8px;
+  padding:11px 12px;
+  border:1px solid #dce2ef;
+  border-radius:10px;
+  background:#f5f7fc;
+  color:#596780;
+  font-size:12px;
+  line-height:1.55;
+}
+.jv-editor-control-group[data-group="export"] .field-label{
+  display:block;
+  margin-top:8px;
+  color:#29344d;
+  font-weight:700;
+}
+.jv-editor-control-group[data-group="export"] button{
+  width:100%;
+  margin:5px 0;
+}
+.jv-editor-control-group[data-group="export"] details{
+  margin:6px 0!important;
+}
+
+
+/* Étape 14 — paramètres organisés en cartes distinctes */
+.jv-editor-settings-panel{
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+  min-width:0;
+}
+.jv-editor-settings-panel > h4{
+  margin:4px 0 0;
+  font-size:18px;
+  line-height:1.3;
+}
+.jv-settings-intro{
+  margin:0;
+  color:#65718a;
+  font-size:12px;
+  line-height:1.55;
+}
+.jv-settings-card{
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  min-width:0;
+  padding:14px;
+  border:1px solid #dce2ef;
+  border-radius:14px;
+  background:#fff;
+}
+.jv-settings-card h5{
+  margin:0;
+  color:#202b43;
+  font-size:14px;
+  font-weight:800;
+}
+.jv-account-summary{
+  white-space:pre-line;
+  overflow-wrap:anywhere;
+  color:#3d4962;
+  font-size:12px;
+  line-height:1.8;
+}
+.jv-settings-hint{
+  margin:-4px 0 0;
+  color:#78839a;
+  font-size:11px;
+  line-height:1.5;
+}
+.jv-settings-card input{
+  width:100%;
+  min-width:0;
+  box-sizing:border-box;
+}
+.jv-settings-message{
+  margin:0;
+  overflow-wrap:anywhere;
+}
+@media(max-width:700px){
+  .jv-settings-card{padding:12px}
+  .jv-editor-settings-panel > h4{font-size:16px}
+}

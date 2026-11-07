@@ -82,13 +82,20 @@
     editorSettingsPanel.hidden = true;
     editorSettingsPanel.innerHTML = `
       <h4>Paramètres du compte</h4>
-      <p class="jv-settings-intro">Retrouvez votre formule, vos quotas et les réglages de sécurité sans quitter le studio.</p>
-      <div class="jv-account-summary" id="jv-settings-account">Chargement des informations du compte…</div>
-      <button type="button" class="button ghost full" id="jv-settings-plans">Voir les abonnements</button>
-      <label class="field-label" for="jv-new-password">Changer le mot de passe</label>
-      <input id="jv-new-password" type="password" minlength="8" autocomplete="new-password" placeholder="Nouveau mot de passe (8 caractères minimum)">
-      <button type="button" class="button primary full" id="jv-save-password">Enregistrer le mot de passe</button>
-      <p class="jv-settings-message" id="jv-settings-message" aria-live="polite"></p>
+      <p class="jv-settings-intro">Gérez votre compte JUSTEVIVO, consultez votre formule et sécurisez votre accès sans quitter le studio.</p>
+      <section class="jv-settings-card" aria-labelledby="jv-settings-account-title">
+        <h5 id="jv-settings-account-title">Mon compte et mon utilisation</h5>
+        <div class="jv-account-summary" id="jv-settings-account" aria-live="polite">Chargement des informations du compte…</div>
+        <button type="button" class="button ghost full" id="jv-settings-plans">Consulter les formules et abonnements</button>
+      </section>
+      <section class="jv-settings-card" aria-labelledby="jv-settings-security-title">
+        <h5 id="jv-settings-security-title">Sécurité du compte</h5>
+        <label class="field-label" for="jv-new-password">Nouveau mot de passe</label>
+        <input id="jv-new-password" type="password" minlength="8" autocomplete="new-password" placeholder="8 caractères minimum">
+        <p class="jv-settings-hint">Choisissez un mot de passe d'au moins 8 caractères que vous n'utilisez pas ailleurs.</p>
+        <button type="button" class="button primary full" id="jv-save-password">Enregistrer le nouveau mot de passe</button>
+        <p class="jv-settings-message" id="jv-settings-message" aria-live="polite"></p>
+      </section>
     `;
     controlsPanel.appendChild(editorSettingsPanel);
     document.getElementById('jv-settings-plans').addEventListener('click', () => {
@@ -125,7 +132,7 @@
     styles: 'Styles et apparence',
     scenes: 'Scènes et montage',
     audio: 'Musique et effets sonores',
-    export: 'Exportation'
+    export: 'Export et téléchargement'
   };
 
   function categoryForDetail(detail) {
@@ -153,9 +160,15 @@
     if (/format|export|trim/.test(target)) return 'export';
     if (/scene|cut|silence|zoom|hook/.test(target)) return 'scenes';
 
-    const label = (node.textContent || '').trim().toLowerCase();
+    const label = (node.textContent || '').replace(/\\s+/g, ' ').trim().toLowerCase();
+    const identity = ((node.id || '') + ' ' + (node.className || '')).toLowerCase();
+
+    // Tous les réglages de sortie et les actions de téléchargement restent dans Export.
+    if (/format de la vidéo finale|ajustement de l’image|début de la vidéo|fin de la vidéo|durée finale/.test(label)) return 'export';
+    if (/exporter|télécharger srt|télécharger vtt|télécharger.*sous-titres|export video|exportvideo|srtbutton|vttbutton/.test(label + ' ' + identity)) return 'export';
+    if (node.matches('label.field-label') && /export/.test(label)) return 'export';
+
     if (/générer les sous-titres|langue audio|appliquer la langue/.test(label)) return 'text';
-    if (/exporter|télécharger srt|télécharger vtt/.test(label)) return 'export';
 
     // Les éléments non identifiés restent visibles dans Texte : aucun contrôle n'est perdu.
     return 'text';
@@ -192,6 +205,11 @@
       section.appendChild(heading);
       editorPanelGroups[id] = section;
     });
+
+    const exportIntro = document.createElement('p');
+    exportIntro.className = 'jv-export-intro';
+    exportIntro.textContent = 'Choisissez le format et le cadrage, ajustez le début et la fin, puis téléchargez les sous-titres ou la vidéo finale.';
+    editorPanelGroups.export.appendChild(exportIntro);
 
     const audioNotice = document.createElement('p');
     audioNotice.className = 'jv-audio-placeholder';
@@ -276,19 +294,23 @@
       return;
     }
     box.textContent = 'Chargement des informations du compte…';
-    const me = await getMe();
-    const session = readSession();
-    if (!me || !me.enabled) {
-      box.textContent = 'Compte : ' + ((session && session.email) || '') + '\\nInformations temporairement indisponibles.';
-      return;
+    try {
+      const me = await getMe();
+      const session = readSession();
+      if (!me || !me.enabled) {
+        box.textContent = 'Compte : ' + ((session && session.email) || '') + '\\nInformations temporairement indisponibles.';
+        return;
+      }
+      box.textContent = [
+        'Email : ' + (me.email || (session && session.email) || ''),
+        'Formule : ' + (me.planName || 'Gratuit'),
+        'Vidéos ce mois-ci : ' + me.videosUsed + ' / ' + me.videosLimit,
+        'Durée maximale : ' + (me.maxSeconds >= 60 ? Math.round(me.maxSeconds / 60) + ' min' : me.maxSeconds + ' s'),
+        'Générations aujourd’hui : ' + me.genUsed + ' / ' + me.genLimit
+      ].join('\\n');
+    } catch (error) {
+      box.textContent = 'Impossible de charger les informations du compte. Réessayez dans quelques instants.';
     }
-    box.textContent = [
-      'Email : ' + (me.email || (session && session.email) || ''),
-      'Formule : ' + (me.planName || 'Gratuit'),
-      'Vidéos ce mois-ci : ' + me.videosUsed + ' / ' + me.videosLimit,
-      'Durée maximale : ' + (me.maxSeconds >= 60 ? Math.round(me.maxSeconds / 60) + ' min' : me.maxSeconds + ' s'),
-      'Générations aujourd’hui : ' + me.genUsed + ' / ' + me.genLimit
-    ].join('\\n');
   }
 
   // ===== Compte : session, configuration, appels =====

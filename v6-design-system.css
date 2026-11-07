@@ -326,3 +326,16 @@ body{margin:0!important;background:var(--jv-bg)!important;color:var(--jv-ink)!im
   .jv-editor-panel-nav{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:6px!important}
   .jv-editor-panel-tab{font-size:11px!important}
 }
+
+
+/* Étape 10 — sécuriser l'affichage exclusif des groupes et éviter les mots coupés */
+.jv-editor-control-group[hidden]{display:none!important}
+.jv-editor-panel-tab{
+  overflow-wrap:normal!important;
+  word-break:normal!important;
+  hyphens:none!important;
+}
+@media(max-width:520px){
+  .jv-editor-panel-nav{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+  .jv-editor-panel-tab{font-size:10px!important;letter-spacing:0!important;padding:8px 4px!important}
+}

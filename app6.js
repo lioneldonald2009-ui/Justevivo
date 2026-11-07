@@ -221,9 +221,16 @@
     if (!controlsPanel.dataset.jvGrouped) buildEditorPanelGroups();
 
     Object.entries(editorPanelGroups).forEach(([key, section]) => {
-      section.hidden = key !== id;
+      const visible = key === id;
+      section.hidden = !visible;
+      // Force aussi display : certaines règles des composants peuvent neutraliser hidden.
+      section.style.setProperty('display', visible ? 'flex' : 'none', 'important');
     });
-    if (editorSettingsPanel) editorSettingsPanel.hidden = id !== 'settings';
+    if (editorSettingsPanel) {
+      const visible = id === 'settings';
+      editorSettingsPanel.hidden = !visible;
+      editorSettingsPanel.style.setProperty('display', visible ? 'block' : 'none', 'important');
+    }
 
     if (editorPanelNav) {
       editorPanelNav.querySelectorAll('button').forEach(button => {

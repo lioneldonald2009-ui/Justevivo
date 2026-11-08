@@ -1743,6 +1743,26 @@ vttButton.type = 'button';
 vttButton.className = 'button ghost full';
 vttButton.textContent = 'Télécharger VTT';
 
+const exportResolutionLabel = document.createElement('label');
+exportResolutionLabel.className = 'field-label';
+exportResolutionLabel.textContent = 'Qualité de la vidéo exportée';
+
+const exportResolutionSelect = document.createElement('select');
+exportResolutionSelect.id = 'exportResolution';
+styleSelect(exportResolutionSelect);
+[
+  ['original', 'Original (résolution source)'],
+  ['1080', 'HD (1080p)'],
+  ['720', '720p'],
+  ['1440', '1440p']
+].forEach(([value, label]) => {
+  const option = document.createElement('option');
+  option.value = value;
+  option.textContent = label;
+  exportResolutionSelect.appendChild(option);
+});
+exportResolutionSelect.value = 'original';
+
 const exportVideoButton = document.createElement('button');
 exportVideoButton.type = 'button';
 exportVideoButton.className = 'button primary full';
@@ -1752,6 +1772,8 @@ const panel = document.querySelector('.controls-panel');
 panel.appendChild(exportLabel);
 panel.appendChild(srtButton);
 panel.appendChild(vttButton);
+panel.appendChild(exportResolutionLabel);
+panel.appendChild(exportResolutionSelect);
 panel.appendChild(exportVideoButton);
 
 function attachCaptionToVideo() {

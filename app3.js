@@ -407,13 +407,20 @@ async function exportVideo() {
     let w;
     let h;
 
+    const selectedResolution = exportResolutionSelect
+      ? exportResolutionSelect.value
+      : 'original';
+    const sourceLongEdge = Math.max(vw, vh);
+    const targetLongEdge = selectedResolution === 'original'
+      ? sourceLongEdge
+      : Number(selectedResolution);
+
     if (!rr) {
-      const ratio = Math.min(1, 1280 / Math.max(vw, vh));
-      w = Math.max(2, Math.round((vw * ratio) / 2) * 2);
-      h = Math.max(2, Math.round((vh * ratio) / 2) * 2);
+      const scale = targetLongEdge / sourceLongEdge;
+      w = Math.max(2, Math.round((vw * scale) / 2) * 2);
+      h = Math.max(2, Math.round((vh * scale) / 2) * 2);
     } else {
-      const cap = rr === 1 ? 1080 : 1280;
-      const long = Math.min(cap, Math.max(720, Math.max(vw, vh)));
+      const long = targetLongEdge;
       if (rr < 1) {
         h = long;
         w = long * rr;

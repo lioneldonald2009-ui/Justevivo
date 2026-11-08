@@ -47,22 +47,53 @@
 @media(max-width:900px){.showcase-grid{grid-template-columns:1fr 1fr}.showcase-main{grid-column:1/-1}.showcase-main .showcase-visual{min-height:250px}.usecase-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:600px){.marketing-showcase,.marketing-features,.marketing-usecases,.marketing-faq{padding:56px 17px}.showcase-grid,.marketing-feature-grid,.usecase-grid{grid-template-columns:1fr}.showcase-main{grid-column:auto}.showcase-visual,.showcase-main .showcase-visual{min-height:225px}.showcase-copy{padding:18px}.marketing-heading{margin-bottom:25px}.marketing-heading p{font-size:14px}.topbar{padding:11px 14px!important}.top-cta{font-size:12px!important;padding:10px 12px!important}.hero h1{font-size:clamp(39px,11vw,54px)!important}}
 
-/* JUSTEVIVO — correctif lisibilité et responsive après test mobile */
-/* Sections sur fond bleu nuit : titres et FAQ en contraste élevé. */
-.marketing-showcase .marketing-heading h2,
-.marketing-usecases .marketing-heading h2,
-.marketing-faq .marketing-heading h2,
-.how-section h2,
-.plans-heading h2{color:#fff!important}
-.marketing-showcase .marketing-heading p,
-.marketing-usecases .marketing-heading p,
-.marketing-faq .marketing-heading p,
-.how-section>p,
-.plans-heading>p{color:#c4ccda!important}
-.faq-list{border-top-color:#ffffff35!important}
-.faq-list details{border-bottom-color:#ffffff35!important}
-.faq-list summary{color:#fff!important}
-.faq-list p{color:#c4ccda!important}
+/* JUSTEVIVO — couleurs des titres adaptées au thème actif.
+   Ne jamais imposer du blanc globalement : le mode clair utilise des fonds clairs. */
+html[data-theme="light"] .marketing-heading h2,
+html[data-theme="light"] .how-section h2,
+html[data-theme="light"] .plans-heading h2{
+  color:#17213a!important;
+  opacity:1!important;
+  visibility:visible!important;
+}
+html[data-theme="light"] .marketing-heading h2 span,
+html[data-theme="light"] .how-section h2 span,
+html[data-theme="light"] .plans-heading h2 span{
+  color:#f0521b!important;
+  -webkit-text-fill-color:#f0521b!important;
+  background:none!important;
+}
+html[data-theme="light"] .marketing-heading p,
+html[data-theme="light"] .how-section>p,
+html[data-theme="light"] .plans-heading>p{
+  color:#596781!important;
+}
+html[data-theme="light"] .faq-list{border-top-color:#d9deea!important}
+html[data-theme="light"] .faq-list details{border-bottom-color:#d9deea!important}
+html[data-theme="light"] .faq-list summary{color:#17213a!important}
+html[data-theme="light"] .faq-list p{color:#596781!important}
+
+html[data-theme="dark"] .marketing-heading h2,
+html[data-theme="dark"] .how-section h2,
+html[data-theme="dark"] .plans-heading h2{
+  color:#f4f7ff!important;
+  opacity:1!important;
+  visibility:visible!important;
+}
+html[data-theme="dark"] .marketing-heading h2 span,
+html[data-theme="dark"] .how-section h2 span,
+html[data-theme="dark"] .plans-heading h2 span{
+  color:#ff7547!important;
+  -webkit-text-fill-color:#ff7547!important;
+  background:none!important;
+}
+html[data-theme="dark"] .marketing-heading p,
+html[data-theme="dark"] .how-section>p,
+html[data-theme="dark"] .plans-heading>p{color:#c4ccda!important}
+html[data-theme="dark"] .faq-list{border-top-color:#ffffff35!important}
+html[data-theme="dark"] .faq-list details{border-bottom-color:#ffffff35!important}
+html[data-theme="dark"] .faq-list summary{color:#f4f7ff!important}
+html[data-theme="dark"] .faq-list p{color:#c4ccda!important}
 
 /* Les grilles passent en disposition adaptée aux écrans tactiles. */
 @media(max-width:900px){
@@ -86,92 +117,4 @@
   .plans-grid{gap:16px!important}
   .plan-card{max-width:none!important}
   .how-section .steps{grid-template-columns:1fr!important}
-}
-
-
-/* JUSTEVIVO — correctif FAQ thème clair/sombre et espacement */
-.marketing-faq{
-  width:min(100% - 40px, 900px)!important;
-  margin:0 auto!important;
-  padding:72px 20px!important;
-}
-.marketing-faq .marketing-heading{
-  width:100%!important;
-  max-width:760px!important;
-  margin:0 auto 30px!important;
-}
-.marketing-faq .marketing-heading h2{
-  color:#17213a!important;
-  opacity:1!important;
-  visibility:visible!important;
-}
-.marketing-faq .marketing-heading h2 span{
-  color:#f0521b!important;
-  background:none!important;
-  -webkit-text-fill-color:#f0521b!important;
-}
-.marketing-faq .faq-list{
-  width:100%!important;
-  border-top:1px solid #d9deea!important;
-}
-.marketing-faq .faq-list details{
-  display:block!important;
-  padding:18px 8px!important;
-  border-bottom:1px solid #d9deea!important;
-}
-.marketing-faq .faq-list summary{
-  display:block!important;
-  position:relative!important;
-  padding:0 42px 0 0!important;
-  color:#17213a!important;
-  opacity:1!important;
-  visibility:visible!important;
-  font-size:16px!important;
-  line-height:1.5!important;
-  cursor:pointer!important;
-}
-.marketing-faq .faq-list summary::after{
-  content:"+"!important;
-  position:absolute!important;
-  right:4px!important;
-  top:50%!important;
-  transform:translateY(-50%)!important;
-  color:#f0521b!important;
-  font-size:24px!important;
-  font-weight:700!important;
-}
-.marketing-faq .faq-list details[open] summary::after{content:"−"!important}
-.marketing-faq .faq-list details p{
-  display:block!important;
-  max-width:760px!important;
-  margin:12px 0 0!important;
-  color:#596780!important;
-  opacity:1!important;
-  visibility:visible!important;
-  font-size:14px!important;
-  line-height:1.7!important;
-}
-html[data-theme="dark"] .marketing-faq .marketing-heading h2,
-html[data-theme="dark"] .marketing-faq .faq-list summary{
-  color:#f4f7ff!important;
-}
-html[data-theme="dark"] .marketing-faq .faq-list{
-  border-top-color:#ffffff35!important;
-}
-html[data-theme="dark"] .marketing-faq .faq-list details{
-  border-bottom-color:#ffffff35!important;
-}
-html[data-theme="dark"] .marketing-faq .faq-list details p{
-  color:#c4ccda!important;
-}
-@media(max-width:760px){
-  .marketing-faq{
-    width:100%!important;
-    padding:50px 16px!important;
-  }
-  .marketing-faq .marketing-heading h2{
-    font-size:clamp(27px,6vw,38px)!important;
-    line-height:1.15!important;
-  }
-  .marketing-faq .faq-list summary{font-size:15px!important}
 }

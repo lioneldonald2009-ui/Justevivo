@@ -1001,7 +1001,7 @@
       const res = await window.fetch(API_URL + '/api/config');
       const d = await res.json();
       const note = document.querySelector('.plans-note');
-      if (d && d.payments && note) {
+      if (note) {
         note.textContent =
           'Paiement sécurisé par FedaPay, en francs CFA, pour 30 jours : ' +
           'Starter 6 000 F, Pro 9 000 F, Business 15 000 F. ' +

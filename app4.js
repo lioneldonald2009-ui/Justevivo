@@ -1,7 +1,7 @@
-// ===== JUSTEVIVO · app4.js (version 2) · vidéos de plus de 25 Mo =====
+// ===== JUSTEVIVO · app4.js (version 3) · limite globale 200 Mo =====
 (function () {
   const SMALL_LIMIT = 24 * 1024 * 1024;  // en dessous : envoi direct de la vidéo
-  const MAX_FILE = 200 * 1024 * 1024;    // plafond global demandé : 100 Mo, tous plans
+  const MAX_FILE = 200 * 1024 * 1024;    // plafond global demandé : 200 Mo, tous plans
   const RATE = 16000;                    // fréquence du son envoyé
   const CHUNK_SEC = 540;                 // environ 9 minutes par morceau
   const LABEL = 'Générer les sous-titres IA';

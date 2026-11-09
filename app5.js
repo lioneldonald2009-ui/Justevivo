@@ -287,8 +287,37 @@
   modal.appendChild(card);
   document.body.appendChild(modal);
 
+  const pageVisibilityStyle = document.createElement('style');
+  pageVisibilityStyle.textContent = '[hidden]{display:none!important}';
+  document.head.appendChild(pageVisibilityStyle);
+
+  const landingSections = Array.from(document.querySelectorAll(
+    'body > .topbar, body > main > .hero, body > main > .feature-strip, ' +
+    'body > main > .marketing-showcase, body > main > .marketing-features, ' +
+    'body > main > .marketing-usecases, body > main > .how-section, ' +
+    'body > main > .marketing-faq, body > main > .plans-section, body > footer'
+  ));
+  const studioSection = document.querySelector('.studio-section');
+  let pageMode = 'landing';
+
+  function setPageMode(mode) {
+    pageMode = mode;
+    landingSections.forEach(el => { el.hidden = mode !== 'landing'; });
+    if (studioSection) studioSection.hidden = mode !== 'studio';
+    if (mode === 'studio' && studioSection) {
+      studioSection.scrollIntoView({ behavior: 'auto', block: 'start' });
+    }
+  }
+
   function openAuth(text) {
+    setPageMode('auth');
     msg.textContent = text || 'Connectez-vous ou créez un compte gratuit.';
+    title.textContent = 'Connexion / Inscription';
+    Object.assign(modal.style, {
+      position: 'fixed', inset: '0', padding: '20px',
+      alignItems: 'center', justifyContent: 'center', overflowY: 'auto'
+    });
+    Object.assign(card.style, { marginTop: '0', maxWidth: '460px', padding: '24px' });
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
     setTimeout(() => emailInput.focus(), 60);
@@ -298,6 +327,7 @@
     modal.style.display = 'none';
     document.body.style.overflow = '';
     passInput.value = '';
+    if (pageMode === 'auth') setPageMode('landing');
   }
 
   closeBtn.addEventListener('click', closeAuth);
@@ -333,7 +363,10 @@
 
   async function finishLogin(d, email) {
     saveSession(toSession(d, email));
-    closeAuth();
+    modal.style.display = 'none';
+    document.body.style.overflow = '';
+    passInput.value = '';
+    setPageMode('studio');
     renderBar();
     showToast('Connecté.');
     await refreshMe();
@@ -390,6 +423,14 @@
   });
 
   loginBtn.addEventListener('click', () => openAuth());
+
+  document.addEventListener('click', e => {
+    const cta = e.target && e.target.closest ? e.target.closest('a[href="#studio"], button[data-open-studio]') : null;
+    if (!cta) return;
+    e.preventDefault();
+    if (session && session.access_token) setPageMode('studio');
+    else openAuth('Créez votre compte ou connectez-vous pour accéder à votre espace de travail.');
+  });
 
   logoutBtn.addEventListener('click', async () => {
     const token = session ? session.access_token : '';
@@ -472,6 +513,10 @@
 
     return res;
   };
+
+  // Le studio n'est visible qu'après authentification depuis la page de présentation.
+  if (studioSection) studioSection.hidden = true;
+  if (session && session.access_token) setPageMode('studio');
 
   // ===== Blocage avant le travail lourd : connexion et durée =====
   document.addEventListener('click', e => {

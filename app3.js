@@ -372,6 +372,8 @@ async function exportVideo() {
 
   let audioCtx = null;
   let objectUrl = null;
+  let exportStream = null;
+  let recorderRef = null;
 
   try {
     try {
@@ -438,6 +440,7 @@ async function exportVideo() {
     const ctx = canvas.getContext('2d');
 
     const stream = canvas.captureStream(30);
+    exportStream = stream;
 
     let hasAudio = false;
     let voiceGain = null;
@@ -479,10 +482,18 @@ async function exportVideo() {
     }
 
     const mime = MIME_CHOICES.find(m => MediaRecorder.isTypeSupported(m)) || '';
-    const recorder = new MediaRecorder(
-      stream,
-      mime ? { mimeType: mime, videoBitsPerSecond: 5000000 } : { videoBitsPerSecond: 5000000 }
-    );
+    let recorder;
+    try {
+      recorder = new MediaRecorder(
+        stream,
+        mime ? { mimeType: mime, videoBitsPerSecond: 8000000 } : { videoBitsPerSecond: 8000000 }
+      );
+    } catch (recorderError) {
+      // Certains navigateurs annoncent un codec mais refusent ses options : retenter sans options.
+      try { recorder = new MediaRecorder(stream); }
+      catch (fallbackError) { throw new Error('Ce navigateur ne prend pas en charge un format d’export compatible. Essayez Chrome ou Edge à jour.'); }
+    }
+    recorderRef = recorder;
 
     const trimmed = isTrimmed();
     const startT = trimmed ? trimStart : 0;
@@ -516,16 +527,21 @@ async function exportVideo() {
         if (e.data && e.data.size) chunks.push(e.data);
       };
 
-      recorder.onstop = () =>
-        resolve(new Blob(chunks, { type: recorder.mimeType || mime || 'video/webm' }));
+      recorder.onstop = () => {
+        const blob = new Blob(chunks, { type: recorder.mimeType || mime || 'video/webm' });
+        if (!blob.size) reject(new Error('L’export est vide. Relancez l’export avec Chrome ou Edge.'));
+        else resolve(blob);
+      };
 
-      recorder.onerror = e => reject((e && e.error) || new Error('Erreur d’enregistrement.'));
+      recorder.onerror = e => reject((e && e.error) || new Error('Erreur d’enregistrement vidéo.'));
 
       vid.onended = () => {
         if (recorder.state !== 'inactive') recorder.stop();
       };
 
       const draw = () => {
+        try {
+        if (recorder.state === 'inactive') return;
         if (trimmed && vid.currentTime >= endT - 0.02) {
           vid.pause();
           if (recorder.state !== 'inactive') recorder.stop();
@@ -575,6 +591,10 @@ async function exportVideo() {
         if (!vid.ended && recorder.state !== 'inactive') {
           requestAnimationFrame(draw);
         }
+        } catch (drawError) {
+          if (recorder.state !== 'inactive') recorder.stop();
+          reject(drawError || new Error('Erreur pendant le rendu des images.'));
+        }
       };
 
       recorder.start(1000);
@@ -603,6 +623,12 @@ async function exportVideo() {
     console.error('Erreur export :', error);
     showToast(error.message || 'Export impossible.');
   } finally {
+    if (recorderRef && recorderRef.state !== 'inactive') {
+      try { recorderRef.stop(); } catch (e) { /* déjà arrêté */ }
+    }
+    if (exportStream) exportStream.getTracks().forEach(track => {
+      try { track.stop(); } catch (e) { /* piste déjà arrêtée */ }
+    });
     if (audioCtx) audioCtx.close().catch(() => {});
     if (objectUrl) URL.revokeObjectURL(objectUrl);
     exportVideoButton.disabled = false;

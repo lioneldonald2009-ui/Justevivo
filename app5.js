@@ -569,30 +569,14 @@
 
   loginBtn.addEventListener('click', () => openAuth());
 
-  forgotPasswordBtn.addEventListener('click', async () => {
-    if (!cfg.enabled) {
-      msg.textContent = 'La récupération du compte est indisponible pour le moment.';
-      return;
-    }
+  forgotPasswordBtn.addEventListener('click', () => {
     const email = emailInput.value.trim();
     if (!/^\S+@\S+\.\S+$/.test(email)) {
-      msg.textContent = 'Saisissez d’abord votre adresse email pour recevoir le lien de vérification.';
+      msg.textContent = 'Saisissez d’abord votre adresse email.';
       emailInput.focus();
       return;
     }
-    forgotPasswordBtn.disabled = true;
-    msg.textContent = 'Envoi du lien de vérification en cours…';
-    try {
-      const redirect = window.location.origin + window.location.pathname + window.location.search;
-      const captcha = requireCaptchaToken();
-      await authCall('recover?redirect_to=' + encodeURIComponent(redirect), { email, captcha_token: captcha || undefined });
-      msg.textContent = 'Si cette adresse correspond à un compte, un email de vérification vient d’être envoyé. Ouvrez le lien reçu pour autoriser le changement de mot de passe.';
-    } catch (e) {
-      msg.textContent = e.message;
-    } finally {
-      resetCaptcha();
-      forgotPasswordBtn.disabled = false;
-    }
+    window.location.href = 'forgot-password.html?email=' + encodeURIComponent(email);
   });
 
   let recoveryAccessToken = '';
@@ -655,9 +639,8 @@
 
   // Permet aux paramètres d'ouvrir le même parcours sécurisé de récupération.
   window.JVOpenPasswordRecovery = function (email) {
-    openAuth('Vérifiez votre identité avant de changer le mot de passe. Validez le contrôle anti-robot, puis demandez le lien email.');
-    emailInput.value = String(email || '').trim();
-    forgotPasswordBtn.focus();
+    const value = String(email || '').trim();
+    window.location.href = 'forgot-password.html' + (value ? '?email=' + encodeURIComponent(value) : '');
   };
 
   // Supabase renvoie le jeton de récupération dans le fragment URL après le clic email.

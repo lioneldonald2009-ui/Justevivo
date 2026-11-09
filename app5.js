@@ -81,6 +81,28 @@
     return data;
   }
 
+  // Mise à jour du mot de passe uniquement avec le jeton temporaire reçu par email.
+  async function updateRecoveredPassword(accessToken, password) {
+    let res;
+    try {
+      res = await origFetch(cfg.url + '/auth/v1/user', {
+        method: 'PUT',
+        headers: {
+          apikey: cfg.key,
+          Authorization: 'Bearer ' + accessToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ password })
+      });
+    } catch (e) {
+      throw new Error('Connexion impossible. Vérifiez votre réseau.');
+    }
+    let data = {};
+    try { data = await res.json(); } catch (e) {}
+    if (!res.ok) throw new Error(authError(data));
+    return data;
+  }
+
   function toSession(d, fallbackEmail) {
     return {
       access_token: d.access_token,
@@ -278,12 +300,38 @@
   signUpBtn.className = 'button ghost full';
   signUpBtn.textContent = 'Créer un compte gratuit';
 
+  const forgotPasswordBtn = document.createElement('button');
+  forgotPasswordBtn.type = 'button';
+  forgotPasswordBtn.className = 'button ghost full';
+  forgotPasswordBtn.textContent = 'Mot de passe oublié ?';
+
+  const recoveryFields = document.createElement('div');
+  recoveryFields.hidden = true;
+  const newPasswordInput = document.createElement('input');
+  newPasswordInput.type = 'password';
+  newPasswordInput.placeholder = 'Nouveau mot de passe (8 caractères minimum)';
+  newPasswordInput.autocomplete = 'new-password';
+  Object.assign(newPasswordInput.style, FIELD);
+  const confirmPasswordInput = document.createElement('input');
+  confirmPasswordInput.type = 'password';
+  confirmPasswordInput.placeholder = 'Confirmer le nouveau mot de passe';
+  confirmPasswordInput.autocomplete = 'new-password';
+  Object.assign(confirmPasswordInput.style, FIELD);
+  recoveryFields.append(newPasswordInput, confirmPasswordInput);
+
+  const updatePasswordBtn = document.createElement('button');
+  updatePasswordBtn.type = 'button';
+  updatePasswordBtn.className = 'button primary full';
+  updatePasswordBtn.textContent = 'Confirmer le nouveau mot de passe';
+  updatePasswordBtn.hidden = true;
+
   const closeBtn = document.createElement('button');
   closeBtn.type = 'button';
   closeBtn.className = 'button ghost full';
   closeBtn.textContent = 'Fermer';
 
-  [title, msg, emailInput, passWrap, signInBtn, signUpBtn, closeBtn].forEach(e => card.appendChild(e));
+  [title, msg, emailInput, passWrap, signInBtn, signUpBtn, forgotPasswordBtn,
+   recoveryFields, updatePasswordBtn, closeBtn].forEach(e => card.appendChild(e));
   modal.appendChild(card);
   document.body.appendChild(modal);
 
@@ -423,6 +471,99 @@
   });
 
   loginBtn.addEventListener('click', () => openAuth());
+
+  forgotPasswordBtn.addEventListener('click', async () => {
+    if (!cfg.enabled) {
+      msg.textContent = 'La récupération du compte est indisponible pour le moment.';
+      return;
+    }
+    const email = emailInput.value.trim();
+    if (!/^\\S+@\\S+\\.\\S+$/.test(email)) {
+      msg.textContent = 'Saisissez d’abord votre adresse email pour recevoir le lien de vérification.';
+      emailInput.focus();
+      return;
+    }
+    forgotPasswordBtn.disabled = true;
+    msg.textContent = 'Envoi du lien de vérification en cours…';
+    try {
+      const redirect = window.location.origin + window.location.pathname + window.location.search;
+      await authCall('recover?redirect_to=' + encodeURIComponent(redirect), { email });
+      msg.textContent = 'Si cette adresse correspond à un compte, un email de vérification vient d’être envoyé. Ouvrez le lien reçu pour autoriser le changement de mot de passe.';
+    } catch (e) {
+      msg.textContent = e.message;
+    } finally {
+      forgotPasswordBtn.disabled = false;
+    }
+  });
+
+  let recoveryAccessToken = '';
+  function showRecoveryForm(token) {
+    recoveryAccessToken = token;
+    openAuth('Votre adresse email a été vérifiée via le lien sécurisé. Choisissez maintenant un nouveau mot de passe.');
+    title.textContent = 'Nouveau mot de passe';
+    emailInput.hidden = true;
+    passWrap.hidden = true;
+    signInBtn.hidden = true;
+    signUpBtn.hidden = true;
+    forgotPasswordBtn.hidden = true;
+    recoveryFields.hidden = false;
+    updatePasswordBtn.hidden = false;
+    newPasswordInput.focus();
+  }
+
+  updatePasswordBtn.addEventListener('click', async () => {
+    const password = newPasswordInput.value;
+    const confirmation = confirmPasswordInput.value;
+    if (!recoveryAccessToken) {
+      msg.textContent = 'Le lien de vérification est absent ou expiré. Demandez un nouvel email.';
+      return;
+    }
+    if (password.length < 8) {
+      msg.textContent = 'Le nouveau mot de passe doit contenir au moins 8 caractères.';
+      return;
+    }
+    if (password !== confirmation) {
+      msg.textContent = 'Les deux mots de passe ne correspondent pas.';
+      confirmPasswordInput.focus();
+      return;
+    }
+    updatePasswordBtn.disabled = true;
+    msg.textContent = 'Mise à jour sécurisée du mot de passe…';
+    try {
+      await updateRecoveredPassword(recoveryAccessToken, password);
+      recoveryAccessToken = '';
+      newPasswordInput.value = '';
+      confirmPasswordInput.value = '';
+      window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+      recoveryFields.hidden = true;
+      updatePasswordBtn.hidden = true;
+      emailInput.hidden = false;
+      passWrap.hidden = false;
+      signInBtn.hidden = false;
+      signUpBtn.hidden = false;
+      forgotPasswordBtn.hidden = false;
+      emailInput.value = emailInput.value || '';
+      title.textContent = 'Mot de passe modifié';
+      msg.textContent = 'Votre mot de passe a été modifié. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.';
+    } catch (e) {
+      msg.textContent = e.message + ' Si le lien a expiré, demandez-en un nouveau.';
+    } finally {
+      updatePasswordBtn.disabled = false;
+    }
+  });
+
+  // Supabase renvoie le jeton de récupération dans le fragment URL après le clic email.
+  function detectRecoveryLink() {
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    const type = hash.get('type');
+    const token = hash.get('access_token');
+    const error = hash.get('error_description');
+    if (type === 'recovery' && token) {
+      showRecoveryForm(token);
+    } else if (error && /expired|invalid/i.test(error)) {
+      openAuth('Le lien de vérification est invalide ou expiré. Demandez un nouvel email de récupération.');
+    }
+  }
 
   document.addEventListener('click', e => {
     const cta = e.target && e.target.closest ? e.target.closest('a[href="#studio"], button[data-open-studio]') : null;
@@ -587,4 +728,5 @@
 
   renderBar();
   loadConfig();
+  detectRecoveryLink();
 })();

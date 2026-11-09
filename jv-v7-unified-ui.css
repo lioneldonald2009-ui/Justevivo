@@ -134,3 +134,11 @@ input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{
 .jv-project-status{color:var(--jv-v7-muted)!important;background:#f6f8fc!important;border:1px solid var(--jv-v7-line)!important;border-radius:9px!important;padding:9px!important}
 .jv-project-row{background:#fff!important;color:var(--jv-v7-text)!important;border:1px solid var(--jv-v7-line)!important;box-shadow:0 5px 16px rgba(27,42,75,.04)!important}
 .jv-project-row [style*="#8994ad"]{color:var(--jv-v7-muted)!important}
+
+.jv-captcha-wrap{
+  display:flex;justify-content:center;align-items:center;
+  min-height:0;margin:4px 0 12px;padding:10px;
+  background:#f8faff;border:1px solid var(--jv-v7-line);border-radius:12px;
+}
+.jv-captcha-wrap[hidden]{display:none!important}
+#jv-turnstile-widget{max-width:100%;min-height:0}

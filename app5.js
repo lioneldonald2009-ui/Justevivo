@@ -3,7 +3,7 @@
   const KEY = 'justevivo_session_v1';
   const origFetch = window.fetch.bind(window);
 
-  let cfg = { enabled: false, ready: false };
+  let cfg = { enabled: false, ready: false, captchaSiteKey: '' };
   let session = null;
   let me = null;
   let jobId = newJobId();
@@ -81,6 +81,28 @@
     return data;
   }
 
+  // Mise à jour du mot de passe uniquement avec le jeton temporaire reçu par email.
+  async function updateRecoveredPassword(accessToken, password) {
+    let res;
+    try {
+      res = await origFetch(cfg.url + '/auth/v1/user', {
+        method: 'PUT',
+        headers: {
+          apikey: cfg.key,
+          Authorization: 'Bearer ' + accessToken,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ password })
+      });
+    } catch (e) {
+      throw new Error('Connexion impossible. Vérifiez votre réseau.');
+    }
+    let data = {};
+    try { data = await res.json(); } catch (e) {}
+    if (!res.ok) throw new Error(authError(data));
+    return data;
+  }
+
   function toSession(d, fallbackEmail) {
     return {
       access_token: d.access_token,
@@ -123,6 +145,7 @@
     fontSize: '11px',
     color: '#c2c8d9'
   });
+  bar.className = 'jv-account-bar';
   const barText = mk('div', { minWidth: '0', overflowWrap: 'anywhere', lineHeight: '1.5', flex: '1' });
   const barBtns = mk('div', { display: 'flex', gap: '8px' });
   const loginBtn = document.createElement('button');
@@ -214,14 +237,18 @@
     justifyContent: 'center', alignItems: 'flex-start', padding: '12px', overflowY: 'auto'
   });
 
+  modal.className = 'jv-auth-modal';
   const card = mk('div', {
     width: '100%', maxWidth: '400px', background: '#10162a', border: '1px solid #34405f',
     borderRadius: '14px', padding: '16px', color: '#fff', fontFamily: 'inherit',
     fontSize: '12px', boxSizing: 'border-box', marginTop: '40px'
   });
 
+  card.className = 'jv-auth-card';
   const title = mk('div', { fontWeight: '800', fontSize: '16px', marginBottom: '6px' }, 'Connexion');
+  title.className = 'jv-auth-title';
   const msg = mk('div', { color: '#aeb8d0', margin: '6px 0 10px', lineHeight: '1.5' });
+  msg.className = 'jv-auth-message';
 
   const FIELD = {
     width: '100%', boxSizing: 'border-box', padding: '12px', background: '#0b1122',
@@ -233,6 +260,7 @@
   emailInput.type = 'email';
   emailInput.placeholder = 'Votre email';
   emailInput.autocomplete = 'email';
+  emailInput.className = 'jv-auth-field';
   Object.assign(emailInput.style, FIELD);
 
   const passWrap = document.createElement('div');
@@ -244,6 +272,7 @@
   passInput.type = 'password';
   passInput.placeholder = 'Mot de passe (8 caractères minimum)';
   passInput.autocomplete = 'current-password';
+  passInput.className = 'jv-auth-field';
   Object.assign(passInput.style, FIELD, {
     width: '100%', boxSizing: 'border-box', paddingRight: '88px', marginBottom: '0'
   });
@@ -278,12 +307,98 @@
   signUpBtn.className = 'button ghost full';
   signUpBtn.textContent = 'Créer un compte gratuit';
 
+  const forgotPasswordBtn = document.createElement('button');
+  forgotPasswordBtn.type = 'button';
+  forgotPasswordBtn.className = 'button ghost full';
+  forgotPasswordBtn.textContent = 'Mot de passe oublié ?';
+
+  const recoveryFields = document.createElement('div');
+  recoveryFields.hidden = true;
+  const newPasswordInput = document.createElement('input');
+  newPasswordInput.type = 'password';
+  newPasswordInput.placeholder = 'Nouveau mot de passe (8 caractères minimum)';
+  newPasswordInput.autocomplete = 'new-password';
+  newPasswordInput.className = 'jv-auth-field';
+  Object.assign(newPasswordInput.style, FIELD);
+  const confirmPasswordInput = document.createElement('input');
+  confirmPasswordInput.type = 'password';
+  confirmPasswordInput.placeholder = 'Confirmer le nouveau mot de passe';
+  confirmPasswordInput.autocomplete = 'new-password';
+  confirmPasswordInput.className = 'jv-auth-field';
+  Object.assign(confirmPasswordInput.style, FIELD);
+  recoveryFields.append(newPasswordInput, confirmPasswordInput);
+
+  const updatePasswordBtn = document.createElement('button');
+  updatePasswordBtn.type = 'button';
+  updatePasswordBtn.className = 'button primary full';
+  updatePasswordBtn.textContent = 'Confirmer le nouveau mot de passe';
+  updatePasswordBtn.hidden = true;
+
+  const captchaWrap = document.createElement('div');
+  captchaWrap.className = 'jv-captcha-wrap';
+  captchaWrap.hidden = true;
+  const captchaContainer = document.createElement('div');
+  captchaContainer.id = 'jv-turnstile-widget';
+  captchaWrap.appendChild(captchaContainer);
+
   const closeBtn = document.createElement('button');
   closeBtn.type = 'button';
   closeBtn.className = 'button ghost full';
   closeBtn.textContent = 'Fermer';
 
-  [title, msg, emailInput, passWrap, signInBtn, signUpBtn, closeBtn].forEach(e => card.appendChild(e));
+  [title, msg, emailInput, passWrap, captchaWrap, signInBtn, signUpBtn, forgotPasswordBtn,
+   recoveryFields, updatePasswordBtn, closeBtn].forEach(e => card.appendChild(e));
+
+  let captchaWidgetId = null;
+  let captchaToken = '';
+  let captchaScriptLoading = false;
+
+  function renderCaptchaWidget() {
+    if (!cfg.captchaSiteKey || modal.style.display !== 'flex') {
+      captchaWrap.hidden = true;
+      return;
+    }
+    captchaWrap.hidden = false;
+    if (window.turnstile) {
+      if (captchaWidgetId === null) {
+        captchaWidgetId = window.turnstile.render(captchaContainer, {
+          sitekey: cfg.captchaSiteKey,
+          theme: 'light',
+          callback: token => { captchaToken = token; },
+          'expired-callback': () => { captchaToken = ''; },
+          'error-callback': () => { captchaToken = ''; msg.textContent = 'La vérification anti-robot a échoué. Réessayez.'; }
+        });
+      } else {
+        try { window.turnstile.reset(captchaWidgetId); } catch (_) {}
+      }
+      return;
+    }
+    if (captchaScriptLoading) return;
+    captchaScriptLoading = true;
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => { captchaScriptLoading = false; renderCaptchaWidget(); };
+    script.onerror = () => {
+      captchaScriptLoading = false;
+      msg.textContent = 'Impossible de charger la vérification anti-robot. Vérifiez votre connexion.';
+    };
+    document.head.appendChild(script);
+  }
+
+  function requireCaptchaToken() {
+    if (!cfg.captchaSiteKey) return '';
+    if (!captchaToken) throw new Error('Validez le contrôle anti-robot avant de continuer.');
+    return captchaToken;
+  }
+
+  function resetCaptcha() {
+    captchaToken = '';
+    if (window.turnstile && captchaWidgetId !== null) {
+      try { window.turnstile.reset(captchaWidgetId); } catch (_) {}
+    }
+  }
   modal.appendChild(card);
   document.body.appendChild(modal);
 
@@ -320,6 +435,7 @@
     Object.assign(card.style, { marginTop: '0', maxWidth: '460px', padding: '24px' });
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+    if (!recoveryAccessToken) renderCaptchaWidget();
     setTimeout(() => emailInput.focus(), 60);
   }
 
@@ -327,6 +443,19 @@
     modal.style.display = 'none';
     document.body.style.overflow = '';
     passInput.value = '';
+    newPasswordInput.value = '';
+    confirmPasswordInput.value = '';
+    recoveryAccessToken = '';
+    emailInput.hidden = false;
+    passWrap.hidden = false;
+    signInBtn.hidden = false;
+    signUpBtn.hidden = false;
+    forgotPasswordBtn.hidden = false;
+    recoveryFields.hidden = true;
+    updatePasswordBtn.hidden = true;
+    captchaWrap.hidden = true;
+    resetCaptcha();
+    window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
     if (pageMode === 'auth') setPageMode('landing');
   }
 
@@ -385,11 +514,16 @@
     msg.textContent = 'Connexion en cours...';
 
     try {
-      const d = await authCall('token?grant_type=password', { email: f.email, password: f.pass });
+      const captcha = requireCaptchaToken();
+      const d = await authCall('token?grant_type=password', { email: f.email, password: f.pass, captcha_token: captcha || undefined });
+      if (!d.user || !d.user.email_confirmed_at) {
+        throw new Error('Votre adresse email n’est pas encore confirmée. Ouvrez le message envoyé par JUSTEVIVO, puis réessayez.');
+      }
       await finishLogin(d, f.email);
     } catch (e) {
       msg.textContent = e.message;
     } finally {
+      resetCaptcha();
       busy(false);
     }
   });
@@ -407,22 +541,137 @@
     msg.textContent = 'Création du compte...';
 
     try {
-      const d = await authCall('signup', { email: f.email, password: f.pass });
+      const captcha = requireCaptchaToken();
+      const redirect = window.location.origin + window.location.pathname + window.location.search;
+      const d = await authCall('signup?redirect_to=' + encodeURIComponent(redirect), {
+        email: f.email,
+        password: f.pass,
+        captcha_token: captcha || undefined
+      });
 
-      if (d.access_token) {
+      if (d.access_token && d.user && d.user.email_confirmed_at) {
         await finishLogin(d, f.email);
       } else {
+        // Ne jamais ouvrir une session JUSTEVIVO tant que l'email n'est pas confirmé.
+        if (d.access_token) {
+          try { await authCall('logout', {}, d.access_token); } catch (_) {}
+        }
         msg.textContent =
-          'Compte créé. Confirmez votre email (regardez votre boîte mail, et les spams), puis connectez-vous.';
+          'Compte créé. Confirmez votre adresse email depuis le message envoyé par JUSTEVIVO (vérifiez aussi les spams), puis connectez-vous.';
       }
     } catch (e) {
       msg.textContent = e.message;
     } finally {
+      resetCaptcha();
       busy(false);
     }
   });
 
   loginBtn.addEventListener('click', () => openAuth());
+
+  forgotPasswordBtn.addEventListener('click', async () => {
+    if (!cfg.enabled) {
+      msg.textContent = 'La récupération du compte est indisponible pour le moment.';
+      return;
+    }
+    const email = emailInput.value.trim();
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
+      msg.textContent = 'Saisissez d’abord votre adresse email pour recevoir le lien de vérification.';
+      emailInput.focus();
+      return;
+    }
+    forgotPasswordBtn.disabled = true;
+    msg.textContent = 'Envoi du lien de vérification en cours…';
+    try {
+      const redirect = window.location.origin + window.location.pathname + window.location.search;
+      const captcha = requireCaptchaToken();
+      await authCall('recover?redirect_to=' + encodeURIComponent(redirect), { email, captcha_token: captcha || undefined });
+      msg.textContent = 'Si cette adresse correspond à un compte, un email de vérification vient d’être envoyé. Ouvrez le lien reçu pour autoriser le changement de mot de passe.';
+    } catch (e) {
+      msg.textContent = e.message;
+    } finally {
+      resetCaptcha();
+      forgotPasswordBtn.disabled = false;
+    }
+  });
+
+  let recoveryAccessToken = '';
+  function showRecoveryForm(token) {
+    recoveryAccessToken = token;
+    openAuth('Votre adresse email a été vérifiée via le lien sécurisé. Choisissez maintenant un nouveau mot de passe.');
+    title.textContent = 'Nouveau mot de passe';
+    emailInput.hidden = true;
+    passWrap.hidden = true;
+    signInBtn.hidden = true;
+    signUpBtn.hidden = true;
+    forgotPasswordBtn.hidden = true;
+    recoveryFields.hidden = false;
+    updatePasswordBtn.hidden = false;
+    newPasswordInput.focus();
+  }
+
+  updatePasswordBtn.addEventListener('click', async () => {
+    const password = newPasswordInput.value;
+    const confirmation = confirmPasswordInput.value;
+    if (!recoveryAccessToken) {
+      msg.textContent = 'Le lien de vérification est absent ou expiré. Demandez un nouvel email.';
+      return;
+    }
+    if (password.length < 8) {
+      msg.textContent = 'Le nouveau mot de passe doit contenir au moins 8 caractères.';
+      return;
+    }
+    if (password !== confirmation) {
+      msg.textContent = 'Les deux mots de passe ne correspondent pas.';
+      confirmPasswordInput.focus();
+      return;
+    }
+    updatePasswordBtn.disabled = true;
+    msg.textContent = 'Mise à jour sécurisée du mot de passe…';
+    try {
+      if (cfgPromise) await cfgPromise;
+      if (!cfg.enabled) throw new Error('Le service de comptes est indisponible. Réessayez dans quelques instants.');
+      await updateRecoveredPassword(recoveryAccessToken, password);
+      recoveryAccessToken = '';
+      newPasswordInput.value = '';
+      confirmPasswordInput.value = '';
+      window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
+      recoveryFields.hidden = true;
+      updatePasswordBtn.hidden = true;
+      emailInput.hidden = false;
+      passWrap.hidden = false;
+      signInBtn.hidden = false;
+      signUpBtn.hidden = false;
+      forgotPasswordBtn.hidden = false;
+      emailInput.value = emailInput.value || '';
+      title.textContent = 'Mot de passe modifié';
+      msg.textContent = 'Votre mot de passe a été modifié. Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.';
+    } catch (e) {
+      msg.textContent = e.message + ' Si le lien a expiré, demandez-en un nouveau.';
+    } finally {
+      updatePasswordBtn.disabled = false;
+    }
+  });
+
+  // Permet aux paramètres d'ouvrir le même parcours sécurisé de récupération.
+  window.JVOpenPasswordRecovery = function (email) {
+    openAuth('Vérifiez votre identité avant de changer le mot de passe. Validez le contrôle anti-robot, puis demandez le lien email.');
+    emailInput.value = String(email || '').trim();
+    forgotPasswordBtn.focus();
+  };
+
+  // Supabase renvoie le jeton de récupération dans le fragment URL après le clic email.
+  function detectRecoveryLink() {
+    const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+    const type = hash.get('type');
+    const token = hash.get('access_token');
+    const error = hash.get('error_description');
+    if (type === 'recovery' && token) {
+      showRecoveryForm(token);
+    } else if (error && /expired|invalid/i.test(error)) {
+      openAuth('Le lien de vérification est invalide ou expiré. Demandez un nouvel email de récupération.');
+    }
+  }
 
   document.addEventListener('click', e => {
     const cta = e.target && e.target.closest ? e.target.closest('a[href="#studio"], button[data-open-studio]') : null;
@@ -565,7 +814,8 @@
         const d = await res.json();
 
         if (d && d.enabled && d.url && d.anonKey) {
-          cfg = { enabled: true, ready: true, url: d.url, key: d.anonKey };
+          cfg = { enabled: true, ready: true, url: d.url, key: d.anonKey, captchaSiteKey: d.captchaSiteKey || '' };
+          if (modal.style.display === 'flex' && !recoveryAccessToken) renderCaptchaWidget();
         } else {
           cfg = { enabled: false, ready: true };
         }
@@ -587,4 +837,5 @@
 
   renderBar();
   loadConfig();
+  detectRecoveryLink();
 })();

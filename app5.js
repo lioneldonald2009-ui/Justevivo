@@ -548,6 +548,8 @@
     updatePasswordBtn.disabled = true;
     msg.textContent = 'Mise à jour sécurisée du mot de passe…';
     try {
+      if (cfgPromise) await cfgPromise;
+      if (!cfg.enabled) throw new Error('Le service de comptes est indisponible. Réessayez dans quelques instants.');
       await updateRecoveredPassword(recoveryAccessToken, password);
       recoveryAccessToken = '';
       newPasswordInput.value = '';

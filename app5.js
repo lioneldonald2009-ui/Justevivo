@@ -445,6 +445,9 @@
 
     try {
       const d = await authCall('token?grant_type=password', { email: f.email, password: f.pass });
+      if (!d.user || !d.user.email_confirmed_at) {
+        throw new Error('Votre adresse email n’est pas encore confirmée. Ouvrez le message envoyé par JUSTEVIVO, puis réessayez.');
+      }
       await finishLogin(d, f.email);
     } catch (e) {
       msg.textContent = e.message;
@@ -468,11 +471,15 @@
     try {
       const d = await authCall('signup', { email: f.email, password: f.pass });
 
-      if (d.access_token) {
+      if (d.access_token && d.user && d.user.email_confirmed_at) {
         await finishLogin(d, f.email);
       } else {
+        // Ne jamais ouvrir une session JUSTEVIVO tant que l'email n'est pas confirmé.
+        if (d.access_token) {
+          try { await authCall('logout', {}, d.access_token); } catch (_) {}
+        }
         msg.textContent =
-          'Compte créé. Confirmez votre email (regardez votre boîte mail, et les spams), puis connectez-vous.';
+          'Compte créé. Confirmez votre adresse email depuis le message envoyé par JUSTEVIVO (vérifiez aussi les spams), puis connectez-vous.';
       }
     } catch (e) {
       msg.textContent = e.message;

@@ -413,13 +413,16 @@
       justifyContent: 'center', alignItems: 'flex-start', padding: '12px', overflowY: 'auto'
     });
 
+    modal.className = 'jv-app-modal';
     const card = el('div', {
       width: '100%', maxWidth: '460px', background: '#10162a', border: '1px solid #34405f',
       borderRadius: '14px', padding: '16px', color: '#fff', fontFamily: 'inherit',
       fontSize: '12px', boxSizing: 'border-box', marginTop: '24px'
     });
+    card.className = 'jv-app-modal-card';
 
     const title = el('div', { fontWeight: '800', fontSize: '16px', marginBottom: '10px' }, titleText);
+    title.className = 'jv-app-modal-title';
     const body = el('div');
     const close = btn('Fermer', 'button ghost full', { marginTop: '12px' });
 

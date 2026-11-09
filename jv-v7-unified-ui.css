@@ -106,3 +106,23 @@ input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{
   .jv-account-bar{align-items:flex-start!important}
   .jv-account-bar>div{min-width:0}
 }
+
+/* Dialogues Projets / Paramètres : fonds clairs et messages lisibles */
+.jv-app-modal{background:rgba(17,27,47,.48)!important;backdrop-filter:blur(7px)}
+.jv-app-modal-card{
+  background:#fff!important;color:var(--jv-v7-text)!important;
+  border:1px solid var(--jv-v7-line)!important;border-radius:18px!important;
+  box-shadow:0 24px 80px rgba(10,20,40,.2)!important;
+}
+.jv-app-modal-title{color:var(--jv-v7-text)!important}
+.jv-app-modal-card input:not([type="color"]),.jv-app-modal-card select,.jv-app-modal-card textarea{
+  background:#fff!important;color:var(--jv-v7-text)!important;
+  border:1px solid #d8e0ed!important;border-radius:10px!important;
+}
+.jv-app-modal-card p,.jv-app-modal-card small,.jv-app-modal-card label{color:var(--jv-v7-muted)!important}
+.jv-app-modal-card .button.ghost{
+  background:#fff!important;color:#34435d!important;border:1px solid var(--jv-v7-line)!important;
+}
+.jv-app-modal-card .button.primary{
+  background:var(--jv-v7-primary)!important;color:#fff!important;border:1px solid var(--jv-v7-primary)!important;
+}

@@ -22,9 +22,13 @@ Ces modifications sont dans des branches séparées et ne sont pas encore déplo
 
 Le code frontend ne peut pas activer à lui seul ces paramètres de projet.
 
-## Protection anti-robot (à finaliser)
+## Protection anti-robot (intégration préparée, activation en attente)
 
-Supabase Auth prend en charge Cloudflare Turnstile et hCaptcha sur l'inscription, la connexion et la récupération du mot de passe.
+Le frontend intègre désormais le widget Cloudflare Turnstile de façon optionnelle. Lorsque la clé publique est fournie par la configuration backend, le jeton CAPTCHA est demandé et transmis aux endpoints Supabase d'inscription, de connexion et de récupération. Le bouton de récupération depuis Paramètres ouvre ce même parcours pour éviter de contourner le contrôle.
+
+Le backend expose uniquement la clé publique via `SUPABASE_CAPTCHA_SITE_KEY`. Aucun secret CAPTCHA n'est exposé au navigateur.
+
+L'intégration reste inactive tant que les clés et la protection Supabase ne sont pas configurées.
 
 Configuration nécessaire :
 - Créer un widget Turnstile ou hCaptcha.

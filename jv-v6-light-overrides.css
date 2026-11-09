@@ -1,0 +1,45 @@
+/* JUSTEVIVO V6 — interface claire cohérente, studio à navigation sombre */
+:root{
+  --jv-bg:#f5f7fb;--jv-surface:#fff;--jv-surface-2:#f8faff;
+  --jv-ink:#172033;--jv-muted:#66748b;--jv-line:#e4e9f1;
+  --jv-accent:#ff5a1f;--jv-accent-dark:#e94712;
+  --jv-shadow:0 12px 34px rgba(25,45,80,.07);
+}
+html,body{background:#f5f7fb!important;color:#172033!important}
+main,.studio-section,.workspace,.preview-panel,.controls-panel,.panel,.editor-grid,
+.projects-page,.settings-page,.dashboard-page,.page-content{
+  color:#172033!important;
+}
+.studio-section{background:#f5f7fb!important}
+.studio{background:#fff!important;border:1px solid #e4e9f1!important;box-shadow:var(--jv-shadow)!important}
+.sidebar{background:#172033!important;color:#f8fafc!important}
+.sidebar .side-link,.sidebar .side-bottom{color:#cbd5e1!important}
+.sidebar .side-link.active{background:rgba(255,90,31,.16)!important;color:#fff!important}
+.workspace{background:#fff!important}
+.workspace-head,.preview-panel,.controls-panel,.editor-grid>section,
+.editor-grid>div:not(.preview-frame){background:#fff!important;color:#172033!important}
+.panel-label,.field-label,.workspace-head h3,.section-heading h2{color:#172033!important}
+.workspace-head p,.preview-note,.field-help,.muted,.description{color:#66748b!important}
+.controls-panel input:not([type=checkbox]):not([type=radio]),
+.controls-panel textarea,.controls-panel select,
+.workspace input:not([type=file]):not([type=checkbox]):not([type=radio]),
+.workspace textarea,.workspace select{
+  background:#fff!important;color:#172033!important;border:1px solid #dbe2ec!important;
+}
+.controls-panel input::placeholder,.controls-panel textarea::placeholder{color:#8995a8!important}
+.upload-zone{background:#f8faff!important;border:1.5px dashed #cbd5e1!important;color:#172033!important}
+.upload-zone strong,.upload-zone span,.upload-zone small{color:#344258!important}
+.button.primary,.top-cta{background:#ff5a1f!important;border-color:#ff5a1f!important;color:#fff!important}
+.button.ghost,.button:not(.primary){background:#fff!important;color:#26354d!important;border:1px solid #dfe5ee!important}
+button:disabled{opacity:.55!important;cursor:not-allowed!important}
+.status,.badge,.chip{border-color:#e4e9f1}
+.toast,.message,.alert{overflow-wrap:anywhere}
+video,canvas{max-width:100%}
+@media(max-width:760px){
+  .studio{grid-template-columns:minmax(0,1fr)!important}
+  .sidebar{position:static!important}
+  .workspace{padding:14px!important}
+}
+@media(prefers-reduced-motion:reduce){
+  *,*::before,*::after{scroll-behavior:auto!important;animation-duration:.01ms!important;transition-duration:.01ms!important}
+}

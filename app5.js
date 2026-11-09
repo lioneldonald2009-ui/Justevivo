@@ -145,6 +145,7 @@
     fontSize: '11px',
     color: '#c2c8d9'
   });
+  bar.className = 'jv-account-bar';
   const barText = mk('div', { minWidth: '0', overflowWrap: 'anywhere', lineHeight: '1.5', flex: '1' });
   const barBtns = mk('div', { display: 'flex', gap: '8px' });
   const loginBtn = document.createElement('button');
@@ -236,14 +237,18 @@
     justifyContent: 'center', alignItems: 'flex-start', padding: '12px', overflowY: 'auto'
   });
 
+  modal.className = 'jv-auth-modal';
   const card = mk('div', {
     width: '100%', maxWidth: '400px', background: '#10162a', border: '1px solid #34405f',
     borderRadius: '14px', padding: '16px', color: '#fff', fontFamily: 'inherit',
     fontSize: '12px', boxSizing: 'border-box', marginTop: '40px'
   });
 
+  card.className = 'jv-auth-card';
   const title = mk('div', { fontWeight: '800', fontSize: '16px', marginBottom: '6px' }, 'Connexion');
+  title.className = 'jv-auth-title';
   const msg = mk('div', { color: '#aeb8d0', margin: '6px 0 10px', lineHeight: '1.5' });
+  msg.className = 'jv-auth-message';
 
   const FIELD = {
     width: '100%', boxSizing: 'border-box', padding: '12px', background: '#0b1122',
@@ -255,6 +260,7 @@
   emailInput.type = 'email';
   emailInput.placeholder = 'Votre email';
   emailInput.autocomplete = 'email';
+  emailInput.className = 'jv-auth-field';
   Object.assign(emailInput.style, FIELD);
 
   const passWrap = document.createElement('div');
@@ -266,6 +272,7 @@
   passInput.type = 'password';
   passInput.placeholder = 'Mot de passe (8 caractères minimum)';
   passInput.autocomplete = 'current-password';
+  passInput.className = 'jv-auth-field';
   Object.assign(passInput.style, FIELD, {
     width: '100%', boxSizing: 'border-box', paddingRight: '88px', marginBottom: '0'
   });
@@ -311,11 +318,13 @@
   newPasswordInput.type = 'password';
   newPasswordInput.placeholder = 'Nouveau mot de passe (8 caractères minimum)';
   newPasswordInput.autocomplete = 'new-password';
+  newPasswordInput.className = 'jv-auth-field';
   Object.assign(newPasswordInput.style, FIELD);
   const confirmPasswordInput = document.createElement('input');
   confirmPasswordInput.type = 'password';
   confirmPasswordInput.placeholder = 'Confirmer le nouveau mot de passe';
   confirmPasswordInput.autocomplete = 'new-password';
+  confirmPasswordInput.className = 'jv-auth-field';
   Object.assign(confirmPasswordInput.style, FIELD);
   recoveryFields.append(newPasswordInput, confirmPasswordInput);
 

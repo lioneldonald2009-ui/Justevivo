@@ -542,7 +542,12 @@
 
     try {
       const captcha = requireCaptchaToken();
-      const d = await authCall('signup', { email: f.email, password: f.pass, captcha_token: captcha || undefined });
+      const redirect = window.location.origin + window.location.pathname + window.location.search;
+      const d = await authCall('signup?redirect_to=' + encodeURIComponent(redirect), {
+        email: f.email,
+        password: f.pass,
+        captcha_token: captcha || undefined
+      });
 
       if (d.access_token && d.user && d.user.email_confirmed_at) {
         await finishLogin(d, f.email);

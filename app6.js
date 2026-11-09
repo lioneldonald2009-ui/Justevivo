@@ -90,10 +90,8 @@
       </section>
       <section class="jv-settings-card" aria-labelledby="jv-settings-security-title">
         <h5 id="jv-settings-security-title">Sécurité du compte</h5>
-        <label class="field-label" for="jv-new-password">Nouveau mot de passe</label>
-        <input id="jv-new-password" type="password" minlength="8" autocomplete="new-password" placeholder="8 caractères minimum">
-        <p class="jv-settings-hint">Choisissez un mot de passe d'au moins 8 caractères que vous n'utilisez pas ailleurs.</p>
-        <button type="button" class="button primary full" id="jv-save-password">Enregistrer le nouveau mot de passe</button>
+        <p class="jv-settings-hint">Pour changer votre mot de passe, JUSTEVIVO envoie d’abord un lien de vérification à l’adresse email de votre compte. Le changement sera autorisé uniquement après ouverture de ce lien.</p>
+        <button type="button" class="button primary full" id="jv-request-password-reset">Envoyer le lien de vérification</button>
         <p class="jv-settings-message" id="jv-settings-message" aria-live="polite"></p>
       </section>
     `;
@@ -102,22 +100,16 @@
       const plans = document.getElementById('pricing');
       if (plans) plans.scrollIntoView({behavior:'smooth', block:'start'});
     });
-    document.getElementById('jv-save-password').addEventListener('click', async () => {
-      const input = document.getElementById('jv-new-password');
+    document.getElementById('jv-request-password-reset').addEventListener('click', async () => {
       const message = document.getElementById('jv-settings-message');
-      const button = document.getElementById('jv-save-password');
-      if (input.value.length < 8) {
-        message.textContent = 'Le mot de passe doit contenir au moins 8 caractères.';
-        return;
-      }
+      const button = document.getElementById('jv-request-password-reset');
       button.disabled = true;
-      message.textContent = 'Enregistrement…';
+      message.textContent = 'Envoi du lien de vérification…';
       try {
-        await changePassword(input.value);
-        input.value = '';
-        message.textContent = 'Mot de passe modifié avec succès.';
+        const email = await requestPasswordRecovery();
+        message.textContent = 'Si cette adresse correspond à un compte, un email de vérification a été envoyé à ' + email + '. Ouvrez le lien reçu pour choisir votre nouveau mot de passe.';
       } catch (error) {
-        message.textContent = error.message || 'Modification impossible.';
+        message.textContent = error.message || 'Envoi impossible.';
       } finally {
         button.disabled = false;
       }
@@ -876,26 +868,33 @@
   // ===== Fenêtre « Paramètres » =====
   const sm = makeModal('Paramètres');
 
-  async function changePassword(pass) {
+  // Un changement de mot de passe commence toujours par un lien envoyé à l'adresse du compte.
+  async function requestPasswordRecovery() {
     const c = await getConf();
-    const t = await token();
-    if (c.disabled || !t) throw new Error('Connectez-vous d’abord.');
+    const s = readSession();
+    const email = s && s.email ? String(s.email).trim() : '';
+    if (c.disabled || !c.url || !c.key) throw new Error('Service de comptes indisponible.');
+    if (!email) throw new Error('Adresse email du compte introuvable. Reconnectez-vous.');
 
-    const res = await window.fetch(c.url + '/auth/v1/user', {
-      method: 'PUT',
-      headers: { apikey: c.key, Authorization: 'Bearer ' + t, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ password: pass })
-    });
-
+    const redirect = window.location.origin + window.location.pathname + window.location.search;
+    const res = await window.fetch(
+      c.url + '/auth/v1/recover?redirect_to=' + encodeURIComponent(redirect),
+      {
+        method: 'POST',
+        headers: { apikey: c.key, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email })
+      }
+    );
     if (!res.ok) {
       let d = {};
-      try {
-        d = await res.json();
-      } catch (e) { /* réponse vide */ }
-      const low = String(d.msg || d.message || d.error_description || '').toLowerCase();
-      if (low.includes('password')) throw new Error('Mot de passe refusé : choisissez-en un plus solide.');
-      throw new Error('Changement impossible pour le moment.');
+      try { d = await res.json(); } catch (e) {}
+      const message = String(d.msg || d.message || d.error_description || '').toLowerCase();
+      if (message.includes('rate') || message.includes('too many')) {
+        throw new Error('Trop de demandes. Attendez quelques minutes avant de réessayer.');
+      }
+      throw new Error('Impossible d’envoyer le lien de vérification. Réessayez plus tard.');
     }
+    return email;
   }
 
   async function openSettings() {
@@ -948,32 +947,21 @@
 
     sm.body.appendChild(el('div', { fontWeight: '800', margin: '4px 0 8px' }, 'Changer le mot de passe'));
 
-    const pw = document.createElement('input');
-    pw.type = 'password';
-    pw.placeholder = 'Nouveau mot de passe (8 caractères minimum)';
-    pw.autocomplete = 'new-password';
-    Object.assign(pw.style, {
-      width: '100%', boxSizing: 'border-box', padding: '12px', background: '#0b1122',
-      color: '#fff', border: '1px solid #34405f', borderRadius: '8px', fontSize: '14px',
-      fontFamily: 'inherit', margin: '0 0 8px'
-    });
+    sm.body.appendChild(el(
+      'div',
+      { color: '#66758e', lineHeight: '1.6', margin: '0 0 12px' },
+      'Pour protéger votre compte, nous envoyons d’abord un lien de vérification à votre adresse email. Vous pourrez définir un nouveau mot de passe après avoir ouvert ce lien.'
+    ));
 
-    const pwBtn = btn('Enregistrer le mot de passe', 'button ghost full');
-    const pwMsg = el('div', { color: '#aeb8d0', margin: '6px 0 14px', lineHeight: '1.5' });
+    const pwBtn = btn('Envoyer le lien de vérification', 'button primary full');
+    const pwMsg = el('div', { color: '#465570', background: '#f6f8fc', border: '1px solid #e4e9f2', borderRadius: '9px', padding: '10px', margin: '8px 0 14px', lineHeight: '1.5' });
 
     pwBtn.addEventListener('click', async () => {
-      if (pw.value.length < 8) {
-        pwMsg.textContent = 'Le mot de passe doit contenir au moins 8 caractères.';
-        return;
-      }
-
       pwBtn.disabled = true;
-      pwMsg.textContent = 'Enregistrement...';
-
+      pwMsg.textContent = 'Envoi du lien de vérification…';
       try {
-        await changePassword(pw.value);
-        pw.value = '';
-        pwMsg.textContent = 'Mot de passe modifié.';
+        const email = await requestPasswordRecovery();
+        pwMsg.textContent = 'Si cette adresse correspond à un compte, un email de vérification a été envoyé à ' + email + '. Ouvrez le lien reçu pour choisir votre nouveau mot de passe.';
       } catch (e) {
         pwMsg.textContent = e.message;
       } finally {
@@ -981,7 +969,6 @@
       }
     });
 
-    sm.body.appendChild(pw);
     sm.body.appendChild(pwBtn);
     sm.body.appendChild(pwMsg);
 

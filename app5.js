@@ -575,7 +575,7 @@
       return;
     }
     const email = emailInput.value.trim();
-    if (!/^\\S+@\\S+\\.\\S+$/.test(email)) {
+    if (!/^\S+@\S+\.\S+$/.test(email)) {
       msg.textContent = 'Saisissez d’abord votre adresse email pour recevoir le lien de vérification.';
       emailInput.focus();
       return;

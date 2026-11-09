@@ -374,6 +374,8 @@ async function exportVideo() {
   let objectUrl = null;
   let exportStream = null;
   let recorderRef = null;
+  let exportVideoElement = null;
+  let animationFrameId = 0;
 
   try {
     try {
@@ -393,15 +395,20 @@ async function exportVideo() {
     }
 
     const vid = document.createElement('video');
+    exportVideoElement = vid;
     objectUrl = URL.createObjectURL(selectedFile);
     vid.src = objectUrl;
     vid.playsInline = true;
     vid.preload = 'auto';
 
     await new Promise((resolve, reject) => {
-      vid.onloadedmetadata = resolve;
-      vid.onerror = () => reject(new Error('Lecture de la vidéo impossible.'));
+      const timeout = setTimeout(() => reject(new Error('La vidéo met trop de temps à se charger. Réessayez avec un fichier compatible.')), 20000);
+      vid.onloadedmetadata = () => { clearTimeout(timeout); resolve(); };
+      vid.onerror = () => { clearTimeout(timeout); reject(new Error('Lecture de la vidéo impossible.')); };
     });
+    if (!Number.isFinite(vid.duration) || vid.duration <= 0 || !vid.videoWidth || !vid.videoHeight) {
+      throw new Error('Les dimensions ou la durée de la vidéo sont invalides.');
+    }
 
     const vw = vid.videoWidth || 720;
     const vh = vid.videoHeight || 1280;
@@ -438,6 +445,7 @@ async function exportVideo() {
     canvas.width = w;
     canvas.height = h;
     const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Impossible de préparer le rendu vidéo sur ce navigateur.');
 
     const stream = canvas.captureStream(30);
     exportStream = stream;
@@ -501,14 +509,15 @@ async function exportVideo() {
     const fit = rr ? fitMode : 'cover';
 
     if (startT > 0.05) {
-      await new Promise(resolve => {
-        const done = () => {
+      await new Promise((resolve, reject) => {
+        const timeout = setTimeout(() => {
           vid.onseeked = null;
-          resolve();
-        };
-        vid.onseeked = done;
-        setTimeout(done, 3000);
-        vid.currentTime = startT;
+          reject(new Error('Impossible de positionner la vidéo au début de la sélection.'));
+        }, 10000);
+        vid.onseeked = () => { clearTimeout(timeout); vid.onseeked = null; resolve(); };
+        vid.onerror = () => { clearTimeout(timeout); reject(new Error('Erreur pendant le déplacement dans la vidéo.')); };
+        try { vid.currentTime = startT; }
+        catch (e) { clearTimeout(timeout); reject(e); }
       });
     }
 
@@ -589,7 +598,7 @@ async function exportVideo() {
         exportVideoButton.textContent = 'Export en cours... ' + pct + '%';
 
         if (!vid.ended && recorder.state !== 'inactive') {
-          requestAnimationFrame(draw);
+          animationFrameId = requestAnimationFrame(draw);
         }
         } catch (drawError) {
           if (recorder.state !== 'inactive') recorder.stop();
@@ -605,7 +614,7 @@ async function exportVideo() {
             const off = musicBuffer ? musicStart % musicBuffer.duration : 0;
             musicNode.src.start(0, off);
           }
-          requestAnimationFrame(draw);
+          animationFrameId = requestAnimationFrame(draw);
         })
         .catch(() => {
           reject(new Error('Lecture bloquée. Touchez de nouveau le bouton d’export.'));
@@ -625,6 +634,12 @@ async function exportVideo() {
   } finally {
     if (recorderRef && recorderRef.state !== 'inactive') {
       try { recorderRef.stop(); } catch (e) { /* déjà arrêté */ }
+    }
+    if (animationFrameId) cancelAnimationFrame(animationFrameId);
+    if (exportVideoElement) {
+      try { exportVideoElement.pause(); } catch (e) { /* déjà arrêté */ }
+      exportVideoElement.removeAttribute('src');
+      try { exportVideoElement.load(); } catch (e) { /* nettoyage */ }
     }
     if (exportStream) exportStream.getTracks().forEach(track => {
       try { track.stop(); } catch (e) { /* piste déjà arrêtée */ }

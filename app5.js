@@ -47,6 +47,7 @@
     const msg = String(d.msg || d.error_description || d.message || d.error || '');
     const low = (code + ' ' + msg).toLowerCase();
 
+    if (low.includes('captcha')) return 'La vérification anti-robot n’a pas transmis son jeton. Attendez que le contrôle soit validé, puis réessayez.';
     if (low.includes('invalid_credentials') || low.includes('invalid login')) return 'Email ou mot de passe incorrect.';
     if (low.includes('already')) return 'Un compte existe déjà avec cet email. Connectez-vous.';
     if (low.includes('weak_password') || low.includes('password should')) return 'Mot de passe trop faible : 8 caractères minimum.';
@@ -389,7 +390,12 @@
 
   function requireCaptchaToken() {
     if (!cfg.captchaSiteKey) return '';
-    if (!captchaToken) throw new Error('Validez le contrôle anti-robot avant de continuer.');
+    // Récupérer directement le jeton Turnstile évite une course entre le callback
+    // Cloudflare et le clic de l'utilisateur sur le bouton.
+    if (!captchaToken && window.turnstile && captchaWidgetId !== null) {
+      try { captchaToken = window.turnstile.getResponse(captchaWidgetId) || ''; } catch (_) {}
+    }
+    if (!captchaToken) throw new Error('Attendez la validation complète du contrôle anti-robot, puis réessayez.');
     return captchaToken;
   }
 

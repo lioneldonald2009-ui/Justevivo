@@ -765,8 +765,10 @@
     'aria-label': 'Rechercher un projet',
     style: 'width:100%;box-sizing:border-box;margin:0;padding:11px 12px 11px 42px;border-radius:10px;border:1px solid #34405f;background:#10162a;color:#fff'
   });
+  pmSearch.className = 'jv-project-search';
   pmSearchWrap.append(pmSearchIcon, pmSearch);
   const pmStatus = el('div', { color: '#aeb8d0', margin: '10px 0', lineHeight: '1.5' });
+  pmStatus.className = 'jv-project-status';
   const pmList = el('div');
   pm.body.appendChild(pmSave);
   pm.body.appendChild(pmSearchWrap);
@@ -788,6 +790,7 @@
     const row = el('div', {
       background: '#0c1325', border: '1px solid #293554', borderRadius: '10px', padding: '10px', margin: '8px 0'
     });
+    row.className = 'jv-project-row';
     row.dataset.search = ((r.name || '') + ' ' + (r.video_name || '')).toLocaleLowerCase('fr');
 
     row.appendChild(el('div', { fontWeight: '800', fontSize: '13px', marginBottom: '4px' }, r.name));

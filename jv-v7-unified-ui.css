@@ -126,3 +126,11 @@ input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{
 .jv-app-modal-card .button.primary{
   background:var(--jv-v7-primary)!important;color:#fff!important;border:1px solid var(--jv-v7-primary)!important;
 }
+
+.jv-app-modal-card [style*="#c2c8d9"],.jv-app-modal-card [style*="#aeb8d0"],
+.jv-app-modal-card [style*="#8994ad"]{color:var(--jv-v7-muted)!important}
+.jv-project-search{background:#fff!important;color:var(--jv-v7-text)!important;border:1px solid #d8e0ed!important}
+.jv-project-search::placeholder{color:#8793a7!important}
+.jv-project-status{color:var(--jv-v7-muted)!important;background:#f6f8fc!important;border:1px solid var(--jv-v7-line)!important;border-radius:9px!important;padding:9px!important}
+.jv-project-row{background:#fff!important;color:var(--jv-v7-text)!important;border:1px solid var(--jv-v7-line)!important;box-shadow:0 5px 16px rgba(27,42,75,.04)!important}
+.jv-project-row [style*="#8994ad"]{color:var(--jv-v7-muted)!important}

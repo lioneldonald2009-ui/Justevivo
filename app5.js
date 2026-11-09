@@ -3,7 +3,7 @@
   const KEY = 'justevivo_session_v1';
   const origFetch = window.fetch.bind(window);
 
-  let cfg = { enabled: false, ready: false };
+  let cfg = { enabled: false, ready: false, captchaSiteKey: '' };
   let session = null;
   let me = null;
   let jobId = newJobId();
@@ -334,13 +334,71 @@
   updatePasswordBtn.textContent = 'Confirmer le nouveau mot de passe';
   updatePasswordBtn.hidden = true;
 
+  const captchaWrap = document.createElement('div');
+  captchaWrap.className = 'jv-captcha-wrap';
+  captchaWrap.hidden = true;
+  const captchaContainer = document.createElement('div');
+  captchaContainer.id = 'jv-turnstile-widget';
+  captchaWrap.appendChild(captchaContainer);
+
   const closeBtn = document.createElement('button');
   closeBtn.type = 'button';
   closeBtn.className = 'button ghost full';
   closeBtn.textContent = 'Fermer';
 
-  [title, msg, emailInput, passWrap, signInBtn, signUpBtn, forgotPasswordBtn,
+  [title, msg, emailInput, passWrap, captchaWrap, signInBtn, signUpBtn, forgotPasswordBtn,
    recoveryFields, updatePasswordBtn, closeBtn].forEach(e => card.appendChild(e));
+
+  let captchaWidgetId = null;
+  let captchaToken = '';
+  let captchaScriptLoading = false;
+
+  function renderCaptchaWidget() {
+    if (!cfg.captchaSiteKey || modal.style.display !== 'flex') {
+      captchaWrap.hidden = true;
+      return;
+    }
+    captchaWrap.hidden = false;
+    if (window.turnstile) {
+      if (captchaWidgetId === null) {
+        captchaWidgetId = window.turnstile.render(captchaContainer, {
+          sitekey: cfg.captchaSiteKey,
+          theme: 'light',
+          callback: token => { captchaToken = token; },
+          'expired-callback': () => { captchaToken = ''; },
+          'error-callback': () => { captchaToken = ''; msg.textContent = 'La vérification anti-robot a échoué. Réessayez.'; }
+        });
+      } else {
+        try { window.turnstile.reset(captchaWidgetId); } catch (_) {}
+      }
+      return;
+    }
+    if (captchaScriptLoading) return;
+    captchaScriptLoading = true;
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => { captchaScriptLoading = false; renderCaptchaWidget(); };
+    script.onerror = () => {
+      captchaScriptLoading = false;
+      msg.textContent = 'Impossible de charger la vérification anti-robot. Vérifiez votre connexion.';
+    };
+    document.head.appendChild(script);
+  }
+
+  function requireCaptchaToken() {
+    if (!cfg.captchaSiteKey) return '';
+    if (!captchaToken) throw new Error('Validez le contrôle anti-robot avant de continuer.');
+    return captchaToken;
+  }
+
+  function resetCaptcha() {
+    captchaToken = '';
+    if (window.turnstile && captchaWidgetId !== null) {
+      try { window.turnstile.reset(captchaWidgetId); } catch (_) {}
+    }
+  }
   modal.appendChild(card);
   document.body.appendChild(modal);
 
@@ -377,6 +435,7 @@
     Object.assign(card.style, { marginTop: '0', maxWidth: '460px', padding: '24px' });
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+    if (!recoveryAccessToken) renderCaptchaWidget();
     setTimeout(() => emailInput.focus(), 60);
   }
 
@@ -394,6 +453,8 @@
     forgotPasswordBtn.hidden = false;
     recoveryFields.hidden = true;
     updatePasswordBtn.hidden = true;
+    captchaWrap.hidden = true;
+    resetCaptcha();
     window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
     if (pageMode === 'auth') setPageMode('landing');
   }
@@ -453,7 +514,8 @@
     msg.textContent = 'Connexion en cours...';
 
     try {
-      const d = await authCall('token?grant_type=password', { email: f.email, password: f.pass });
+      const captcha = requireCaptchaToken();
+      const d = await authCall('token?grant_type=password', { email: f.email, password: f.pass, captcha_token: captcha || undefined });
       if (!d.user || !d.user.email_confirmed_at) {
         throw new Error('Votre adresse email n’est pas encore confirmée. Ouvrez le message envoyé par JUSTEVIVO, puis réessayez.');
       }
@@ -461,6 +523,7 @@
     } catch (e) {
       msg.textContent = e.message;
     } finally {
+      resetCaptcha();
       busy(false);
     }
   });
@@ -478,7 +541,8 @@
     msg.textContent = 'Création du compte...';
 
     try {
-      const d = await authCall('signup', { email: f.email, password: f.pass });
+      const captcha = requireCaptchaToken();
+      const d = await authCall('signup', { email: f.email, password: f.pass, captcha_token: captcha || undefined });
 
       if (d.access_token && d.user && d.user.email_confirmed_at) {
         await finishLogin(d, f.email);
@@ -493,6 +557,7 @@
     } catch (e) {
       msg.textContent = e.message;
     } finally {
+      resetCaptcha();
       busy(false);
     }
   });
@@ -514,11 +579,13 @@
     msg.textContent = 'Envoi du lien de vérification en cours…';
     try {
       const redirect = window.location.origin + window.location.pathname + window.location.search;
-      await authCall('recover?redirect_to=' + encodeURIComponent(redirect), { email });
+      const captcha = requireCaptchaToken();
+      await authCall('recover?redirect_to=' + encodeURIComponent(redirect), { email, captcha_token: captcha || undefined });
       msg.textContent = 'Si cette adresse correspond à un compte, un email de vérification vient d’être envoyé. Ouvrez le lien reçu pour autoriser le changement de mot de passe.';
     } catch (e) {
       msg.textContent = e.message;
     } finally {
+      resetCaptcha();
       forgotPasswordBtn.disabled = false;
     }
   });
@@ -580,6 +647,13 @@
       updatePasswordBtn.disabled = false;
     }
   });
+
+  // Permet aux paramètres d'ouvrir le même parcours sécurisé de récupération.
+  window.JVOpenPasswordRecovery = function (email) {
+    openAuth('Vérifiez votre identité avant de changer le mot de passe. Validez le contrôle anti-robot, puis demandez le lien email.');
+    emailInput.value = String(email || '').trim();
+    forgotPasswordBtn.focus();
+  };
 
   // Supabase renvoie le jeton de récupération dans le fragment URL après le clic email.
   function detectRecoveryLink() {
@@ -735,7 +809,8 @@
         const d = await res.json();
 
         if (d && d.enabled && d.url && d.anonKey) {
-          cfg = { enabled: true, ready: true, url: d.url, key: d.anonKey };
+          cfg = { enabled: true, ready: true, url: d.url, key: d.anonKey, captchaSiteKey: d.captchaSiteKey || '' };
+          if (modal.style.display === 'flex' && !recoveryAccessToken) renderCaptchaWidget();
         } else {
           cfg = { enabled: false, ready: true };
         }

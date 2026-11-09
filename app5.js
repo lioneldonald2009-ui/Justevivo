@@ -375,6 +375,17 @@
     modal.style.display = 'none';
     document.body.style.overflow = '';
     passInput.value = '';
+    newPasswordInput.value = '';
+    confirmPasswordInput.value = '';
+    recoveryAccessToken = '';
+    emailInput.hidden = false;
+    passWrap.hidden = false;
+    signInBtn.hidden = false;
+    signUpBtn.hidden = false;
+    forgotPasswordBtn.hidden = false;
+    recoveryFields.hidden = true;
+    updatePasswordBtn.hidden = true;
+    window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
     if (pageMode === 'auth') setPageMode('landing');
   }
 

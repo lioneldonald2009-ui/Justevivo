@@ -91,7 +91,7 @@
       <section class="jv-settings-card" aria-labelledby="jv-settings-security-title">
         <h5 id="jv-settings-security-title">Sécurité du compte</h5>
         <p class="jv-settings-hint">Pour changer votre mot de passe, JUSTEVIVO envoie d’abord un lien de vérification à l’adresse email de votre compte. Le changement sera autorisé uniquement après ouverture de ce lien.</p>
-        <button type="button" class="button primary full" id="jv-request-password-reset">Envoyer le lien de vérification</button>
+        <button type="button" class="button primary full" id="jv-request-password-reset">Continuer vers la vérification email</button>
         <p class="jv-settings-message" id="jv-settings-message" aria-live="polite"></p>
       </section>
     `;
@@ -104,10 +104,10 @@
       const message = document.getElementById('jv-settings-message');
       const button = document.getElementById('jv-request-password-reset');
       button.disabled = true;
-      message.textContent = 'Envoi du lien de vérification…';
+      message.textContent = 'Ouverture du contrôle de sécurité…';
       try {
         const email = await requestPasswordRecovery();
-        message.textContent = 'Si cette adresse correspond à un compte, un email de vérification a été envoyé à ' + email + '. Ouvrez le lien reçu pour choisir votre nouveau mot de passe.';
+        message.textContent = 'La fenêtre de sécurité est ouverte pour ' + email + '. Validez le contrôle anti-robot, puis cliquez sur « Mot de passe oublié ? » pour recevoir le lien de vérification.';
       } catch (error) {
         message.textContent = error.message || 'Envoi impossible.';
       } finally {
@@ -874,32 +874,15 @@
   // ===== Fenêtre « Paramètres » =====
   const sm = makeModal('Paramètres');
 
-  // Un changement de mot de passe commence toujours par un lien envoyé à l'adresse du compte.
+  // Le même parcours Auth est réutilisé pour ne jamais contourner le contrôle CAPTCHA.
   async function requestPasswordRecovery() {
-    const c = await getConf();
     const s = readSession();
     const email = s && s.email ? String(s.email).trim() : '';
-    if (c.disabled || !c.url || !c.key) throw new Error('Service de comptes indisponible.');
     if (!email) throw new Error('Adresse email du compte introuvable. Reconnectez-vous.');
-
-    const redirect = window.location.origin + window.location.pathname + window.location.search;
-    const res = await window.fetch(
-      c.url + '/auth/v1/recover?redirect_to=' + encodeURIComponent(redirect),
-      {
-        method: 'POST',
-        headers: { apikey: c.key, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email })
-      }
-    );
-    if (!res.ok) {
-      let d = {};
-      try { d = await res.json(); } catch (e) {}
-      const message = String(d.msg || d.message || d.error_description || '').toLowerCase();
-      if (message.includes('rate') || message.includes('too many')) {
-        throw new Error('Trop de demandes. Attendez quelques minutes avant de réessayer.');
-      }
-      throw new Error('Impossible d’envoyer le lien de vérification. Réessayez plus tard.');
+    if (typeof window.JVOpenPasswordRecovery !== 'function') {
+      throw new Error('Le formulaire sécurisé de récupération n’est pas encore prêt. Rechargez la page.');
     }
+    window.JVOpenPasswordRecovery(email);
     return email;
   }
 
@@ -959,15 +942,15 @@
       'Pour protéger votre compte, nous envoyons d’abord un lien de vérification à votre adresse email. Vous pourrez définir un nouveau mot de passe après avoir ouvert ce lien.'
     ));
 
-    const pwBtn = btn('Envoyer le lien de vérification', 'button primary full');
+    const pwBtn = btn('Continuer vers la vérification email', 'button primary full');
     const pwMsg = el('div', { color: '#465570', background: '#f6f8fc', border: '1px solid #e4e9f2', borderRadius: '9px', padding: '10px', margin: '8px 0 14px', lineHeight: '1.5' });
 
     pwBtn.addEventListener('click', async () => {
       pwBtn.disabled = true;
-      pwMsg.textContent = 'Envoi du lien de vérification…';
+      pwMsg.textContent = 'Ouverture du contrôle de sécurité…';
       try {
         const email = await requestPasswordRecovery();
-        pwMsg.textContent = 'Si cette adresse correspond à un compte, un email de vérification a été envoyé à ' + email + '. Ouvrez le lien reçu pour choisir votre nouveau mot de passe.';
+        pwMsg.textContent = 'La fenêtre de sécurité est ouverte pour ' + email + '. Validez le contrôle anti-robot, puis cliquez sur « Mot de passe oublié ? » pour recevoir le lien de vérification.';
       } catch (e) {
         pwMsg.textContent = e.message;
       } finally {

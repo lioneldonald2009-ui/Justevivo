@@ -18,7 +18,8 @@
       '<div id="jv-smart-cut-status" class="jv-feedback" role="status" aria-live="polite"></div>',
       '<div id="jv-smart-cut-result" class="jv-smart-cut-result" hidden></div>'
     ].join("");
-    timeline.appendChild(card);\n
+    timeline.appendChild(card);
+
     const fillerCard = document.createElement("article");
     fillerCard.className = "jv-tool-card jv-smart-cut-card jv-filler-cut-card";
     fillerCard.innerHTML = [

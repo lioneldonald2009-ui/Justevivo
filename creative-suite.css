@@ -5,3 +5,14 @@
 #jv-broll-overlay{position:absolute;z-index:5;right:5%;bottom:7%;width:32%;height:28%;object-fit:cover;border:2px solid white;border-radius:9px;box-shadow:0 8px 24px #0005;pointer-events:none}
 @media(max-width:850px){.jv-suite-grid{grid-template-columns:1fr 1fr}.jv-suite-head{flex-direction:column}.jv-suite-status{align-self:flex-start}}
 @media(max-width:600px){.jv-suite{padding:13px;margin-top:14px}.jv-suite-grid,.jv-brand-layout{grid-template-columns:1fr}.jv-suite-tabs{gap:5px}.jv-suite-tabs button{padding:9px 10px}.jv-clips-intro,.jv-timeline-head,.jv-suite-footer,.jv-clip-controls{align-items:flex-start;flex-direction:column}.jv-trim-grid{grid-template-columns:1fr}.jv-player-actions{width:100%}.jv-player-actions button{flex:1}.jv-brand-preview #jv-brand-swatch{min-height:160px}}
+
+
+/* Magic Clips — cards de suggestions et actions d’export */
+.jv-ready{color:#168b70!important;background:#e9faf4!important;border-color:#b9eadb!important}
+.jv-magic-clip{display:grid;gap:12px;padding:16px;margin:14px 0;border:1px solid #e3e7ef;border-radius:16px;background:#fff}
+.jv-magic-clip-head,.jv-magic-clip-actions{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+.jv-magic-clip-head strong{color:#17213a;font-size:14px}
+.jv-clip-score{font-size:12px;font-weight:800;color:#7254e8;background:#f2efff;border-radius:999px;padding:6px 10px}
+.jv-magic-clip>p{margin:0;color:#68748b;line-height:1.65;font-size:13px;overflow-wrap:anywhere}
+.jv-magic-clip-actions .jv-action{min-height:40px}
+@media(max-width:600px){.jv-magic-clip{padding:13px}.jv-magic-clip-actions{display:grid;grid-template-columns:1fr}.jv-magic-clip-actions .jv-action{width:100%}}

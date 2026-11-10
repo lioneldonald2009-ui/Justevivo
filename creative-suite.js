@@ -47,7 +47,7 @@
         <div class="jv-suite-grid">
           <article class="jv-tool-card"><div class="jv-tool-icon">♫</div><h4>Musique de fond</h4><p>Importez une piste audio locale et écoutez-la pendant le montage.</p><label class="jv-file-button">Importer une musique<input id="jv-audio-input" type="file" accept="audio/*"></label><div id="jv-audio-name" class="jv-asset-list"><span class="jv-empty">Aucune piste chargée.</span></div><audio id="jv-audio-preview" controls hidden></audio></article>
           <article class="jv-tool-card"><div class="jv-tool-icon">◖</div><h4>Mixage</h4><p>Réglez le niveau de la piste musicale locale.</p><label class="jv-range-label" for="jv-audio-volume">Volume musique <output id="jv-audio-volume-value">35 %</output></label><input id="jv-audio-volume" type="range" min="0" max="100" value="35"><label class="jv-check"><input id="jv-audio-muted" type="checkbox"> Couper la musique</label></article>
-          <article class="jv-tool-card"><div class="jv-tool-icon">✧</div><h4>Amélioration audio IA</h4><p>Réduction du bruit, isolation de la voix et normalisation du volume.</p><span class="jv-coming">MOTEUR AUDIO À CONNECTER</span><small class="jv-note">Aucun traitement n'est simulé : le fichier original reste intact.</small></article>
+          <article class="jv-tool-card"><div class="jv-tool-icon">✧</div><h4>Amélioration audio</h4><p>Nettoyez la piste audio de votre vidéo avant de l’exporter.</p><label class="jv-check"><input id="jv-audio-denoise" type="checkbox" checked> Réduction du bruit de fond</label><label class="jv-check"><input id="jv-audio-normalize" type="checkbox" checked> Équilibrage automatique du volume</label><button type="button" class="jv-action jv-action-primary" id="jv-enhance-audio">Améliorer l’audio de ma vidéo</button><p id="jv-audio-enhance-status" class="jv-feedback" role="status" aria-live="polite"></p><div id="jv-audio-enhance-result" class="jv-clip-list"></div><small class="jv-note">Traitement FFmpeg réel côté serveur. L’isolation vocale avancée par IA nécessite un moteur de séparation dédié et n’est pas simulée.</small></article>
         </div>
       </div>
       <div class="jv-suite-view" data-view="brand" hidden>
@@ -107,6 +107,23 @@
     });
     $("#jv-audio-volume").addEventListener("input",e=>{const v=Number(e.target.value);$("#jv-audio-volume-value").textContent=v+" %";$("#jv-audio-preview").volume=v/100;});
     $("#jv-audio-muted").addEventListener("change",e=>{$("#jv-audio-preview").muted=e.target.checked;});
+    $("#jv-enhance-audio").addEventListener("click",async()=>{
+      const input=document.getElementById("videoInput"),file=input&&input.files&&input.files[0];
+      const status=$("#jv-audio-enhance-status"),result=$("#jv-audio-enhance-result"),button=$("#jv-enhance-audio");
+      if(!file||!file.type.startsWith("video/")){status.textContent="Importez d’abord une vidéo dans le studio principal.";return;}
+      if(file.size>200*1024*1024){status.textContent="La vidéo dépasse la limite serveur de 200 Mo.";return;}
+      if(!$("#jv-audio-denoise").checked&&!$("#jv-audio-normalize").checked){status.textContent="Activez au moins un traitement audio.";return;}
+      const form=new FormData();form.append("video",file,file.name);form.append("denoise",String($("#jv-audio-denoise").checked));form.append("normalize",String($("#jv-audio-normalize").checked));
+      button.disabled=true;button.textContent="Traitement audio en cours…";status.textContent="Réduction du bruit et équilibrage de la piste audio. La vidéo originale reste intacte.";result.replaceChildren();
+      try{
+        const response=await fetch(API_URL+"/api/video/enhance-audio",{method:"POST",body:form});
+        if(!response.ok){let data={};try{data=await response.json();}catch(_){}throw new Error(data.error||"Le traitement audio a échoué.");}
+        const blob=await response.blob();if(!blob.size)throw new Error("Le fichier exporté est vide.");
+        const url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download="justevivo-audio-ameliore.mp4";link.className="jv-action jv-action-primary";link.textContent="↓ Télécharger la vidéo avec audio amélioré";result.appendChild(link);status.textContent="Traitement terminé. Écoutez le fichier exporté avant publication.";
+        link.addEventListener("click",()=>setTimeout(()=>URL.revokeObjectURL(url),60000),{once:true});
+      }catch(error){status.textContent=error.message||"Erreur pendant le traitement audio.";}
+      finally{button.disabled=false;button.textContent="Améliorer l’audio de ma vidéo";}
+    });
     const brandFields=["#jv-brand-name","#jv-brand-primary","#jv-brand-secondary","#jv-brand-font"];
     const syncBrand=()=>{$("#jv-brand-preview-name").textContent=$("#jv-brand-name").value.trim()||"VOTRE MARQUE";$("#jv-brand-swatch").style.background="linear-gradient(135deg,"+$("#jv-brand-primary").value+","+$("#jv-brand-secondary").value+")";$("#jv-brand-swatch").style.fontFamily=$("#jv-brand-font").value;};
     brandFields.forEach(s=>$(s).addEventListener("input",syncBrand));

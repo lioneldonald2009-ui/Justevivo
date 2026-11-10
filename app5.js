@@ -355,47 +355,86 @@
   let captchaScriptLoading = false;
 
   function renderCaptchaWidget() {
-    if (!cfg.captchaSiteKey || modal.style.display !== 'flex') {
-      captchaWrap.hidden = true;
+    if (modal.style.display !== 'flex' || recoveryAccessToken) return;
+    captchaWrap.hidden = false;
+    captchaContainer.style.minHeight = '70px';
+    captchaContainer.style.display = 'flex';
+    captchaContainer.style.justifyContent = 'center';
+
+    if (!cfg.captchaSiteKey) {
+      captchaContainer.textContent = 'Vérification de sécurité indisponible : clé publique non reçue.';
+      msg.textContent = 'Le contrôle anti-robot ne peut pas être chargé. Réessayez dans quelques instants.';
       return;
     }
-    captchaWrap.hidden = false;
     if (window.turnstile) {
       if (captchaWidgetId === null) {
-        captchaWidgetId = window.turnstile.render(captchaContainer, {
-          sitekey: cfg.captchaSiteKey,
-          theme: 'light',
-          callback: token => { captchaToken = token; },
-          'expired-callback': () => { captchaToken = ''; },
-          'error-callback': () => { captchaToken = ''; msg.textContent = 'La vérification anti-robot a échoué. Réessayez.'; }
-        });
-      } else {
-        try { window.turnstile.reset(captchaWidgetId); } catch (_) {}
+        captchaContainer.textContent = '';
+        try {
+          captchaWidgetId = window.turnstile.render(captchaContainer, {
+            sitekey: cfg.captchaSiteKey,
+            theme: 'light',
+            size: 'normal',
+            callback: token => {
+              captchaToken = String(token || '').trim();
+              if (captchaToken) msg.textContent = 'Vérification de sécurité validée.';
+            },
+            'expired-callback': () => {
+              captchaToken = '';
+              msg.textContent = 'La vérification a expiré. Validez à nouveau le contrôle.';
+            },
+            'timeout-callback': () => {
+              captchaToken = '';
+              msg.textContent = 'Le contrôle prend trop de temps. Réessayez.';
+            },
+            'error-callback': () => {
+              captchaToken = '';
+              msg.textContent = 'Cloudflare n’a pas pu valider le contrôle. Rechargez la page et réessayez.';
+            }
+          });
+          if (captchaWidgetId === undefined || captchaWidgetId === null) {
+            captchaContainer.textContent = 'Le contrôle de sécurité n’a pas pu démarrer. Rechargez la page.';
+          }
+        } catch (error) {
+          captchaWidgetId = null;
+          captchaContainer.textContent = 'Impossible de démarrer le contrôle anti-robot.';
+          msg.textContent = 'Erreur d’initialisation de la vérification de sécurité. Rechargez la page.';
+        }
       }
       return;
     }
     if (captchaScriptLoading) return;
     captchaScriptLoading = true;
+    captchaContainer.textContent = 'Chargement du contrôle de sécurité…';
     const script = document.createElement('script');
     script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
     script.async = true;
     script.defer = true;
-    script.onload = () => { captchaScriptLoading = false; renderCaptchaWidget(); };
+    script.onload = () => {
+      captchaScriptLoading = false;
+      if (window.turnstile) {
+        captchaContainer.textContent = '';
+        renderCaptchaWidget();
+      } else {
+        captchaContainer.textContent = 'Le service de vérification ne répond pas. Rechargez la page.';
+      }
+    };
     script.onerror = () => {
       captchaScriptLoading = false;
-      msg.textContent = 'Impossible de charger la vérification anti-robot. Vérifiez votre connexion.';
+      captchaContainer.textContent = 'Impossible de charger Cloudflare Turnstile.';
+      msg.textContent = 'Autorisez challenges.cloudflare.com dans votre navigateur, puis rechargez la page.';
     };
     document.head.appendChild(script);
   }
 
   function requireCaptchaToken() {
-    if (!cfg.captchaSiteKey) return '';
-    // Récupérer directement le jeton Turnstile évite une course entre le callback
-    // Cloudflare et le clic de l'utilisateur sur le bouton.
-    if (!captchaToken && window.turnstile && captchaWidgetId !== null) {
-      try { captchaToken = window.turnstile.getResponse(captchaWidgetId) || ''; } catch (_) {}
+    if (!cfg.captchaSiteKey) throw new Error('La clé publique du contrôle anti-robot est absente. Rechargez la page.');
+    if (!window.turnstile || captchaWidgetId === null) {
+      throw new Error('Le contrôle anti-robot ne s’est pas chargé. Rechargez la page avant de vous connecter.');
     }
-    if (!captchaToken) throw new Error('Attendez la validation complète du contrôle anti-robot, puis réessayez.');
+    if (!captchaToken) {
+      try { captchaToken = String(window.turnstile.getResponse(captchaWidgetId) || '').trim(); } catch (_) {}
+    }
+    if (!captchaToken) throw new Error('Validez le contrôle Cloudflare anti-robot avant de vous connecter.');
     return captchaToken;
   }
 
@@ -802,7 +841,7 @@
 
     cfgPromise = (async () => {
       try {
-        const res = await origFetch(API_URL + '/api/config');
+        const res = await origFetch(API_URL + '/api/config', { cache: 'no-store' });
         const d = await res.json();
 
         if (d && d.enabled && d.url && d.anonKey) {

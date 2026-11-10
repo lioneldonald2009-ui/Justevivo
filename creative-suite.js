@@ -159,9 +159,9 @@
       if(a==="download-srt"){
         const target=$("#jv-clip-target-language").value;
         const toTime=t=>{const ms=Math.max(0,Math.round(Number(t)*1000)),h=Math.floor(ms/3600000),m=Math.floor(ms%3600000/60000),sec=Math.floor(ms%60000/1000),mill=ms%1000;return String(h).padStart(2,"0")+":"+String(m).padStart(2,"0")+":"+String(sec).padStart(2,"0")+","+String(mill).padStart(3,"0");};
-        const rows=magicClipCandidates.filter(x=>x.translatedText).map((x,i)=>(i+1)+"\\n"+toTime(x.start)+" --> "+toTime(x.end)+"\\n"+x.translatedText);
+        const rows=magicClipCandidates.filter(x=>x.translatedText).map((x,i)=>(i+1)+"\n"+toTime(x.start)+" --> "+toTime(x.end)+"\n"+x.translatedText);
         if(!rows.length){$("#jv-translation-status").textContent="Aucune traduction à exporter.";return;}
-        const blob=new Blob(["\\uFEFF"+rows.join("\\n\\n")],{type:"text/plain;charset=utf-8"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download="justevivo-sous-titres-"+target+".srt";link.click();URL.revokeObjectURL(url);
+        const blob=new Blob(["\uFEFF"+rows.join("\n\n")],{type:"text/plain;charset=utf-8"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download="justevivo-sous-titres-"+target+".srt";document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
       }
       if(a==="analyze-clips"){
         const input=document.getElementById("videoInput"),file=input&&input.files&&input.files[0];

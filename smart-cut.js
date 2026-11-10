@@ -20,6 +20,83 @@
     ].join("");
     timeline.appendChild(card);
 
+    const fillerCard = document.createElement("article");
+    fillerCard.className = "jv-tool-card jv-smart-cut-card jv-filler-cut-card";
+    fillerCard.innerHTML = [
+      '<div class="jv-smart-cut-heading"><div><span class="jv-eyebrow">MONTAGE PAR LA PAROLE</span><h4>Supprimer les hésitations</h4><p>Whisper repère les hésitations vocales horodatées (euh, heu, hum, hmm, uh, um), puis JUSTEVIVO retire uniquement ces petits passages.</p></div><span class="jv-coming">WHISPER + FFMPEG</span></div>',
+      '<button type="button" class="jv-action jv-action-primary" id="jv-run-filler-cut">✦ Nettoyer les hésitations</button>',
+      '<p class="jv-note">La détection automatique peut se tromper selon la langue, l’accent ou le bruit. Vérifiez toujours le résultat. La vidéo source reste intacte.</p>',
+      '<div id="jv-filler-status" class="jv-feedback" role="status" aria-live="polite"></div>',
+      '<div id="jv-filler-result" class="jv-smart-cut-result" hidden></div>'
+    ].join("");
+    timeline.appendChild(fillerCard);
+
+    const fillerButton = fillerCard.querySelector("#jv-run-filler-cut");
+    const fillerStatus = fillerCard.querySelector("#jv-filler-status");
+    const fillerResult = fillerCard.querySelector("#jv-filler-result");
+    fillerButton.addEventListener("click", async () => {
+      const input = document.getElementById("videoInput");
+      const file = input && input.files && input.files[0];
+      if (!file || !file.type.startsWith("video/")) {
+        fillerStatus.textContent = "Importez d’abord une vidéo dans le studio principal.";
+        fillerStatus.style.color = "#b45309";
+        return;
+      }
+      if (file.size > 200 * 1024 * 1024) {
+        fillerStatus.textContent = "La vidéo dépasse la limite serveur de 200 Mo.";
+        fillerStatus.style.color = "#b45309";
+        return;
+      }
+      fillerButton.disabled = true;
+      fillerButton.textContent = "Transcription Whisper et montage en cours…";
+      fillerStatus.style.color = "#7057f5";
+      fillerStatus.textContent = "Extraction audio, repérage des hésitations et reconstruction vidéo. Ne fermez pas cette page.";
+      fillerResult.hidden = true;
+      fillerResult.innerHTML = "";
+      const form = new FormData();
+      form.append("video", file, file.name);
+      try {
+        const response = await fetch(API_URL + "/api/video/remove-fillers", { method: "POST", body: form });
+        if (!response.ok) {
+          let message = "Le nettoyage des hésitations a échoué.";
+          try { const data = await response.json(); if (data.error) message = data.error; } catch (_) {}
+          throw new Error(message);
+        }
+        const blob = await response.blob();
+        if (!blob.size) throw new Error("Le serveur a renvoyé un fichier vide.");
+        const url = URL.createObjectURL(blob);
+        const original = Number(response.headers.get("X-JV-Original-Duration") || 0);
+        const kept = Number(response.headers.get("X-JV-Output-Duration") || 0);
+        const removed = Number(response.headers.get("X-JV-Removed-Duration") || 0);
+        const count = Number(response.headers.get("X-JV-Detected-Fillers") || 0);
+        const fmt = n => { const v=Math.max(0,Math.round(n)); return String(Math.floor(v/60)).padStart(2,"0")+":"+String(v%60).padStart(2,"0"); };
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "justevivo-clean-speech.mp4";
+        link.className = "jv-action jv-action-primary";
+        link.textContent = "↓ Télécharger la vidéo nettoyée";
+        fillerResult.hidden = false;
+        fillerResult.innerHTML = '<strong>Nettoyage terminé.</strong><div class="jv-smart-cut-stats"><span>Durée initiale <b>'+fmt(original)+'</b></span><span>Durée finale <b>'+fmt(kept)+'</b></span><span>Temps retiré <b>'+fmt(removed)+'</b></span><span>Hésitations <b>'+count+'</b></span></div>';
+        fillerResult.appendChild(link);
+        const preview = document.createElement("video");
+        preview.controls = true;
+        preview.preload = "metadata";
+        preview.src = url;
+        preview.className = "jv-smart-cut-preview";
+        fillerResult.appendChild(preview);
+        fillerStatus.style.color = "#16866e";
+        fillerStatus.textContent = "Traitement terminé. Écoutez le résultat avant de l’utiliser.";
+        link.addEventListener("click", () => setTimeout(() => URL.revokeObjectURL(url), 60000), { once: true });
+      } catch (error) {
+        fillerStatus.style.color = "#b45309";
+        fillerStatus.textContent = error.message || "Impossible de nettoyer cette vidéo. Réessayez.";
+      } finally {
+        fillerButton.disabled = false;
+        fillerButton.textContent = "✦ Nettoyer les hésitations";
+      }
+    });
+
+
     const button = card.querySelector("#jv-run-smart-cut");
     const status = card.querySelector("#jv-smart-cut-status");
     const resultBox = card.querySelector("#jv-smart-cut-result");

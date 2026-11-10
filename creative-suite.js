@@ -148,7 +148,8 @@
         if(!magicClipCandidates.length){status.textContent="Analysez d’abord une vidéo pour obtenir des extraits à traduire.";return;}
         button.disabled=true;button.textContent="Traduction IA…";status.textContent="Traduction des extraits en cours…";
         try{
-          const response=await fetch(API_URL+"/api/video/translate-clips",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({targetLanguage:target,candidates:magicClipCandidates.map(x=>({start:x.start,end:x.end,text:x.text}))})});
+          const sourceLanguage=$("#jv-clip-language").value;
+          const response=await fetch(API_URL+"/api/video/translate-clips",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({sourceLanguage,targetLanguage:target,candidates:magicClipCandidates.map(x=>({start:x.start,end:x.end,text:x.text}))})});
           const data=await response.json();if(!response.ok)throw new Error(data.error||"La traduction a échoué.");
           magicClipCandidates=magicClipCandidates.map((x,i)=>({...x,translatedText:data.candidates[i]?.translatedText||x.text}));
           $("#jv-clips-list").querySelectorAll(".jv-magic-clip").forEach((card,i)=>{let p=card.querySelector(".jv-translated-text");if(!p){p=document.createElement("p");p.className="jv-translated-text";card.insertBefore(p,card.querySelector(".jv-clip-preview-player"));}p.textContent="Traduction : "+(magicClipCandidates[i].translatedText||"");});

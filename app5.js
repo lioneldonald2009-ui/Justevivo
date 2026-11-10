@@ -659,8 +659,9 @@
     const isFillerCut = isApi && url.indexOf('/api/video/remove-fillers') > 0;
     const isRepetitionTool = isApi && (url.indexOf('/api/video/analyze-repetitions') > 0 || url.indexOf('/api/video/apply-repetition-cuts') > 0);
     const isAudioEnhance = isApi && url.indexOf('/api/video/enhance-audio') > 0;
+    const isMagicClips = isApi && (url.indexOf('/api/video/analyze-clips') > 0 || url.indexOf('/api/video/render-clip') > 0);
 
-    if (!(isMe || isTranscribe || isGenerate || isTranslate || isSmartCut || isFillerCut || isRepetitionTool || isAudioEnhance)) return origFetch(input, init);
+    if (!(isMe || isTranscribe || isGenerate || isTranslate || isSmartCut || isFillerCut || isRepetitionTool || isAudioEnhance || isMagicClips)) return origFetch(input, init);
 
     if (cfgPromise) await cfgPromise;
     if (!cfg.enabled) return origFetch(input, init);
@@ -689,7 +690,7 @@
 
     if (res.status === 401 || res.status === 403) {
       res.clone().json().then(handleApiError).catch(() => {});
-    } else if (res.ok && (isTranscribe || isGenerate || isTranslate || isSmartCut || isFillerCut || isRepetitionTool || isAudioEnhance)) {
+    } else if (res.ok && (isTranscribe || isGenerate || isTranslate || isSmartCut || isFillerCut || isRepetitionTool || isAudioEnhance || isMagicClips)) {
       setTimeout(refreshMe, 600);
     }
 

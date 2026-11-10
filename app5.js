@@ -715,8 +715,9 @@
     const isTranscribe = isApi && url.indexOf('/api/transcribe') > 0;
     const isGenerate = isApi && url.indexOf('/api/generate') > 0;
     const isTranslate = isApi && url.indexOf('/api/translate') > 0;
+    const isSmartCut = isApi && url.indexOf('/api/video/remove-silence') > 0;
 
-    if (!(isMe || isTranscribe || isGenerate || isTranslate)) return origFetch(input, init);
+    if (!(isMe || isTranscribe || isGenerate || isTranslate || isSmartCut)) return origFetch(input, init);
 
     if (cfgPromise) await cfgPromise;
     if (!cfg.enabled) return origFetch(input, init);
@@ -745,7 +746,7 @@
 
     if (res.status === 401 || res.status === 403) {
       res.clone().json().then(handleApiError).catch(() => {});
-    } else if (res.ok && (isTranscribe || isGenerate || isTranslate)) {
+    } else if (res.ok && (isTranscribe || isGenerate || isTranslate || isSmartCut)) {
       setTimeout(refreshMe, 600);
     }
 

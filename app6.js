@@ -97,8 +97,7 @@
     `;
     controlsPanel.appendChild(editorSettingsPanel);
     document.getElementById('jv-settings-plans').addEventListener('click', () => {
-      const plans = document.getElementById('pricing');
-      if (plans) plans.scrollIntoView({behavior:'smooth', block:'start'});
+      document.dispatchEvent(new CustomEvent('jv:show-pricing'));
     });
     document.getElementById('jv-request-password-reset').addEventListener('click', async () => {
       const message = document.getElementById('jv-settings-message');

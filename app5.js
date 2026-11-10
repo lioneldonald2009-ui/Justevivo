@@ -3,7 +3,10 @@
   const KEY = 'justevivo_session_v1';
   const origFetch = window.fetch.bind(window);
 
-  let cfg = { enabled: false, ready: false, captchaSiteKey: '' };
+  // Clé Turnstile publique (site key uniquement) : permet au widget de démarrer
+  // même si la configuration publique du backend est momentanément en cache.
+  const PUBLIC_TURNSTILE_SITE_KEY = '0x4AAAAAAF52chrqviYYSDqy';
+  let cfg = { enabled: false, ready: false, captchaSiteKey: PUBLIC_TURNSTILE_SITE_KEY };
   let session = null;
   let me = null;
   let jobId = newJobId();
@@ -360,6 +363,13 @@
     captchaContainer.style.minHeight = '70px';
     captchaContainer.style.display = 'flex';
     captchaContainer.style.justifyContent = 'center';
+    captchaContainer.style.alignItems = 'center';
+    captchaContainer.style.color = '#26324a';
+    captchaContainer.style.background = '#f7f8fc';
+    captchaContainer.style.border = '1px solid #dce2ee';
+    captchaContainer.style.borderRadius = '10px';
+    captchaContainer.style.padding = '8px';
+    captchaContainer.style.boxSizing = 'border-box';
 
     if (!cfg.captchaSiteKey) {
       captchaContainer.textContent = 'Vérification de sécurité indisponible : clé publique non reçue.';
@@ -845,7 +855,7 @@
         const d = await res.json();
 
         if (d && d.enabled && d.url && d.anonKey) {
-          cfg = { enabled: true, ready: true, url: d.url, key: d.anonKey, captchaSiteKey: d.captchaSiteKey || '' };
+          cfg = { enabled: true, ready: true, url: d.url, key: d.anonKey, captchaSiteKey: String(d.captchaSiteKey || PUBLIC_TURNSTILE_SITE_KEY).trim() };
           if (modal.style.display === 'flex' && !recoveryAccessToken) renderCaptchaWidget();
         } else {
           cfg = { enabled: false, ready: true };

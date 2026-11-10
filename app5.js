@@ -3,10 +3,7 @@
   const KEY = 'justevivo_session_v1';
   const origFetch = window.fetch.bind(window);
 
-  // Clé Turnstile publique (site key uniquement) : permet au widget de démarrer
-  // même si la configuration publique du backend est momentanément en cache.
-  const PUBLIC_TURNSTILE_SITE_KEY = '0x4AAAAAAF52chrqviYYSDqy';
-  let cfg = { enabled: false, ready: false, captchaSiteKey: PUBLIC_TURNSTILE_SITE_KEY };
+  let cfg = { enabled: false, ready: false };
   let session = null;
   let me = null;
   let jobId = newJobId();
@@ -338,122 +335,16 @@
   updatePasswordBtn.textContent = 'Confirmer le nouveau mot de passe';
   updatePasswordBtn.hidden = true;
 
-  const captchaWrap = document.createElement('div');
-  captchaWrap.className = 'jv-captcha-wrap';
-  captchaWrap.hidden = true;
-  const captchaContainer = document.createElement('div');
-  captchaContainer.id = 'jv-turnstile-widget';
-  captchaWrap.appendChild(captchaContainer);
 
   const closeBtn = document.createElement('button');
   closeBtn.type = 'button';
   closeBtn.className = 'button ghost full';
   closeBtn.textContent = 'Fermer';
 
-  [title, msg, emailInput, passWrap, captchaWrap, signInBtn, signUpBtn, forgotPasswordBtn,
+  [title, msg, emailInput, passWrap, signInBtn, signUpBtn, forgotPasswordBtn,
    recoveryFields, updatePasswordBtn, closeBtn].forEach(e => card.appendChild(e));
 
-  let captchaWidgetId = null;
-  let captchaToken = '';
-  let captchaScriptLoading = false;
 
-  function renderCaptchaWidget() {
-    if (modal.style.display !== 'flex' || recoveryAccessToken) return;
-    captchaWrap.hidden = false;
-    captchaContainer.style.minHeight = '70px';
-    captchaContainer.style.display = 'flex';
-    captchaContainer.style.justifyContent = 'center';
-    captchaContainer.style.alignItems = 'center';
-    captchaContainer.style.color = '#26324a';
-    captchaContainer.style.background = '#f7f8fc';
-    captchaContainer.style.border = '1px solid #dce2ee';
-    captchaContainer.style.borderRadius = '10px';
-    captchaContainer.style.padding = '8px';
-    captchaContainer.style.boxSizing = 'border-box';
-
-    if (!cfg.captchaSiteKey) {
-      captchaContainer.textContent = 'Vérification de sécurité indisponible : clé publique non reçue.';
-      msg.textContent = 'Le contrôle anti-robot ne peut pas être chargé. Réessayez dans quelques instants.';
-      return;
-    }
-    if (window.turnstile) {
-      if (captchaWidgetId === null) {
-        captchaContainer.textContent = '';
-        try {
-          captchaWidgetId = window.turnstile.render(captchaContainer, {
-            sitekey: cfg.captchaSiteKey,
-            theme: 'light',
-            size: 'normal',
-            callback: token => {
-              captchaToken = String(token || '').trim();
-              if (captchaToken) msg.textContent = 'Vérification de sécurité validée.';
-            },
-            'expired-callback': () => {
-              captchaToken = '';
-              msg.textContent = 'La vérification a expiré. Validez à nouveau le contrôle.';
-            },
-            'timeout-callback': () => {
-              captchaToken = '';
-              msg.textContent = 'Le contrôle prend trop de temps. Réessayez.';
-            },
-            'error-callback': () => {
-              captchaToken = '';
-              msg.textContent = 'Cloudflare n’a pas pu valider le contrôle. Rechargez la page et réessayez.';
-            }
-          });
-          if (captchaWidgetId === undefined || captchaWidgetId === null) {
-            captchaContainer.textContent = 'Le contrôle de sécurité n’a pas pu démarrer. Rechargez la page.';
-          }
-        } catch (error) {
-          captchaWidgetId = null;
-          captchaContainer.textContent = 'Impossible de démarrer le contrôle anti-robot.';
-          msg.textContent = 'Erreur d’initialisation de la vérification de sécurité. Rechargez la page.';
-        }
-      }
-      return;
-    }
-    if (captchaScriptLoading) return;
-    captchaScriptLoading = true;
-    captchaContainer.textContent = 'Chargement du contrôle de sécurité…';
-    const script = document.createElement('script');
-    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      captchaScriptLoading = false;
-      if (window.turnstile) {
-        captchaContainer.textContent = '';
-        renderCaptchaWidget();
-      } else {
-        captchaContainer.textContent = 'Le service de vérification ne répond pas. Rechargez la page.';
-      }
-    };
-    script.onerror = () => {
-      captchaScriptLoading = false;
-      captchaContainer.textContent = 'Impossible de charger Cloudflare Turnstile.';
-      msg.textContent = 'Autorisez challenges.cloudflare.com dans votre navigateur, puis rechargez la page.';
-    };
-    document.head.appendChild(script);
-  }
-
-  function requireCaptchaToken() {
-    if (!cfg.captchaSiteKey) throw new Error('La clé publique du contrôle anti-robot est absente. Rechargez la page.');
-    if (!window.turnstile || captchaWidgetId === null) {
-      throw new Error('Le contrôle anti-robot ne s’est pas chargé. Rechargez la page avant de vous connecter.');
-    }
-    if (!captchaToken) {
-      try { captchaToken = String(window.turnstile.getResponse(captchaWidgetId) || '').trim(); } catch (_) {}
-    }
-    if (!captchaToken) throw new Error('Validez le contrôle Cloudflare anti-robot avant de vous connecter.');
-    return captchaToken;
-  }
-
-  function resetCaptcha() {
-    captchaToken = '';
-    if (window.turnstile && captchaWidgetId !== null) {
-      try { window.turnstile.reset(captchaWidgetId); } catch (_) {}
-    }
-  }
   modal.appendChild(card);
   document.body.appendChild(modal);
 
@@ -490,7 +381,6 @@
     Object.assign(card.style, { marginTop: '0', maxWidth: '460px', padding: '24px' });
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
-    if (!recoveryAccessToken) renderCaptchaWidget();
     setTimeout(() => emailInput.focus(), 60);
   }
 
@@ -508,8 +398,6 @@
     forgotPasswordBtn.hidden = false;
     recoveryFields.hidden = true;
     updatePasswordBtn.hidden = true;
-    captchaWrap.hidden = true;
-    resetCaptcha();
     window.history.replaceState({}, document.title, window.location.pathname + window.location.search);
     if (pageMode === 'auth') setPageMode('landing');
   }
@@ -569,8 +457,7 @@
     msg.textContent = 'Connexion en cours...';
 
     try {
-      const captcha = requireCaptchaToken();
-      const d = await authCall('token?grant_type=password', { email: f.email, password: f.pass, captcha_token: captcha || undefined });
+      const d = await authCall('token?grant_type=password', { email: f.email, password: f.pass });
       if (!d.user || !d.user.email_confirmed_at) {
         throw new Error('Votre adresse email n’est pas encore confirmée. Ouvrez le message envoyé par JUSTEVIVO, puis réessayez.');
       }
@@ -578,7 +465,6 @@
     } catch (e) {
       msg.textContent = e.message;
     } finally {
-      resetCaptcha();
       busy(false);
     }
   });
@@ -596,12 +482,10 @@
     msg.textContent = 'Création du compte...';
 
     try {
-      const captcha = requireCaptchaToken();
       const redirect = window.location.origin + window.location.pathname + window.location.search;
       const d = await authCall('signup?redirect_to=' + encodeURIComponent(redirect), {
         email: f.email,
-        password: f.pass,
-        captcha_token: captcha || undefined
+        password: f.pass
       });
 
       if (d.access_token && d.user && d.user.email_confirmed_at) {
@@ -855,8 +739,7 @@
         const d = await res.json();
 
         if (d && d.enabled && d.url && d.anonKey) {
-          cfg = { enabled: true, ready: true, url: d.url, key: d.anonKey, captchaSiteKey: String(d.captchaSiteKey || PUBLIC_TURNSTILE_SITE_KEY).trim() };
-          if (modal.style.display === 'flex' && !recoveryAccessToken) renderCaptchaWidget();
+          cfg = { enabled: true, ready: true, url: d.url, key: d.anonKey,  };
         } else {
           cfg = { enabled: false, ready: true };
         }

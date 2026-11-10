@@ -680,11 +680,9 @@
       return;
     }
 
-    if (!segments.length) {
-      showToast('Générez d’abord les sous-titres IA, puis enregistrez le projet.');
-      return;
-    }
-
+    // Un projet peut être sauvegardé avant la transcription : les réglages du studio
+    // et les sous-titres disponibles sont conservés. Le média source sera réimporté
+    // à l'ouverture, car les fichiers locaux ne sont pas stockés dans la base.
     const base = selectedFile ? selectedFile.name.replace(/\.[^.]+$/, '') : 'Mon projet';
     const name = (prompt('Nom du projet :', base) || '').trim().slice(0, 60);
     if (!name) return;
@@ -938,8 +936,9 @@
     const plans = btn('Voir les formules', 'button ghost full', { marginBottom: '14px' });
     plans.addEventListener('click', () => {
       sm.hide();
-      const p = document.getElementById('pricing');
-      if (p) p.scrollIntoView({ behavior: 'smooth' });
+      // La vitrine est masquée lorsque le studio est ouvert : demander d'abord
+      // au gestionnaire de navigation de la réafficher avant le défilement.
+      document.dispatchEvent(new CustomEvent('jv:show-pricing'));
     });
     sm.body.appendChild(plans);
 

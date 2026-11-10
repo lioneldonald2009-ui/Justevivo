@@ -57,8 +57,13 @@
         </div>
       </div>
       <div class="jv-suite-view" data-view="clips" hidden>
-        <div class="jv-clips-intro"><div><span class="jv-eyebrow">EXTRAITS INTELLIGENTS</span><h4>Transformez une longue vidéo en plusieurs clips.</h4><p>Préparez vos points de découpe, puis créez des segments à partir de la timeline.</p></div><span class="jv-coming">ANALYSE IA À CONNECTER</span></div>
-        <div class="jv-tool-card"><div class="jv-clip-controls"><label>Durée cible<select id="jv-clip-duration" class="jv-text-input"><option value="15">15 secondes</option><option value="30" selected>30 secondes</option><option value="45">45 secondes</option><option value="60">60 secondes</option></select></label><button type="button" class="jv-action" data-action="make-clips">Créer des segments depuis la vidéo</button></div><p class="jv-note">Cette action crée des repères de segments dans votre session. La détection automatique des meilleurs moments et le rendu de fichiers indépendants nécessitent le moteur IA/vidéo.</p><div id="jv-clips-list" class="jv-clip-list"><span class="jv-empty">Aucun segment préparé.</span></div></div>
+        <div class="jv-clips-intro"><div><span class="jv-eyebrow">EXTRAITS INTELLIGENTS</span><h4>Transformez une longue vidéo en plusieurs clips.</h4><p>Whisper analyse la parole et propose des passages courts à fort potentiel. Vous gardez le choix avant chaque export.</p></div><span class="jv-coming jv-ready">WHISPER + FFmpeg ACTIFS</span></div>
+        <div class="jv-tool-card">
+          <div class="jv-clip-controls"><label>Durée cible<select id="jv-clip-duration" class="jv-text-input"><option value="15">15 secondes</option><option value="30" selected>30 secondes</option><option value="45">45 secondes</option><option value="60">60 secondes</option></select></label><button type="button" class="jv-action jv-action-primary" id="jv-analyze-clips" data-action="analyze-clips">✦ Analyser les meilleurs passages</button></div>
+          <p class="jv-note">L’analyse utilise la transcription horodatée, la densité de parole et des formulations accrocheuses. Les suggestions restent indicatives : vérifiez chaque passage avant de l’exporter.</p>
+          <p id="jv-clips-status" class="jv-feedback" aria-live="polite">Importez une vidéo dans le studio, puis lancez l’analyse.</p>
+          <div id="jv-clips-list" class="jv-clip-list"><span class="jv-empty">Aucun extrait analysé.</span></div>
+        </div>
       </div>
       <div class="jv-suite-view" data-view="timeline" hidden>
         <div class="jv-tool-card jv-timeline-card"><div class="jv-timeline-head"><div><h4>Timeline de montage</h4><p>Contrôlez la lecture, le point de lecture et les limites de votre séquence.</p></div><div class="jv-player-actions"><button type="button" data-action="play">▶ Lecture</button><button type="button" data-action="pause">Ⅱ Pause</button><button type="button" data-action="split">✂ Ajouter un point de coupe</button></div></div><div class="jv-time-row"><span id="jv-current-time">00:00</span><input id="jv-playhead" type="range" min="0" max="100" value="0"><span id="jv-total-time">00:00</span></div><div class="jv-track-label">PISTE VIDÉO PRINCIPALE</div><div class="jv-track"><div id="jv-main-clip" class="jv-main-clip">Vidéo principale</div><div id="jv-cut-markers"></div></div><div class="jv-trim-grid"><label>Début de séquence <output id="jv-trim-start-value">0.0 s</output><input id="jv-trim-start" type="range" min="0" max="100" value="0"></label><label>Fin de séquence <output id="jv-trim-end-value">100 %</output><input id="jv-trim-end" type="range" min="0" max="100" value="100"></label></div><button type="button" class="jv-action" data-action="preview-trim">Prévisualiser la zone sélectionnée</button><p class="jv-note">Les repères et limites sont non destructifs : le fichier source n'est pas modifié.</p><div id="jv-timeline-feedback" class="jv-feedback" aria-live="polite"></div></div>
@@ -77,7 +82,7 @@
     };
     panel.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>setView(b.dataset.tab)));
 
-    let mediaFiles=[],cuts=[],audioUrl=null,brollUrl=null;
+    let mediaFiles=[],cuts=[],audioUrl=null,brollUrl=null,magicClipCandidates=[];
     const fmt=(n)=>{n=Math.max(0,Number(n)||0);return String(Math.floor(n/60)).padStart(2,"0")+":"+String(Math.floor(n%60)).padStart(2,"0");};
     const duration=()=>Number.isFinite(video.duration)?video.duration:0;
     const syncTime=()=>{const d=duration(),t=video.currentTime||0;$("#jv-playhead").max=Math.max(1,d);$("#jv-playhead").value=Math.min(t,d||0);$("#jv-current-time").textContent=fmt(t);$("#jv-total-time").textContent=fmt(d);$("#jv-trim-start").max=Math.max(1,d);$("#jv-trim-end").max=Math.max(1,d);$("#jv-trim-end").value=d||100;$("#jv-trim-end-value").textContent=fmt(d);};
@@ -129,7 +134,7 @@
     brandFields.forEach(s=>$(s).addEventListener("input",syncBrand));
     try{const saved=JSON.parse(localStorage.getItem("justevivo_brand_kit_v1")||"null");if(saved){$("#jv-brand-name").value=saved.name||"";$("#jv-brand-primary").value=saved.primary||"#7657f5";$("#jv-brand-secondary").value=saved.secondary||"#23b7c9";$("#jv-brand-font").value=saved.font||"DM Sans";syncBrand();}}catch(_){}
     function addCut(t){if(!duration()){ $("#jv-timeline-feedback").textContent="Importez d'abord une vidéo pour ajouter un repère.";return;}cuts.push(t);cuts.sort((a,b)=>a-b);$("#jv-cut-markers").innerHTML=cuts.map(x=>'<i title="Coupe à '+fmt(x)+'" style="left:'+(x/duration()*100)+'%"></i>').join("");$("#jv-timeline-feedback").textContent="Repère ajouté à "+fmt(t)+". Le fichier source n'a pas été modifié.";}
-    panel.addEventListener("click",e=>{
+    panel.addEventListener("click",async e=>{
       const b=e.target.closest("[data-action]");if(!b)return;
       const a=b.dataset.action;
       if(a==="play"){video.play().catch(()=>{});}
@@ -138,7 +143,43 @@
       if(a==="preview-trim"){const d=duration(),s=Number($("#jv-trim-start").value),end=Number($("#jv-trim-end").value);if(!d){$("#jv-timeline-feedback").textContent="Importez une vidéo avant de régler la séquence.";return;}if(s>=end){$("#jv-timeline-feedback").textContent="Le début doit être placé avant la fin.";return;}video.currentTime=s;video.play().catch(()=>{});$("#jv-timeline-feedback").textContent="Prévisualisation de "+fmt(s)+" à "+fmt(end)+". Le découpage n'est pas encore exporté.";}
       if(a==="broll-hint")alert("Importez vos images ou vidéos dans la bibliothèque, puis sélectionnez un média pour le charger dans l'aperçu comme B-roll.");
       if(a==="save-brand"){const obj={name:$("#jv-brand-name").value,primary:$("#jv-brand-primary").value,secondary:$("#jv-brand-secondary").value,font:$("#jv-brand-font").value};localStorage.setItem("justevivo_brand_kit_v1",JSON.stringify(obj));$("#jv-brand-feedback").textContent="Brand Kit enregistré sur cet appareil.";syncBrand();}
-      if(a==="make-clips"){const d=duration();if(!d){$("#jv-clips-list").textContent="Importez une vidéo avant de préparer des segments.";return;}const step=Number($("#jv-clip-duration").value),clips=[];for(let start=0;start<d;start+=step)clips.push({start,end:Math.min(start+step,d)});$("#jv-clips-list").innerHTML=clips.map((c,i)=>'<button type="button" class="jv-clip-item" data-seek="'+c.start+'"><b>Clip '+(i+1)+'</b><span>'+fmt(c.start)+' — '+fmt(c.end)+'</span><small>Cliquer pour prévisualiser</small></button>').join("");$("#jv-clips-list").querySelectorAll("[data-seek]").forEach(x=>x.addEventListener("click",()=>{video.currentTime=Number(x.dataset.seek);video.play().catch(()=>{});setView("timeline");}));}
+      if(a==="analyze-clips"){
+        const input=document.getElementById("videoInput"),file=input&&input.files&&input.files[0];
+        const button=$("#jv-analyze-clips"),status=$("#jv-clips-status"),list=$("#jv-clips-list");
+        if(!file||!file.type.startsWith("video/")){status.textContent="Importez d’abord une vidéo dans le studio principal.";return;}
+        if(file.size>200*1024*1024){status.textContent="La vidéo dépasse la limite serveur de 200 Mo.";return;}
+        const form=new FormData();form.append("video",file,file.name);form.append("targetSeconds",$("#jv-clip-duration").value);
+        button.disabled=true;button.textContent="Analyse Whisper en cours…";status.textContent="Transcription de la vidéo et repérage des passages…";list.replaceChildren();
+        try{
+          const response=await fetch(API_URL+"/api/video/analyze-clips",{method:"POST",body:form});
+          const data=await response.json();if(!response.ok)throw new Error(data.error||"L’analyse des extraits a échoué.");
+          magicClipCandidates=Array.isArray(data.candidates)?data.candidates:[];
+          if(!magicClipCandidates.length){status.textContent="Aucun passage exploitable n’a été trouvé.";list.textContent="Essayez une vidéo contenant davantage de parole.";return;}
+          status.textContent=magicClipCandidates.length+" extrait(s) proposé(s). Vérifiez le texte et les horaires avant export.";
+          magicClipCandidates.forEach((clip,index)=>{
+            const card=document.createElement("article");card.className="jv-magic-clip";
+            const head=document.createElement("div");head.className="jv-magic-clip-head";
+            const title=document.createElement("strong");title.textContent="Extrait "+(index+1)+" · "+fmt(clip.start)+" — "+fmt(clip.end);
+            const score=document.createElement("span");score.className="jv-clip-score";score.textContent="Score indicatif "+clip.score+"/100";head.append(title,score);
+            const transcript=document.createElement("p");transcript.textContent=clip.text||"Transcription indisponible";
+            const actions=document.createElement("div");actions.className="jv-magic-clip-actions";
+            const preview=document.createElement("button");preview.type="button";preview.className="jv-action";preview.textContent="▶ Prévisualiser";preview.addEventListener("click",()=>{video.currentTime=clip.start;video.play().catch(()=>{});});
+            const exportBtn=document.createElement("button");exportBtn.type="button";exportBtn.className="jv-action jv-action-primary";exportBtn.textContent="↓ Exporter ce clip";exportBtn.addEventListener("click",async()=>{
+              exportBtn.disabled=true;exportBtn.textContent="Export FFmpeg…";
+              const exportForm=new FormData();exportForm.append("video",file,file.name);exportForm.append("start",String(clip.start));exportForm.append("end",String(clip.end));
+              try{
+                const result=await fetch(API_URL+"/api/video/render-clip",{method:"POST",body:exportForm});
+                if(!result.ok){let err={};try{err=await result.json();}catch(_){}throw new Error(err.error||"L’export du clip a échoué.");}
+                const blob=await result.blob();if(!blob.size)throw new Error("Le fichier exporté est vide.");
+                const url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download="justevivo-clip-"+String(index+1).padStart(2,"0")+".mp4";document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+                exportBtn.textContent="✓ Clip exporté";
+              }catch(error){exportBtn.textContent="Réessayer l’export";status.textContent=error.message||"Erreur d’export.";exportBtn.disabled=false;}
+            });
+            actions.append(preview,exportBtn);card.append(head,transcript,actions);list.appendChild(card);
+          });
+        }catch(error){status.textContent=error.message||"L’analyse a échoué.";list.textContent="Aucun extrait disponible.";}
+        finally{button.disabled=false;button.textContent="✦ Analyser les meilleurs passages";}
+      }
       if(a==="save-session"){const state={cuts,trimStart:Number($("#jv-trim-start").value),trimEnd:Number($("#jv-trim-end").value),duration:duration(),savedAt:new Date().toISOString()};localStorage.setItem("justevivo_edit_session_v1",JSON.stringify(state));$("#jv-timeline-feedback").textContent="Configuration de montage enregistrée dans ce navigateur.";}
     });
     function showPage(page){

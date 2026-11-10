@@ -97,7 +97,17 @@
     `;
     controlsPanel.appendChild(editorSettingsPanel);
     document.getElementById('jv-settings-plans').addEventListener('click', () => {
-      document.dispatchEvent(new CustomEvent('jv:show-pricing'));
+      // La grille tarifaire est une section de la page vitrine, en dehors du studio.
+      // Le signal jv:show-pricing n'avait aucun écouteur : le clic ne faisait donc rien.
+      const pricingSection = document.getElementById('pricing');
+      if (pricingSection) {
+        pricingSection.hidden = false;
+        pricingSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        history.replaceState(null, '', '#pricing');
+        return;
+      }
+      // Repli explicite si la section tarifaire est déplacée dans une future version.
+      window.location.hash = 'pricing';
     });
     document.getElementById('jv-request-password-reset').addEventListener('click', async () => {
       const message = document.getElementById('jv-settings-message');

@@ -657,7 +657,8 @@
     const isTranslate = isApi && url.indexOf('/api/translate') > 0;
     const isSmartCut = isApi && url.indexOf('/api/video/remove-silence') > 0;
     const isFillerCut = isApi && url.indexOf('/api/video/remove-fillers') > 0;
-    const isRepetitionTool = isApi && (url.indexOf('/api/video/analyze-repetitions') > 0 || url.indexOf('/api/video/apply-repetition-cuts') > 0);\n    const isAudioEnhance = isApi && url.indexOf('/api/video/enhance-audio') > 0;
+    const isRepetitionTool = isApi && (url.indexOf('/api/video/analyze-repetitions') > 0 || url.indexOf('/api/video/apply-repetition-cuts') > 0);
+    const isAudioEnhance = isApi && url.indexOf('/api/video/enhance-audio') > 0;
 
     if (!(isMe || isTranscribe || isGenerate || isTranslate || isSmartCut || isFillerCut || isRepetitionTool || isAudioEnhance)) return origFetch(input, init);
 

@@ -59,7 +59,7 @@
       <div class="jv-suite-view" data-view="clips" hidden>
         <div class="jv-clips-intro"><div><span class="jv-eyebrow">EXTRAITS INTELLIGENTS</span><h4>Transformez une longue vidéo en plusieurs clips.</h4><p>Whisper analyse la parole et propose des passages courts à fort potentiel. Vous gardez le choix avant chaque export.</p></div><span class="jv-coming jv-ready">WHISPER + FFmpeg ACTIFS</span></div>
         <div class="jv-tool-card">
-          <div class="jv-clip-controls"><label>Durée cible<select id="jv-clip-duration" class="jv-text-input"><option value="15">15 secondes</option><option value="30" selected>30 secondes</option><option value="45">45 secondes</option><option value="60">60 secondes</option></select></label><button type="button" class="jv-action jv-action-primary" id="jv-analyze-clips" data-action="analyze-clips">✦ Analyser les meilleurs passages</button></div>
+          <div class="jv-clip-controls"><label>Durée cible<select id="jv-clip-duration" class="jv-text-input"><option value="15">15 secondes</option><option value="30" selected>30 secondes</option><option value="45">45 secondes</option><option value="60">60 secondes</option></select></label><label>Langue de la vidéo<select id="jv-clip-language" class="jv-text-input"><option value="auto" selected>Détection automatique</option><option value="fr">Français</option><option value="en">Anglais</option><option value="pt">Portugais</option><option value="es">Espagnol</option><option value="ja">Japonais</option><option value="de">Allemand</option><option value="it">Italien</option><option value="ar">Arabe</option><option value="zh">Chinois</option><option value="ru">Russe</option></select></label><button type="button" class="jv-action jv-action-primary" id="jv-analyze-clips" data-action="analyze-clips">✦ Analyser les meilleurs passages</button></div>
           <p class="jv-note">L’analyse utilise la transcription horodatée, la densité de parole et des formulations accrocheuses. Les suggestions restent indicatives : vérifiez chaque passage avant de l’exporter.</p>
           <p id="jv-clips-status" class="jv-feedback" aria-live="polite">Importez une vidéo dans le studio, puis lancez l’analyse.</p>
           <div id="jv-clips-list" class="jv-clip-list"><span class="jv-empty">Aucun extrait analysé.</span></div>
@@ -148,7 +148,7 @@
         const button=$("#jv-analyze-clips"),status=$("#jv-clips-status"),list=$("#jv-clips-list");
         if(!file||!file.type.startsWith("video/")){status.textContent="Importez d’abord une vidéo dans le studio principal.";return;}
         if(file.size>200*1024*1024){status.textContent="La vidéo dépasse la limite serveur de 200 Mo.";return;}
-        const form=new FormData();form.append("video",file,file.name);form.append("targetSeconds",$("#jv-clip-duration").value);
+        const form=new FormData();form.append("video",file,file.name);form.append("targetSeconds",$("#jv-clip-duration").value);const selectedLanguage=$("#jv-clip-language").value;if(selectedLanguage!=="auto")form.append("language",selectedLanguage);
         button.disabled=true;button.textContent="Analyse Whisper en cours…";status.textContent="Transcription de la vidéo et repérage des passages…";list.replaceChildren();
         try{
           const response=await fetch(API_URL+"/api/video/analyze-clips",{method:"POST",body:form});
@@ -156,7 +156,8 @@
           magicClipCandidates=Array.isArray(data.candidates)?data.candidates:[];
           if(!magicClipCandidates.length){status.textContent="Aucun passage exploitable n’a été trouvé.";list.textContent="Essayez une vidéo contenant davantage de parole.";return;}
           status.textContent=magicClipCandidates.length+" extrait(s) proposé(s). Vérifiez le texte et les horaires avant export.";
-          const sourcePreviewUrl=URL.createObjectURL(file);\n          magicClipCandidates.forEach((clip,index)=>{
+          const sourcePreviewUrl=URL.createObjectURL(file);
+          magicClipCandidates.forEach((clip,index)=>{
             const card=document.createElement("article");card.className="jv-magic-clip";
             const head=document.createElement("div");head.className="jv-magic-clip-head";
             const title=document.createElement("strong");title.textContent="Extrait "+(index+1)+" · "+fmt(clip.start)+" — "+fmt(clip.end);

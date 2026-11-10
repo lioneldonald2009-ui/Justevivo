@@ -20,6 +20,132 @@
     ].join("");
     timeline.appendChild(card);
 
+
+    const repetitionCard = document.createElement("article");
+    repetitionCard.className = "jv-tool-card jv-smart-cut-card jv-repetition-card";
+    repetitionCard.innerHTML = [
+      '<div class="jv-smart-cut-heading"><div><span class="jv-eyebrow">MONTAGE ASSISTÉ PAR IA</span><h4>Détecter les répétitions</h4><p>Repère les mots répétés à la suite, comme « je, je pense ». Tu choisis précisément lesquels retirer : aucune coupe n’est appliquée sans validation.</p></div><span class="jv-coming">WHISPER + VALIDATION</span></div>',
+      '<button type="button" class="jv-action jv-action-primary" id="jv-analyze-repetitions">⌕ Analyser les répétitions</button>',
+      '<p class="jv-note">Certaines répétitions sont volontaires. Écoute le passage et coche uniquement celles qui sont accidentelles.</p>',
+      '<div id="jv-repetition-status" class="jv-feedback" role="status" aria-live="polite"></div>',
+      '<div id="jv-repetition-list" class="jv-repetition-list"></div>',
+      '<button type="button" class="jv-action jv-action-primary" id="jv-apply-repetition-cuts" disabled>✂ Appliquer les coupes sélectionnées</button>',
+      '<div id="jv-repetition-result" class="jv-smart-cut-result" hidden></div>'
+    ].join("");
+    timeline.appendChild(repetitionCard);
+
+    const analyzeRepetitions = repetitionCard.querySelector("#jv-analyze-repetitions");
+    const applyRepetitions = repetitionCard.querySelector("#jv-apply-repetition-cuts");
+    const repetitionStatus = repetitionCard.querySelector("#jv-repetition-status");
+    const repetitionList = repetitionCard.querySelector("#jv-repetition-list");
+    const repetitionResult = repetitionCard.querySelector("#jv-repetition-result");
+    let repetitionCandidates = [];
+    const getVideoForRepetition = () => {
+      const input = document.getElementById("videoInput");
+      const file = input && input.files && input.files[0];
+      if (!file || !file.type.startsWith("video/")) throw new Error("Importez d’abord une vidéo dans le studio principal.");
+      if (file.size > 200 * 1024 * 1024) throw new Error("La vidéo dépasse la limite serveur de 200 Mo.");
+      return file;
+    };
+    const formatTime = value => {
+      const seconds = Math.max(0, Number(value) || 0);
+      const minutes = Math.floor(seconds / 60);
+      const rest = (seconds - minutes * 60).toFixed(1).padStart(4, "0");
+      return String(minutes).padStart(2, "0") + ":" + rest;
+    };
+    const selectedRepetitions = () => Array.from(repetitionList.querySelectorAll("input[type=checkbox]:checked"))
+      .map(input => repetitionCandidates[Number(input.dataset.index)])
+      .filter(Boolean);
+    analyzeRepetitions.addEventListener("click", async () => {
+      let file;
+      try { file = getVideoForRepetition(); } catch (error) { repetitionStatus.textContent = error.message; return; }
+      analyzeRepetitions.disabled = true;
+      analyzeRepetitions.textContent = "Analyse Whisper en cours…";
+      applyRepetitions.disabled = true;
+      repetitionStatus.textContent = "Transcription et recherche des répétitions consécutives…";
+      repetitionList.replaceChildren();
+      repetitionResult.hidden = true;
+      const form = new FormData();
+      form.append("video", file, file.name);
+      try {
+        const response = await fetch(API_URL + "/api/video/analyze-repetitions", { method: "POST", body: form });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "Analyse impossible.");
+        repetitionCandidates = Array.isArray(data.candidates) ? data.candidates : [];
+        if (!repetitionCandidates.length) {
+          repetitionStatus.textContent = data.message || "Aucune répétition évidente détectée.";
+          return;
+        }
+        repetitionStatus.textContent = repetitionCandidates.length + " répétition(s) potentielle(s). Vérifie et sélectionne celles à retirer.";
+        repetitionCandidates.forEach((candidate, index) => {
+          const row = document.createElement("label");
+          row.className = "jv-repetition-item";
+          const checkbox = document.createElement("input");
+          checkbox.type = "checkbox";
+          checkbox.dataset.index = String(index);
+          checkbox.addEventListener("change", () => { applyRepetitions.disabled = selectedRepetitions().length === 0; });
+          const details = document.createElement("span");
+          const heading = document.createElement("strong");
+          heading.textContent = candidate.word + " → " + candidate.repeatedWord + " · " + formatTime(candidate.start);
+          const context = document.createElement("small");
+          context.textContent = candidate.context || "Contexte non disponible";
+          details.append(heading, context);
+          row.append(checkbox, details);
+          repetitionList.appendChild(row);
+        });
+      } catch (error) {
+        repetitionStatus.textContent = error.message || "Erreur pendant l’analyse.";
+      } finally {
+        analyzeRepetitions.disabled = false;
+        analyzeRepetitions.textContent = "⌕ Analyser les répétitions";
+      }
+    });
+    applyRepetitions.addEventListener("click", async () => {
+      let file;
+      try { file = getVideoForRepetition(); } catch (error) { repetitionStatus.textContent = error.message; return; }
+      const selected = selectedRepetitions();
+      if (!selected.length) return;
+      applyRepetitions.disabled = true;
+      applyRepetitions.textContent = "Reconstruction de la vidéo…";
+      repetitionStatus.textContent = "Les passages sélectionnés sont retirés et la vidéo est reconstruite.";
+      const form = new FormData();
+      form.append("video", file, file.name);
+      form.append("cuts", JSON.stringify(selected.map(item => ({ start: item.start, end: item.end }))));
+      try {
+        const response = await fetch(API_URL + "/api/video/apply-repetition-cuts", { method: "POST", body: form });
+        if (!response.ok) {
+          let message = "Impossible d’appliquer les coupes.";
+          try { const data = await response.json(); if (data.error) message = data.error; } catch (_) {}
+          throw new Error(message);
+        }
+        const blob = await response.blob();
+        if (!blob.size) throw new Error("Le serveur a renvoyé un fichier vide.");
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = "justevivo-repetition-clean.mp4";
+        link.className = "jv-action jv-action-primary";
+        link.textContent = "↓ Télécharger la vidéo corrigée";
+        const preview = document.createElement("video");
+        preview.controls = true;
+        preview.preload = "metadata";
+        preview.src = url;
+        preview.className = "jv-smart-cut-preview";
+        repetitionResult.replaceChildren();
+        const summary = document.createElement("strong");
+        summary.textContent = selected.length + " répétition(s) retirée(s). Écoute le résultat avant de l’utiliser.";
+        repetitionResult.append(summary, link, preview);
+        repetitionResult.hidden = false;
+        repetitionStatus.textContent = "Montage terminé. Le fichier original reste intact.";
+        link.addEventListener("click", () => setTimeout(() => URL.revokeObjectURL(url), 60000), { once: true });
+      } catch (error) {
+        repetitionStatus.textContent = error.message || "Erreur pendant le montage.";
+      } finally {
+        applyRepetitions.disabled = false;
+        applyRepetitions.textContent = "✂ Appliquer les coupes sélectionnées";
+      }
+    });
+
     const fillerCard = document.createElement("article");
     fillerCard.className = "jv-tool-card jv-smart-cut-card jv-filler-cut-card";
     fillerCard.innerHTML = [

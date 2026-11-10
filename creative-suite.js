@@ -174,6 +174,8 @@
           const response=await fetch(API_URL+"/api/video/analyze-clips",{method:"POST",body:form});
           const data=await response.json();if(!response.ok)throw new Error(data.error||"L’analyse des extraits a échoué.");
           magicClipCandidates=Array.isArray(data.candidates)?data.candidates:[];
+          $("#jv-download-srt").disabled=true;
+          $("#jv-translation-status").textContent="Les extraits sont prêts. Choisissez une langue cible pour les traduire.";
           if(!magicClipCandidates.length){status.textContent="Aucun passage exploitable n’a été trouvé.";list.textContent="Essayez une vidéo contenant davantage de parole.";return;}
           status.textContent=magicClipCandidates.length+" extrait(s) proposé(s). Vérifiez le texte et les horaires avant export.";
           const sourcePreviewUrl=URL.createObjectURL(file);
@@ -185,11 +187,26 @@
             const transcript=document.createElement("p");transcript.textContent=clip.text||"Transcription indisponible";
             const player=document.createElement("video");player.className="jv-clip-preview-player";player.controls=true;player.playsInline=true;player.preload="metadata";player.hidden=true;player.src=sourcePreviewUrl;
             const actions=document.createElement("div");actions.className="jv-magic-clip-actions";
-            const preview=document.createElement("button");preview.type="button";preview.className="jv-action";preview.textContent="▶ Prévisualiser";preview.addEventListener("click",async()=>{
-              player.hidden=false;
-              try{if(player.readyState===0)await new Promise((resolve,reject)=>{player.addEventListener("loadedmetadata",resolve,{once:true});player.addEventListener("error",()=>reject(new Error("Impossible de charger l’aperçu vidéo.")),{once:true});player.load();});player.currentTime=Math.max(0,Number(clip.start)||0);await player.play();preview.textContent="Ⅱ Pause";}catch(error){status.textContent=error.message||"La prévisualisation est indisponible.";}
+            const preview=document.createElement("button");preview.type="button";preview.className="jv-action";preview.textContent="▶ Prévisualiser";
+            player.addEventListener("timeupdate",()=>{
+              if(Number.isFinite(Number(clip.end))&&player.currentTime>=Number(clip.end)){
+                player.pause();
+                player.currentTime=Math.max(Number(clip.start)||0,Number(clip.end)||0);
+                preview.textContent="▶ Revoir l’extrait";
+              }
             });
-            player.addEventListener("pause",()=>{preview.textContent="▶ Prévisualiser";});
+            preview.addEventListener("click",async()=>{
+              player.hidden=false;
+              try{
+                if(!player.paused){player.pause();return;}
+                if(player.readyState===0)await new Promise((resolve,reject)=>{player.addEventListener("loadedmetadata",resolve,{once:true});player.addEventListener("error",()=>reject(new Error("Impossible de charger l’aperçu vidéo.")),{once:true});player.load();});
+                const start=Math.max(0,Number(clip.start)||0),end=Number(clip.end)||0;
+                if(end<=start)throw new Error("Les horaires de cet extrait sont invalides.");
+                if(player.currentTime<start||player.currentTime>=end)player.currentTime=start;
+                await player.play();preview.textContent="Ⅱ Pause";
+              }catch(error){status.textContent=error.message||"La prévisualisation est indisponible.";}
+            });
+            player.addEventListener("pause",()=>{if(player.currentTime<(Number(clip.end)||Infinity))preview.textContent="▶ Prévisualiser";});
             player.addEventListener("ended",()=>{preview.textContent="▶ Revoir l’extrait";});
             const exportBtn=document.createElement("button");exportBtn.type="button";exportBtn.className="jv-action jv-action-primary";exportBtn.textContent="↓ Exporter ce clip";exportBtn.addEventListener("click",async()=>{
               exportBtn.disabled=true;exportBtn.textContent="Préparation…";status.textContent="Export du clip en cours. Ne fermez pas cette page.";

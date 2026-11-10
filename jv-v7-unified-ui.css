@@ -142,3 +142,46 @@ input:focus,select:focus,textarea:focus,button:focus-visible,a:focus-visible{
 }
 .jv-captcha-wrap[hidden]{display:none!important}
 #jv-turnstile-widget{max-width:100%;min-height:0}
+
+
+/* Production polish — account actions remain visible in both themes */
+.jv-account-bar{
+  display:flex!important;align-items:center!important;justify-content:space-between!important;
+  gap:12px!important;flex-wrap:wrap!important;position:relative!important;z-index:5!important;
+  min-height:52px!important;padding:12px 14px!important;
+}
+.jv-account-bar>div:last-child{
+  display:flex!important;align-items:center!important;justify-content:flex-end!important;
+  gap:8px!important;flex:0 0 auto!important;min-width:max-content!important;
+}
+.jv-account-bar button{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  visibility:visible!important;opacity:1!important;min-height:38px!important;
+  padding:9px 13px!important;font-size:12px!important;font-weight:800!important;
+  white-space:nowrap!important;border-radius:10px!important;flex:0 0 auto!important;
+}
+.jv-account-bar button.button.ghost{
+  background:#fff!important;color:#263550!important;border:1px solid #cbd5e4!important;
+  box-shadow:0 2px 8px rgba(20,35,65,.08)!important;
+}
+.jv-account-bar button.button.ghost:hover{
+  background:#f0edff!important;color:#513bd0!important;border-color:#b8aaff!important;
+}
+html[data-theme="dark"] .jv-account-bar button.button.ghost{
+  background:#202b43!important;color:#f4f7ff!important;border-color:#53627d!important;
+}
+html[data-theme="dark"] .jv-account-bar button.button.ghost:hover{
+  background:#303d5b!important;color:#fff!important;border-color:#9b83ff!important;
+}
+.jv-account-bar button:focus-visible{
+  outline:3px solid #8067ff!important;outline-offset:2px!important;
+}
+.theme-toggle{z-index:10050!important}
+.jv-app-modal{z-index:10020!important}
+.jv-auth-modal{z-index:10030!important}
+@media(max-width:520px){
+  .jv-account-bar{align-items:flex-start!important}
+  .jv-account-bar>div:first-child{flex:1 1 100%!important}
+  .jv-account-bar>div:last-child{width:100%!important;justify-content:flex-end!important}
+  .jv-account-bar button{min-height:40px!important}
+}

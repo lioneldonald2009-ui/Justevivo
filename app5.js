@@ -686,9 +686,7 @@
 
   // ===== Proposer de changer de formule =====
   function offerUpgrade(text) {
-    const go = confirm(text + '
-
-Voir les formules ?');
+    const go = confirm(text + '\n\nVoir les formules ?');
     if (go) {
       const p = document.getElementById('pricing');
       if (p) p.scrollIntoView({ behavior: 'smooth' });

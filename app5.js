@@ -686,7 +686,9 @@
 
   // ===== Proposer de changer de formule =====
   function offerUpgrade(text) {
-    const go = confirm(text + '\n\nVoir les formules ?');
+    const go = confirm(text + '
+
+Voir les formules ?');
     if (go) {
       const p = document.getElementById('pricing');
       if (p) p.scrollIntoView({ behavior: 'smooth' });
@@ -715,7 +717,8 @@
     const isTranscribe = isApi && url.indexOf('/api/transcribe') > 0;
     const isGenerate = isApi && url.indexOf('/api/generate') > 0;
     const isTranslate = isApi && url.indexOf('/api/translate') > 0;
-    const isSmartCut = isApi && url.indexOf('/api/video/remove-silence') > 0;\n    const isFillerCut = isApi && url.indexOf('/api/video/remove-fillers') > 0;
+    const isSmartCut = isApi && url.indexOf('/api/video/remove-silence') > 0;
+    const isFillerCut = isApi && url.indexOf('/api/video/remove-fillers') > 0;
 
     if (!(isMe || isTranscribe || isGenerate || isTranslate || isSmartCut || isFillerCut)) return origFetch(input, init);
 

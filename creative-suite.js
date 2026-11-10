@@ -156,26 +156,35 @@
           magicClipCandidates=Array.isArray(data.candidates)?data.candidates:[];
           if(!magicClipCandidates.length){status.textContent="Aucun passage exploitable n’a été trouvé.";list.textContent="Essayez une vidéo contenant davantage de parole.";return;}
           status.textContent=magicClipCandidates.length+" extrait(s) proposé(s). Vérifiez le texte et les horaires avant export.";
-          magicClipCandidates.forEach((clip,index)=>{
+          const sourcePreviewUrl=URL.createObjectURL(file);\n          magicClipCandidates.forEach((clip,index)=>{
             const card=document.createElement("article");card.className="jv-magic-clip";
             const head=document.createElement("div");head.className="jv-magic-clip-head";
             const title=document.createElement("strong");title.textContent="Extrait "+(index+1)+" · "+fmt(clip.start)+" — "+fmt(clip.end);
             const score=document.createElement("span");score.className="jv-clip-score";score.textContent="Score indicatif "+clip.score+"/100";head.append(title,score);
             const transcript=document.createElement("p");transcript.textContent=clip.text||"Transcription indisponible";
+            const player=document.createElement("video");player.className="jv-clip-preview-player";player.controls=true;player.playsInline=true;player.preload="metadata";player.hidden=true;player.src=sourcePreviewUrl;
             const actions=document.createElement("div");actions.className="jv-magic-clip-actions";
-            const preview=document.createElement("button");preview.type="button";preview.className="jv-action";preview.textContent="▶ Prévisualiser";preview.addEventListener("click",()=>{video.currentTime=clip.start;video.play().catch(()=>{});});
+            const preview=document.createElement("button");preview.type="button";preview.className="jv-action";preview.textContent="▶ Prévisualiser";preview.addEventListener("click",async()=>{
+              player.hidden=false;
+              try{if(player.readyState===0)await new Promise((resolve,reject)=>{player.addEventListener("loadedmetadata",resolve,{once:true});player.addEventListener("error",()=>reject(new Error("Impossible de charger l’aperçu vidéo.")),{once:true});player.load();});player.currentTime=Math.max(0,Number(clip.start)||0);await player.play();preview.textContent="Ⅱ Pause";}catch(error){status.textContent=error.message||"La prévisualisation est indisponible.";}
+            });
+            player.addEventListener("pause",()=>{preview.textContent="▶ Prévisualiser";});
+            player.addEventListener("ended",()=>{preview.textContent="▶ Revoir l’extrait";});
             const exportBtn=document.createElement("button");exportBtn.type="button";exportBtn.className="jv-action jv-action-primary";exportBtn.textContent="↓ Exporter ce clip";exportBtn.addEventListener("click",async()=>{
-              exportBtn.disabled=true;exportBtn.textContent="Export FFmpeg…";
+              exportBtn.disabled=true;exportBtn.textContent="Préparation…";status.textContent="Export du clip en cours. Ne fermez pas cette page.";
               const exportForm=new FormData();exportForm.append("video",file,file.name);exportForm.append("start",String(clip.start));exportForm.append("end",String(clip.end));
+              const controller=new AbortController();const timeout=setTimeout(()=>controller.abort(),5*60*1000);
               try{
-                const result=await fetch(API_URL+"/api/video/render-clip",{method:"POST",body:exportForm});
-                if(!result.ok){let err={};try{err=await result.json();}catch(_){}throw new Error(err.error||"L’export du clip a échoué.");}
+                exportBtn.textContent="Export FFmpeg…";
+                const result=await fetch(API_URL+"/api/video/render-clip",{method:"POST",body:exportForm,signal:controller.signal});
+                if(!result.ok){let err={};try{err=await result.json();}catch(_){}throw new Error(err.error||"L’export du clip a échoué (HTTP "+result.status+").");}
                 const blob=await result.blob();if(!blob.size)throw new Error("Le fichier exporté est vide.");
                 const url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download="justevivo-clip-"+String(index+1).padStart(2,"0")+".mp4";document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
-                exportBtn.textContent="✓ Clip exporté";
-              }catch(error){exportBtn.textContent="Réessayer l’export";status.textContent=error.message||"Erreur d’export.";exportBtn.disabled=false;}
+                exportBtn.textContent="✓ Clip exporté";status.textContent="Export terminé : le téléchargement du clip a été lancé.";
+              }catch(error){exportBtn.textContent="Réessayer l’export";status.textContent=error.name==="AbortError"?"L’export a dépassé 5 minutes. Réessayez avec un extrait plus court ou une vidéo moins lourde.":(error.message||"Erreur d’export.");}
+              finally{clearTimeout(timeout);exportBtn.disabled=false;}
             });
-            actions.append(preview,exportBtn);card.append(head,transcript,actions);list.appendChild(card);
+            actions.append(preview,exportBtn);card.append(head,transcript,player,actions);list.appendChild(card);
           });
         }catch(error){status.textContent=error.message||"L’analyse a échoué.";list.textContent="Aucun extrait disponible.";}
         finally{button.disabled=false;button.textContent="✦ Analyser les meilleurs passages";}

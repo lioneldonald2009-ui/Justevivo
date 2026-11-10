@@ -16,3 +16,6 @@
 .jv-magic-clip>p{margin:0;color:#68748b;line-height:1.65;font-size:13px;overflow-wrap:anywhere}
 .jv-magic-clip-actions .jv-action{min-height:40px}
 @media(max-width:600px){.jv-magic-clip{padding:13px}.jv-magic-clip-actions{display:grid;grid-template-columns:1fr}.jv-magic-clip-actions .jv-action{width:100%}}
+
+.jv-clip-preview-player{display:block;width:100%;max-height:360px;aspect-ratio:16/9;object-fit:contain;background:#101827;border-radius:12px}
+.jv-clip-preview-player[hidden]{display:none!important}

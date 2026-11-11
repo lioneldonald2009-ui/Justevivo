@@ -62,6 +62,7 @@
         const data = await response.json();
         if (!response.ok) throw new Error(data.error || "La génération du script a échoué.");
         currentBrief = data.brief;
+        $("jv-broll-script").value = briefAsText(currentBrief);
         const heading = document.createElement("h4"); heading.textContent = "Votre brief de production";
         const hook = document.createElement("blockquote"); hook.textContent = "ACCROCHE — " + (currentBrief.hook || "");
         const voiceTitle = document.createElement("h5"); voiceTitle.textContent = "Texte de la voix off";
@@ -99,6 +100,49 @@
         scriptStatus.textContent = error.message || "Une erreur est survenue.";
       } finally {
         scriptButton.disabled = false; scriptButton.textContent = "✦ Générer le script et le plan de tournage";
+      }
+    });
+
+    const brollButton = $("jv-generate-broll");
+    const brollStatus = $("jv-broll-status");
+    const brollResult = $("jv-broll-result");
+    brollButton.addEventListener("click", async () => {
+      const script = $("jv-broll-script").value.trim();
+      if (script.length < 20) { brollStatus.textContent = "Ajoutez un script ou une description plus complète."; return; }
+      brollButton.disabled = true; brollButton.textContent = "Analyse des scènes…";
+      brollStatus.textContent = "Le directeur photo IA transforme le texte en plans visuels et recherches de B-roll.";
+      brollResult.replaceChildren();
+      try {
+        const response = await fetch(API_URL + "/api/creative/suggest-broll", {
+          method: "POST", headers: {"Content-Type":"application/json"},
+          body: JSON.stringify({script, platform:$("jv-broll-platform").value, style:$("jv-broll-style").value})
+        });
+        const data = await response.json();
+        if (!response.ok) throw new Error(data.error || "La génération du storyboard a échoué.");
+        (data.scenes || []).forEach((scene,index) => {
+          const card = document.createElement("article");
+          const title = document.createElement("strong");
+          title.textContent = (scene.time || "Plan "+(index+1)) + " · " + (scene.shotType || "Plan de coupe");
+          const visual = document.createElement("p"); visual.textContent = scene.visual || "";
+          const voice = document.createElement("small"); voice.textContent = "Voix / passage : " + (scene.voiceLine || "—");
+          const search = document.createElement("p"); search.textContent = "Recherche stock : " + (scene.searchQuery || "—");
+          const transition = document.createElement("p"); transition.textContent = "Transition : " + (scene.transition || "Coupe simple");
+          const overlay = document.createElement("p"); overlay.textContent = "Texte écran : " + (scene.onScreenText || "—");
+          const prompt = document.createElement("p"); prompt.textContent = "Prompt visuel : " + (scene.aiVisualPrompt || "—");
+          const actions = document.createElement("div"); actions.className = "jv-script-actions";
+          actions.append(
+            makeButton("Copier recherche stock", () => copyText(scene.searchQuery || "")),
+            makeButton("Copier prompt visuel", () => copyText(scene.aiVisualPrompt || "")),
+            makeButton("Copier le plan", () => copyText([title.textContent,visual.textContent,search.textContent,transition.textContent,overlay.textContent,prompt.textContent].join("\n")))
+          );
+          card.append(title,visual,voice,search,transition,overlay,prompt,actions);
+          brollResult.appendChild(card);
+        });
+        brollStatus.textContent = (data.count || 0) + " plans préparés. Les requêtes et prompts sont prêts à copier dans vos outils de recherche ou de génération visuelle.";
+      } catch (error) {
+        brollStatus.textContent = error.message || "Erreur pendant la création du storyboard.";
+      } finally {
+        brollButton.disabled = false; brollButton.textContent = "✦ Générer le storyboard B-roll";
       }
     });
 

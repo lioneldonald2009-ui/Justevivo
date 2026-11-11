@@ -36,7 +36,6 @@ document.addEventListener("DOMContentLoaded", function () {
       </div></section>
       <section class="dashboard-recent jv-recent-projects"><div class="dashboard-recent-head"><div><span class="jv-card-kicker">VOTRE HISTORIQUE</span><h4>Projets récents</h4></div><div><button type="button" class="button ghost" id="jv-dashboard-projects">Tous mes projets</button> <button type="button" class="button ghost" id="jv-dashboard-refresh">Actualiser</button></div></div><div id="jv-dashboard-recent-list" class="dashboard-recent-list" aria-live="polite"><p class="dashboard-muted">Chargement des projets…</p></div></section>`;
     workspace.insertBefore(dashboard, workspace.querySelector(".upload-zone"));
-    workspace.insertBefore(dashboard, workspace.querySelector(".upload-zone"));
   }
 
   const editorHeading = workspace.querySelector(".workspace-head");

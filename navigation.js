@@ -67,6 +67,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function showDashboard() {
+    subscriptionPage.hidden = true;
     dashboard.hidden = false;
     studioParts.forEach(el => { el.hidden = true; });
     setActive("dashboard");
@@ -90,6 +91,7 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function showStudio() {
+    subscriptionPage.hidden = true;
     dashboard.hidden = true;
     studioParts.forEach(el => { el.hidden = false; });
   }

@@ -118,6 +118,7 @@
       form.append("brollStart",$("jv-broll-start").value);
       form.append("brollEnd",$("jv-broll-end").value);
       form.append("brollScale",$("jv-broll-scale").value);
+      form.append("brollPosition",$("jv-broll-position").value);
       form.append("audioVolume",String(Number($("jv-compose-volume").value)/100));
       composeButton.disabled = true; composeButton.textContent = "Rendu FFmpeg en cours…";
       composeStatus.textContent = "Le serveur assemble vos pistes. Gardez cette page ouverte pendant le traitement.";

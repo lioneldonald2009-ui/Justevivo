@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", function () {
         <article class="is-featured"><span class="jv-subscription-tag">LE PLUS POPULAIRE</span><h4>Pro</h4><strong>15 $ <small>/ mois</small></strong><p>Pour les créateurs actifs.</p><ul><li>50 vidéos par mois</li><li>Jusqu'à 10 minutes par vidéo</li><li>Outils IA avancés</li><li>Modèles de texte animés</li><li>Export sans filigrane</li></ul><button type="button" data-subscription-plan="Pro">Choisir Pro</button></article>
         <article><span class="jv-subscription-tag">POUR LES ÉQUIPES</span><h4>Business</h4><strong>25 $ <small>/ mois</small></strong><p>Pour les productions soutenues.</p><ul><li>110 vidéos par mois</li><li>Jusqu'à 30 minutes par vidéo</li><li>Outils IA avancés</li><li>Personnalisation avancée</li><li>Export HD sans filigrane</li></ul><button type="button" data-subscription-plan="Business">Choisir Business</button></article>
       </div>
-      <p class="jv-subscription-notice">Paiement sécurisé par Dodo Payments · Abonnement mensuel renouvelé automatiquement. Vous pouvez gérer ou annuler votre abonnement depuis votre espace de facturation. Votre formule sera activée après confirmation sécurisée du paiement.</p>`;
+      <p class="jv-subscription-notice">Paiement sécurisé par Dodo Payments · Abonnement mensuel renouvelé automatiquement. Votre formule JUSTEVIVO sera activée après confirmation sécurisée du paiement.</p>`;
     workspace.insertBefore(subscriptionPage, workspace.querySelector(".upload-zone"));
   }
 

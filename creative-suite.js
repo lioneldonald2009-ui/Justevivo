@@ -66,7 +66,7 @@
         </div>
       </div>
       <div class="jv-suite-view" data-view="timeline" hidden>
-        <div class="jv-tool-card jv-timeline-card"><div class="jv-timeline-head"><div><h4>Timeline de montage</h4><p>Contrôlez la lecture, le point de lecture et les limites de votre séquence.</p></div><div class="jv-player-actions"><button type="button" data-action="play">▶ Lecture</button><button type="button" data-action="pause">Ⅱ Pause</button><button type="button" data-action="split">✂ Ajouter un point de coupe</button></div></div><div class="jv-time-row"><span id="jv-current-time">00:00</span><input id="jv-playhead" type="range" min="0" max="100" value="0"><span id="jv-total-time">00:00</span></div><div class="jv-track-label">PISTE VIDÉO PRINCIPALE</div><div class="jv-track"><div id="jv-main-clip" class="jv-main-clip">Vidéo principale</div><div id="jv-cut-markers"></div></div><div class="jv-trim-grid"><label>Début de séquence <output id="jv-trim-start-value">0.0 s</output><input id="jv-trim-start" type="range" min="0" max="100" value="0"></label><label>Fin de séquence <output id="jv-trim-end-value">100 %</output><input id="jv-trim-end" type="range" min="0" max="100" value="100"></label></div><button type="button" class="jv-action" data-action="preview-trim">Prévisualiser la zone sélectionnée</button><p class="jv-note">Les repères et limites sont non destructifs : le fichier source n'est pas modifié.</p><div id="jv-timeline-feedback" class="jv-feedback" aria-live="polite"></div></div>
+        <div class="jv-tool-card jv-timeline-card"><div class="jv-timeline-head"><div><h4>Timeline de montage</h4><p>Contrôlez la lecture, le point de lecture et les limites de votre séquence.</p></div><div class="jv-player-actions"><button type="button" data-action="play">▶ Lecture</button><button type="button" data-action="pause">Ⅱ Pause</button><button type="button" data-action="split">✂ Ajouter un point de coupe</button></div></div><div class="jv-time-row"><span id="jv-current-time">00:00</span><input id="jv-playhead" type="range" min="0" max="100" value="0"><span id="jv-total-time">00:00</span></div><div class="jv-track-label">PISTE VIDÉO PRINCIPALE</div><div class="jv-track"><div id="jv-main-clip" class="jv-main-clip">Vidéo principale</div><div id="jv-cut-markers"></div></div><div class="jv-trim-grid"><label>Début de séquence <output id="jv-trim-start-value">0.0 s</output><input id="jv-trim-start" type="range" min="0" max="100" value="0"></label><label>Fin de séquence <output id="jv-trim-end-value">100 %</output><input id="jv-trim-end" type="range" min="0" max="100" value="100"></label></div><div class="jv-timeline-actions"><button type="button" class="jv-action" data-action="preview-trim">▶ Prévisualiser la zone</button><button type="button" class="jv-action jv-action-primary" data-action="export-trim">↓ Exporter la séquence</button></div><div class="jv-zoom-control"><label for="jv-preview-zoom">Zoom de cadrage de l’aperçu <output id="jv-preview-zoom-value">1,0×</output></label><input id="jv-preview-zoom" type="range" min="1" max="2.5" step="0.1" value="1"><button type="button" class="jv-action" data-action="reset-zoom">Réinitialiser le zoom</button><small class="jv-note">Le zoom est un outil de cadrage de prévisualisation. Il n’est pas intégré au fichier exporté pour le moment.</small></div><p class="jv-note">Les repères et limites sont non destructifs : le fichier source n'est pas modifié. L’export de séquence crée un nouveau MP4 et conserve l’original.</p><div id="jv-timeline-feedback" class="jv-feedback" aria-live="polite"></div></div>
       </div>
       <div class="jv-suite-footer"><span>Les outils locaux sont utilisables avec vos fichiers.</span><button type="button" data-action="save-session">Enregistrer la configuration du montage</button></div>
     `;
@@ -90,6 +90,12 @@
     $("#jv-playhead").addEventListener("input",e=>{video.currentTime=Number(e.target.value);});
     $("#jv-trim-start").addEventListener("input",e=>{$("#jv-trim-start-value").textContent=Number(e.target.value).toFixed(1)+" s";});
     $("#jv-trim-end").addEventListener("input",e=>{$("#jv-trim-end-value").textContent=fmt(e.target.value);});
+    $("#jv-preview-zoom").addEventListener("input",e=>{
+      const scale=Number(e.target.value)||1;
+      video.style.transform="scale("+scale+")";
+      video.style.transformOrigin="50% 50%";
+      $("#jv-preview-zoom-value").textContent=scale.toFixed(1).replace(".",",")+"×";
+    });
     $("#jv-media-input").addEventListener("change",e=>{
       [...e.target.files].forEach(file=>{const url=URL.createObjectURL(file);mediaFiles.push({file,url});});
       $("#jv-media-count").textContent=mediaFiles.length+" média(s) importé(s) dans cette session.";
@@ -141,6 +147,27 @@
       if(a==="pause")video.pause();
       if(a==="split")addCut(video.currentTime||0);
       if(a==="preview-trim"){const d=duration(),s=Number($("#jv-trim-start").value),end=Number($("#jv-trim-end").value);if(!d){$("#jv-timeline-feedback").textContent="Importez une vidéo avant de régler la séquence.";return;}if(s>=end){$("#jv-timeline-feedback").textContent="Le début doit être placé avant la fin.";return;}video.currentTime=s;video.play().catch(()=>{});$("#jv-timeline-feedback").textContent="Prévisualisation de "+fmt(s)+" à "+fmt(end)+". Le découpage n'est pas encore exporté.";}
+      if(a==="reset-zoom"){video.style.transform="scale(1)";$("#jv-preview-zoom").value="1";$("#jv-preview-zoom-value").textContent="1,0×";}
+      if(a==="export-trim"){
+        const input=document.getElementById("videoInput"),file=input&&input.files&&input.files[0];
+        const d=duration(),s=Number($("#jv-trim-start").value),end=Number($("#jv-trim-end").value),status=$("#jv-timeline-feedback");
+        if(!file||!file.type.startsWith("video/")){status.textContent="Importez d’abord une vidéo dans le studio principal.";return;}
+        if(!d||s<0||end>d||end<=s){status.textContent="Vérifiez les points de début et de fin.";return;}
+        if(end-s<3||end-s>180){status.textContent="Pour cet export, choisissez une séquence de 3 à 180 secondes.";return;}
+        if(file.size>200*1024*1024){status.textContent="La vidéo dépasse la limite serveur de 200 Mo.";return;}
+        b.disabled=true;const original=b.textContent;b.textContent="Rendu FFmpeg…";status.textContent="Création du nouveau MP4 à partir de la zone sélectionnée. L’original reste intact.";
+        const form=new FormData();form.append("video",file,file.name);form.append("start",String(s));form.append("end",String(end));
+        try{
+          const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),5*60*1000);
+          const response=await fetch(API_URL+"/api/video/render-clip",{method:"POST",body:form,signal:controller.signal});
+          clearTimeout(timer);
+          if(!response.ok){let data={};try{data=await response.json();}catch(_){}throw new Error(data.error||"L’export de la séquence a échoué.");}
+          const blob=await response.blob();if(!blob.size)throw new Error("Le fichier exporté est vide.");
+          const url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download="justevivo-sequence-"+Date.now()+".mp4";document.body.appendChild(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),60000);
+          status.textContent="Export terminé : téléchargement du nouveau MP4 lancé.";
+        }catch(error){status.textContent=error.name==="AbortError"?"Le rendu a dépassé cinq minutes. Essayez une séquence plus courte.":(error.message||"Erreur pendant l’export.");}
+        finally{b.disabled=false;b.textContent=original;}
+      }
       if(a==="broll-hint")alert("Importez vos images ou vidéos dans la bibliothèque, puis sélectionnez un média pour le charger dans l'aperçu comme B-roll.");
       if(a==="save-brand"){const obj={name:$("#jv-brand-name").value,primary:$("#jv-brand-primary").value,secondary:$("#jv-brand-secondary").value,font:$("#jv-brand-font").value};localStorage.setItem("justevivo_brand_kit_v1",JSON.stringify(obj));$("#jv-brand-feedback").textContent="Brand Kit enregistré sur cet appareil.";syncBrand();}
       if(a==="translate-clips"){

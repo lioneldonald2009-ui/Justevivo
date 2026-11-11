@@ -34,7 +34,7 @@
         <button type="button" data-tab="audio">Audio</button>
         <button type="button" data-tab="brand">Brand Kit</button>
         <button type="button" data-tab="clips">Magic Clips</button>
-        <button type="button" data-tab="timeline">Timeline</button>
+        <button type="button" data-tab="timeline">Timeline</button>\n        <button type="button" data-tab="production">Production IA</button>
       </div>
       <div class="jv-suite-view" data-view="media">
         <div class="jv-suite-grid">
@@ -68,13 +68,47 @@
       <div class="jv-suite-view" data-view="timeline" hidden>
         <div class="jv-tool-card jv-timeline-card"><div class="jv-timeline-head"><div><h4>Timeline de montage</h4><p>Contrôlez la lecture, le point de lecture et les limites de votre séquence.</p></div><div class="jv-player-actions"><button type="button" data-action="play">▶ Lecture</button><button type="button" data-action="pause">Ⅱ Pause</button><button type="button" data-action="split">✂ Ajouter un point de coupe</button></div></div><div class="jv-time-row"><span id="jv-current-time">00:00</span><input id="jv-playhead" type="range" min="0" max="100" value="0"><span id="jv-total-time">00:00</span></div><div class="jv-track-label">PISTE VIDÉO PRINCIPALE</div><div class="jv-track"><div id="jv-main-clip" class="jv-main-clip">Vidéo principale</div><div id="jv-cut-markers"></div></div><div class="jv-trim-grid"><label>Début de séquence <output id="jv-trim-start-value">0.0 s</output><input id="jv-trim-start" type="range" min="0" max="100" value="0"></label><label>Fin de séquence <output id="jv-trim-end-value">100 %</output><input id="jv-trim-end" type="range" min="0" max="100" value="100"></label></div><div class="jv-timeline-actions"><button type="button" class="jv-action" data-action="preview-trim">▶ Prévisualiser la zone</button><button type="button" class="jv-action jv-action-primary" data-action="export-trim">↓ Exporter la séquence</button></div><div class="jv-zoom-control"><label for="jv-preview-zoom">Zoom de cadrage de l’aperçu <output id="jv-preview-zoom-value">1,0×</output></label><input id="jv-preview-zoom" type="range" min="1" max="2.5" step="0.1" value="1"><button type="button" class="jv-action" data-action="reset-zoom">Réinitialiser le zoom</button><small class="jv-note">Le zoom est un outil de cadrage de prévisualisation. Il n’est pas intégré au fichier exporté pour le moment.</small></div><p class="jv-note">Les repères et limites sont non destructifs : le fichier source n'est pas modifié. L’export de séquence crée un nouveau MP4 et conserve l’original.</p><div id="jv-timeline-feedback" class="jv-feedback" aria-live="polite"></div></div>
       </div>
+      <div class="jv-suite-view" data-view="production" hidden>
+        <div class="jv-production-intro"><span class="jv-eyebrow">WORKFLOW DE CRÉATION ASSISTÉ PAR IA</span><h4>Du brief à la vidéo finalisée.</h4><p>Générez un script tournable, ajoutez vos plans B-roll et mixez une voix off ou une musique dans un nouveau fichier MP4.</p></div>
+        <div class="jv-production-grid">
+          <article class="jv-tool-card">
+            <div class="jv-tool-icon">✦</div><span class="jv-eyebrow">01 · SCRIPT IA</span><h4>Créer un script vidéo complet</h4>
+            <label>Sujet de la vidéo<textarea id="jv-script-topic" class="jv-text-input" rows="3" maxlength="1200" placeholder="Ex. : 3 erreurs à éviter quand on lance une boutique en ligne…"></textarea></label>
+            <div class="jv-production-fields">
+              <label>Plateforme<select id="jv-script-platform" class="jv-text-input"><option>TikTok</option><option>Instagram Reels</option><option>YouTube Shorts</option><option>YouTube</option><option>Facebook</option></select></label>
+              <label>Durée cible<select id="jv-script-duration" class="jv-text-input"><option value="15">15 secondes</option><option value="30">30 secondes</option><option value="45" selected>45 secondes</option><option value="60">60 secondes</option><option value="90">90 secondes</option></select></label>
+              <label>Ton<select id="jv-script-tone" class="jv-text-input"><option>Naturel et dynamique</option><option>Expert et pédagogique</option><option>Storytelling émotionnel</option><option>Humoristique</option><option>Premium et élégant</option><option>Direct et persuasif</option></select></label>
+              <label>Objectif<select id="jv-script-objective" class="jv-text-input"><option>Engagement</option><option>Vues et rétention</option><option>Éducation</option><option>Conversion</option><option>Notoriété</option></select></label>
+            </div>
+            <button type="button" class="jv-action jv-action-primary" id="jv-generate-script">✦ Générer le script et le plan de tournage</button>
+            <p class="jv-feedback" id="jv-script-status" role="status" aria-live="polite"></p>
+            <div id="jv-script-result" class="jv-script-result"></div>
+          </article>
+          <article class="jv-tool-card">
+            <div class="jv-tool-icon">▣</div><span class="jv-eyebrow">02 · B-ROLL & VOIX OFF</span><h4>Composer les pistes de votre vidéo</h4>
+            <p class="jv-note">La vidéo principale est celle déjà importée dans le studio. Ajoutez un plan d’illustration, une voix off enregistrée ou une musique. L’original ne sera jamais écrasé.</p>
+            <label>Plan B-roll (facultatif)<input id="jv-compose-broll" class="jv-text-input" type="file" accept="video/*"></label>
+            <div class="jv-production-fields">
+              <label>Début du B-roll (secondes)<input id="jv-broll-start" class="jv-text-input" type="number" min="0" step="0.5" value="0"></label>
+              <label>Fin du B-roll (secondes)<input id="jv-broll-end" class="jv-text-input" type="number" min="0.5" step="0.5" value="8"></label>
+              <label>Taille de l’incrustation<select id="jv-broll-scale" class="jv-text-input"><option value="22">Petite · 22 %</option><option value="28" selected>Moyenne · 28 %</option><option value="38">Grande · 38 %</option><option value="48">Très grande · 48 %</option></select></label>
+            </div>
+            <label>Voix off ou musique (facultatif)<input id="jv-compose-audio" class="jv-text-input" type="file" accept="audio/*"></label>
+            <label>Volume de la piste ajoutée <output id="jv-compose-volume-label">22 %</output><input id="jv-compose-volume" type="range" min="0" max="100" value="22"></label>
+            <button type="button" class="jv-action jv-action-primary" id="jv-compose-video">▶ Assembler et exporter le MP4</button>
+            <p class="jv-feedback" id="jv-compose-status" role="status" aria-live="polite"></p>
+            <div id="jv-compose-result"></div>
+            <small class="jv-note">Le B-roll est ajouté en incrustation dans le coin inférieur droit. La piste audio ajoutée est mixée à la vidéo d’origine. Le traitement est réalisé par FFmpeg sur le serveur.</small>
+          </article>
+        </div>
+      </div>
       <div class="jv-suite-footer"><span>Les outils locaux sont utilisables avec vos fichiers.</span><button type="button" data-action="save-session">Enregistrer la configuration du montage</button></div>
     `;
     workspace.appendChild(panel);
 
     const $=(s)=>panel.querySelector(s);
-    const views=["media","audio","brand","clips","timeline"];
-    const titles={media:["Bibliothèque média","Vos ressources visuelles et vos plans d'illustration."],audio:["Audio & effets","Préparez et mixez vos pistes audio."],brand:["Brand Kit","Enregistrez une identité visuelle cohérente."],clips:["Magic Clips","Préparez des extraits courts à partir d'une longue vidéo."],timeline:["Timeline de montage","Organisez vos repères et votre séquence vidéo."]};
+    const views=["media","audio","brand","clips","timeline","production"];
+    const titles={media:["Bibliothèque média","Vos ressources visuelles et vos plans d'illustration."],audio:["Audio & effets","Préparez et mixez vos pistes audio."],brand:["Brand Kit","Enregistrez une identité visuelle cohérente."],clips:["Magic Clips","Préparez des extraits courts à partir d'une longue vidéo."],timeline:["Timeline de montage","Organisez vos repères et votre séquence vidéo."],production:["Production IA","Générez vos scripts et assemblez les pistes de votre vidéo."]};
     const setView=(name)=>{
       views.forEach(v=>{const el=$('[data-view="'+v+'"]');el.hidden=v!==name;});
       panel.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===name));

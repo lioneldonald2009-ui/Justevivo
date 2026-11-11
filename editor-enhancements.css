@@ -1,0 +1,18 @@
+/* JUSTEVIVO — Studio polish & responsive editor controls */
+.jv-transport{display:grid;gap:10px;margin:12px 0 18px;padding:12px;border:1px solid #e2e7f1;border-radius:14px;background:linear-gradient(145deg,#fff,#f7f8ff);box-shadow:0 8px 22px rgba(24,35,64,.055);color:#1b2740}
+.jv-transport-main{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.jv-transport button{min-height:38px;padding:8px 12px;border:1px solid #dce2ef;border-radius:10px;background:#fff;color:#34415d;font:700 12px/1 inherit;cursor:pointer}
+.jv-transport button:hover{border-color:#8d7af8;background:#f3f0ff;color:#5944d3}
+.jv-transport .jv-transport-play{min-width:48px;background:linear-gradient(135deg,#7657f6,#5740d5);border-color:#7657f6;color:#fff;font-size:15px}
+.jv-transport-meta{display:flex;justify-content:space-between;align-items:center;gap:12px;color:#65728a;font-size:12px}
+.jv-transport-meta label{display:flex;align-items:center;gap:7px;font-weight:700}
+.jv-transport select{padding:7px 9px;border:1px solid #dce2ef;border-radius:8px;background:#fff;color:#26334e;font:700 12px inherit}
+.jv-shortcuts{border-top:1px solid #e8ebf3;padding-top:8px;color:#69758b;font-size:11px}
+.jv-shortcuts summary{cursor:pointer;font-weight:800;color:#5c4ac4}
+.jv-shortcuts p{line-height:1.7;margin:7px 0 0}
+.jv-shortcuts kbd{padding:2px 5px;border:1px solid #d8deeb;border-radius:5px;background:#fff;color:#26334e;font:700 10px inherit}
+#previewFrame.jv-drop-active{outline:3px dashed #8067f7;outline-offset:4px;background:#f2efff}
+.preview-panel,.controls-panel{box-shadow:0 12px 34px rgba(22,34,62,.055)}
+#videoPreview{max-width:100%;max-height:72vh;object-fit:contain}
+@media(max-width:600px){.jv-transport{padding:10px}.jv-transport-main{gap:6px}.jv-transport button{padding:8px 10px}.jv-transport-meta{font-size:11px}}
+@media(prefers-reduced-motion:reduce){.jv-transport *{transition:none!important}}

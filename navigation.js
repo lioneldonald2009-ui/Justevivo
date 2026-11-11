@@ -38,6 +38,27 @@ document.addEventListener("DOMContentLoaded", function () {
     workspace.insertBefore(dashboard, workspace.querySelector(".upload-zone"));
   }
 
+
+  // Page dédiée aux formules et à l'abonnement.
+  let subscriptionPage = document.getElementById("jv-subscription-page");
+  if (!subscriptionPage) {
+    subscriptionPage = document.createElement("section");
+    subscriptionPage.id = "jv-subscription-page";
+    subscriptionPage.className = "workspace-page jv-subscription-page";
+    subscriptionPage.hidden = true;
+    subscriptionPage.innerHTML = `
+      <div class="jv-account-heading"><div><span class="jv-account-eyebrow">JUSTEVIVO AI · OFFRES</span><h3>Formules & abonnement</h3><p>Comparez les offres et consultez les limites de votre espace.</p></div><button type="button" class="jv-profile-edit" id="jv-subscription-back">← Retour au tableau de bord</button></div>
+      <div class="jv-subscription-current"><div><span class="jv-card-kicker">VOTRE FORMULE ACTUELLE</span><h4 id="jv-subscription-current-plan">Chargement de votre formule…</h4><p id="jv-subscription-current-note">Les informations de votre compte seront affichées ici.</p></div><button type="button" id="jv-subscription-refresh">Actualiser mon compte</button></div>
+      <div class="jv-subscription-grid">
+        <article><span class="jv-subscription-tag">DÉCOUVERTE</span><h4>Gratuit</h4><strong>0 FCFA <small>/ mois</small></strong><p>Pour découvrir JUSTEVIVO.</p><ul><li>3 vidéos par mois</li><li>Jusqu'à 1 minute par vidéo</li><li>Sous-titres IA essentiels</li><li>Accès au studio</li></ul><span class="jv-subscription-current-label">Essai gratuit</span></article>
+        <article><span class="jv-subscription-tag">POUR COMMENCER</span><h4>Starter</h4><strong>10 $ <small>/ mois</small></strong><p>Pour publier régulièrement.</p><ul><li>25 vidéos par mois</li><li>Jusqu'à 5 minutes par vidéo</li><li>Sous-titres automatiques</li><li>Styles essentiels</li><li>Export sans filigrane</li></ul><button type="button" data-subscription-plan="Starter">Choisir Starter</button></article>
+        <article class="is-featured"><span class="jv-subscription-tag">LE PLUS POPULAIRE</span><h4>Pro</h4><strong>15 $ <small>/ mois</small></strong><p>Pour les créateurs actifs.</p><ul><li>50 vidéos par mois</li><li>Jusqu'à 10 minutes par vidéo</li><li>Outils IA avancés</li><li>Modèles de texte animés</li><li>Export sans filigrane</li></ul><button type="button" data-subscription-plan="Pro">Choisir Pro</button></article>
+        <article><span class="jv-subscription-tag">POUR LES ÉQUIPES</span><h4>Business</h4><strong>25 $ <small>/ mois</small></strong><p>Pour les productions soutenues.</p><ul><li>110 vidéos par mois</li><li>Jusqu'à 30 minutes par vidéo</li><li>Outils IA avancés</li><li>Personnalisation avancée</li><li>Export HD sans filigrane</li></ul><button type="button" data-subscription-plan="Business">Choisir Business</button></article>
+      </div>
+      <p class="jv-subscription-notice">Information importante : les tarifs ci-dessus sont les tarifs actuellement affichés. Le paiement en ligne et l'activation automatique des abonnements ne sont pas encore ouverts. Le bouton de choix prépare votre demande, mais aucun paiement ne sera débité.</p>`;
+    workspace.insertBefore(subscriptionPage, workspace.querySelector(".upload-zone"));
+  }
+
   const editorHeading = workspace.querySelector(".workspace-head");
   const studioParts = [editorHeading, upload, editor, warning].filter(Boolean);
 
@@ -51,6 +72,21 @@ document.addEventListener("DOMContentLoaded", function () {
     setActive("dashboard");
     refreshDashboard();
     workspace.scrollIntoView({ behavior: "smooth", block: "start" });
+  }
+
+
+  function showSubscription() {
+    dashboard.hidden = true;
+    subscriptionPage.hidden = false;
+    studioParts.forEach(el => { el.hidden = true; });
+    setActive("pricing");
+    const email=document.getElementById("jv-account-email");
+    const current=document.getElementById("jv-subscription-current-plan");
+    const note=document.getElementById("jv-subscription-current-note");
+    const plan=document.getElementById("jv-account-plan");
+    current.textContent=plan?plan.textContent:"Formule de votre compte";
+    note.textContent=email&&email.textContent?"Compte : "+email.textContent:"Connectez-vous pour consulter vos informations personnelles.";
+    subscriptionPage.scrollIntoView({behavior:"smooth",block:"start"});
   }
 
   function showStudio() {
@@ -78,8 +114,11 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("jv-dashboard-refresh").addEventListener("click", refreshDashboard);
   document.getElementById("jv-promo-create").addEventListener("click",()=>{showStudio();workspace.scrollIntoView({behavior:"smooth",block:"start"});});
   document.getElementById("jv-open-account-settings").addEventListener("click",()=>{showStudio();const tab=document.querySelector('.jv-editor-panel-tab[data-panel="settings"]');if(tab)tab.click();});
-  document.getElementById("jv-see-all-plans").addEventListener("click",()=>{const p=document.getElementById("pricing");if(p){p.scrollIntoView({behavior:"smooth",block:"start"});history.replaceState(null,"","#pricing");}});
-  dashboard.querySelectorAll("[data-jv-plan]").forEach(b=>b.addEventListener("click",()=>{const p=document.getElementById("pricing");if(p){p.scrollIntoView({behavior:"smooth",block:"start"});history.replaceState(null,"","#pricing");}}));
+  document.getElementById("jv-see-all-plans").addEventListener("click",showSubscription);
+  dashboard.querySelectorAll("[data-jv-plan]").forEach(b=>b.addEventListener("click",showSubscription));
+  document.getElementById("jv-subscription-back").addEventListener("click",showDashboard);
+  document.getElementById("jv-subscription-refresh").addEventListener("click",async()=>{await refreshDashboard();showSubscription();});
+  subscriptionPage.querySelectorAll("[data-subscription-plan]").forEach(b=>b.addEventListener("click",()=>{const p=b.dataset.subscriptionPlan;const note=document.getElementById("jv-subscription-current-note");note.textContent="Votre demande pour la formule "+p+" est notée. Le paiement en ligne n’est pas encore activé ; contactez justevivo221@gmail.com pour connaître les modalités.";note.scrollIntoView({behavior:"smooth",block:"nearest"});}));
   dashboard.querySelectorAll("[data-jv-action]").forEach(b=>b.addEventListener("click",()=>{const a=b.dataset.jvAction;if(a==="new"){showStudio();return;}showStudio();const p=a==="captions"?"text":a==="styles"?"styles":a==="audio"?"audio":a==="export"?"export":"text";const tab=document.querySelector('.jv-editor-panel-tab[data-panel="'+p+'"]');if(tab)tab.click();if(a==="translate"){const tr=document.getElementById("translateSubtitlesButton");if(tr)tr.click();}}));
 
   document.getElementById("jv-dashboard-projects").addEventListener("click", () => {
@@ -93,8 +132,7 @@ document.addEventListener("DOMContentLoaded", function () {
       if (link.dataset.page === "dashboard") {
         showDashboard();
       } else if (link.dataset.page === "pricing") {
-        const pricing = document.getElementById("pricing");
-        if (pricing) pricing.scrollIntoView({behavior:"smooth",block:"start"});
+        showSubscription();
       } else if (link.dataset.page === "upcoming") {
         showDashboard();
         const features = dashboard.querySelector(".jv-feature-directory");

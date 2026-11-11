@@ -91,8 +91,20 @@ document.addEventListener("DOMContentLoaded", function () {
     link.addEventListener("click", () => {
       if (link.dataset.page === "dashboard") {
         showDashboard();
+      } else if (link.dataset.page === "pricing") {
+        const pricing = document.getElementById("pricing");
+        if (pricing) pricing.scrollIntoView({behavior:"smooth",block:"start"});
+      } else if (link.dataset.page === "upcoming") {
+        showDashboard();
+        const features = dashboard.querySelector(".jv-feature-directory");
+        if (features) features.scrollIntoView({behavior:"smooth",block:"start"});
       } else {
         showStudio();
+        const panel = link.dataset.jvPanel;
+        if (panel) {
+          const tab = document.querySelector('.jv-editor-panel-tab[data-panel="' + panel + '"]');
+          if (tab) tab.click();
+        }
       }
     });
   });

@@ -697,6 +697,22 @@ toolsCss.textContent = `
   .tools-head h2{font-size:28px}
 }
 `;
+
+/* Palette adaptative de la rubrique Générateurs IA */
+toolsCss.textContent += `
+html[data-theme="light"] .tools-section{color:#17213a!important}
+html[data-theme="light"] .tools-head h2{color:#17213a!important}
+html[data-theme="light"] .tools-head h2 span{-webkit-text-fill-color:transparent!important;background:linear-gradient(90deg,#7545df,#168fca)!important;background-clip:text!important;-webkit-background-clip:text!important}
+html[data-theme="light"] .tools-head p{color:#596781!important}
+html[data-theme="light"] .tools-card{background:#fff!important;border-color:#dce2ee!important;box-shadow:0 18px 48px rgba(28,42,75,.09)!important}
+html[data-theme="light"] .tools-col{border-color:#e3e7f0!important}
+html[data-theme="light"] .tools-col h3{color:#202b43!important}
+html[data-theme="light"] .tool-link{color:#47546c!important}
+html[data-theme="light"] .tool-link:hover{background:#f0ebff!important;color:#5734bd!important}
+html[data-theme="dark"] .tools-card{background:#0e1426!important}
+html[data-theme="dark"] .tools-col h3{color:#f4f7ff!important}
+html[data-theme="dark"] .tool-link{color:#d5dced!important}
+`;
 document.head.appendChild(toolsCss);
 
 function mkEl(tag, css, text) {

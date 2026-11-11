@@ -101,6 +101,14 @@ document.addEventListener("DOMContentLoaded", function () {
         if (features) features.scrollIntoView({behavior:"smooth",block:"start"});
       } else {
         showStudio();
+        if (link.dataset.page === "production") {
+          const productionTab = document.querySelector('#jv-creative-suite .jv-suite-tabs [data-tab="production"]');
+          if (productionTab) productionTab.click();
+          const productionView = document.querySelector('#jv-creative-suite [data-view="production"]');
+          if (productionView) productionView.scrollIntoView({behavior:"smooth",block:"start"});
+          setActive("production");
+          return;
+        }
         const panel = link.dataset.jvPanel;
         if (panel) {
           const tab = document.querySelector('.jv-editor-panel-tab[data-panel="' + panel + '"]');

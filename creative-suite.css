@@ -19,3 +19,14 @@
 
 .jv-clip-preview-player{display:block;width:100%;max-height:360px;aspect-ratio:16/9;object-fit:contain;background:#101827;border-radius:12px}
 .jv-clip-preview-player[hidden]{display:none!important}
+
+/* Timeline workflow: export range and zoom preview */
+.jv-timeline-actions{display:flex;gap:10px;flex-wrap:wrap;margin:12px 0}
+.jv-zoom-control{display:grid;grid-template-columns:1fr auto;gap:9px 14px;align-items:center;padding:14px;margin:14px 0;border:1px solid var(--jv-v7-line,#e4e9f2);border-radius:13px;background:#f8faff}
+.jv-zoom-control label{font-size:12px;font-weight:800;color:#34435d}
+.jv-zoom-control output{color:#7057f5;margin-left:8px}
+.jv-zoom-control input{grid-column:1/-1;width:100%;accent-color:#7057f5}
+.jv-zoom-control .jv-note{grid-column:1/-1;margin:0}
+.jv-zoom-control button{grid-column:1/-1;justify-self:start}
+#previewFrame video{transition:transform .12s ease;transform-origin:center center}
+@media(max-width:600px){.jv-timeline-actions>*{flex:1 1 100%}.jv-zoom-control{grid-template-columns:1fr}}

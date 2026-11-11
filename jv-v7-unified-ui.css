@@ -185,3 +185,43 @@ html[data-theme="dark"] .jv-account-bar button.button.ghost:hover{
   .jv-account-bar>div:last-child{width:100%!important;justify-content:flex-end!important}
   .jv-account-bar button{min-height:40px!important}
 }
+
+
+/* JUSTEVIVO — compte et accès aux abonnements : lisibilité et priorité visuelle */
+.jv-editor-settings-panel{width:100%;max-width:100%;min-width:0}
+.jv-editor-settings-panel .jv-settings-card{
+  display:block!important;visibility:visible!important;opacity:1!important;
+  width:100%;padding:clamp(16px,2.2vw,24px)!important;margin:0 0 16px!important;
+  background:#fff!important;border:1px solid #e1e7f0!important;border-radius:18px!important;
+  box-shadow:0 10px 30px rgba(25,38,68,.06)!important;overflow:visible!important;
+}
+.jv-editor-settings-panel .jv-settings-card h5{font-size:17px!important;font-weight:800!important;color:#17243b!important;margin:0 0 16px!important}
+.jv-account-summary{
+  display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 18px;
+  padding:14px 16px!important;margin:0 0 16px!important;
+  color:#263550!important;background:#f7f8fc!important;
+  border:1px solid #e4e9f2!important;border-radius:14px!important;
+  white-space:normal!important;overflow-wrap:anywhere!important;line-height:1.5!important;
+}
+.jv-account-summary-row{display:flex;flex-direction:column;gap:4px;min-width:0;padding:10px 0;border-bottom:1px solid #e5e9f1}
+.jv-account-summary-label{font-size:11px;color:#71809a;font-weight:600}
+.jv-account-summary-value{font-size:13px;color:#1b2942;font-weight:750;overflow-wrap:anywhere}
+#jv-settings-plans{
+  display:flex!important;align-items:center!important;justify-content:center!important;gap:10px!important;
+  width:100%!important;min-height:50px!important;margin:0!important;padding:14px 18px!important;
+  visibility:visible!important;opacity:1!important;position:relative!important;z-index:4!important;
+  color:#fff!important;background:linear-gradient(105deg,#7657f5,#a044ee)!important;
+  border:1px solid #7657f5!important;border-radius:13px!important;
+  box-shadow:0 9px 22px rgba(112,79,230,.25)!important;
+  font-size:14px!important;font-weight:850!important;line-height:1.3!important;
+  white-space:normal!important;cursor:pointer!important;
+}
+#jv-settings-plans:hover{filter:brightness(1.08);transform:translateY(-1px)}
+#jv-settings-plans:focus-visible{outline:3px solid #9b83ff!important;outline-offset:3px!important}
+.jv-editor-settings-panel .jv-settings-hint{color:#64728a!important;font-size:13px!important;line-height:1.7!important}
+.jv-editor-settings-panel #jv-request-password-reset{min-height:46px!important}
+@media(max-width:600px){
+  .jv-account-summary{grid-template-columns:1fr;padding:10px 13px!important}
+  .jv-account-summary-row{padding:9px 0}
+  #jv-settings-plans{min-height:48px!important;font-size:13px!important}
+}

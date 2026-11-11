@@ -287,3 +287,25 @@ html[data-theme="dark"] .jv-account-bar button.button.ghost:hover{
 #jv-broll-result article>small{display:block;font-size:9px;line-height:1.5;color:#788198;margin:6px 0}
 #jv-broll-result .jv-script-actions{margin-top:9px}
 #jv-broll-result .jv-script-actions button{font-size:9px}
+
+/* Correctifs de contraste du mode clair */
+html[data-theme="light"] .workspace,html[data-theme="light"] .workspace-page,html[data-theme="light"] #jv-dashboard-view,html[data-theme="light"] #jv-subscription-page{color:#17243b!important;background:#fff!important}
+html[data-theme="light"] .dashboard-recent,html[data-theme="light"] .jv-recent-projects,html[data-theme="light"] .dashboard-project-item,html[data-theme="light"] .jv-subscription-current,html[data-theme="light"] .jv-subscription-grid>article{color:#17243b!important;background:#fff!important;border-color:#dce3ef!important}
+html[data-theme="light"] .dashboard-recent h4,html[data-theme="light"] .dashboard-project-item strong,html[data-theme="light"] .jv-subscription-grid h4,html[data-theme="light"] .jv-subscription-grid strong{color:#17243b!important}
+html[data-theme="light"] .dashboard-project-item span,html[data-theme="light"] .dashboard-muted,html[data-theme="light"] .jv-subscription-grid p,html[data-theme="light"] .jv-subscription-grid li,html[data-theme="light"] .jv-subscription-current p,html[data-theme="light"] .jv-subscription-notice{color:#596781!important}
+html[data-theme="light"] .dashboard-recent button,html[data-theme="light"] .jv-recent-projects button,html[data-theme="light"] .jv-subscription-page button{color:#4933bd!important;background:#f2efff!important;border:1px solid #d8ceff!important;opacity:1!important;text-shadow:none!important;box-shadow:0 2px 8px rgba(45,35,100,.06)}
+html[data-theme="light"] .jv-subscription-grid .is-featured button{background:linear-gradient(105deg,#7049e8,#a23be3)!important;color:#fff!important;border-color:transparent!important}
+.jv-subscription-page{padding:clamp(16px,2.5vw,28px)!important}
+.jv-subscription-current{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 20px;border:1px solid #e1e6f0;border-radius:16px;background:#f8f9fd;margin:18px 0 20px}
+.jv-subscription-current h4{margin:5px 0;color:#18243b;font-size:19px}.jv-subscription-current p{margin:5px 0;color:#69768d;font-size:13px;overflow-wrap:anywhere}
+.jv-subscription-current button,.jv-subscription-grid button{border:0;border-radius:10px;padding:11px 15px;background:linear-gradient(105deg,#7049e8,#a23be3);color:#fff;font-weight:800;cursor:pointer}
+.jv-subscription-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px}
+.jv-subscription-grid>article{min-width:0;padding:18px;border:1px solid #e1e6f0;border-radius:16px;background:#fff;box-shadow:0 8px 22px rgba(24,35,70,.05);display:flex;flex-direction:column}
+.jv-subscription-grid>article.is-featured{border:2px solid #9c7af5;box-shadow:0 12px 28px rgba(112,73,232,.12)}
+.jv-subscription-tag{font-size:9px;letter-spacing:.1em;font-weight:900;color:#7954d7;min-height:15px}
+.jv-subscription-grid h4{font-size:20px;margin:10px 0;color:#17243b}.jv-subscription-grid strong{font-size:25px;color:#17243b}.jv-subscription-grid strong small{font-size:11px;font-weight:600;color:#6c7890}
+.jv-subscription-grid p{font-size:12px;color:#6b7890;min-height:34px}.jv-subscription-grid ul{padding-left:18px;margin:8px 0 18px;flex:1}.jv-subscription-grid li{font-size:12px;line-height:1.8;color:#526079}
+.jv-subscription-current-label{display:inline-block;align-self:flex-start;padding:8px 10px;border-radius:9px;background:#e8f7ef;color:#16734d;font-size:11px;font-weight:800}
+.jv-subscription-notice{margin:18px 0 0;padding:13px 15px;border-radius:12px;background:#f5f6fa;color:#596781;font-size:12px;line-height:1.7}
+@media(max-width:1000px){.jv-subscription-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:560px){.jv-subscription-grid{grid-template-columns:1fr}.jv-subscription-current{align-items:flex-start;flex-direction:column}.jv-subscription-grid p{min-height:0}}

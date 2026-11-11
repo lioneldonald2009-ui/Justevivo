@@ -102,6 +102,18 @@
             <div id="jv-compose-result"></div>
             <small class="jv-note">Le B-roll est ajouté en incrustation à la position choisie. La piste audio ajoutée est mixée à la vidéo d’origine. Le traitement est réalisé par FFmpeg sur le serveur.</small>
           </article>
+          <article class="jv-tool-card">
+            <div class="jv-tool-icon">✧</div><span class="jv-eyebrow">03 · DIRECTEUR PHOTO IA</span><h4>Créer un storyboard B-roll intelligent</h4>
+            <p class="jv-note">L’IA découpe votre script en plans concrets, propose les recherches de vidéos stock, les angles de caméra, les transitions et des prompts visuels.</p>
+            <label>Script ou description<textarea id="jv-broll-script" class="jv-text-input" rows="5" maxlength="6000" placeholder="Collez votre script ici. Le dernier script généré sera repris automatiquement."></textarea></label>
+            <div class="jv-production-fields">
+              <label>Format<select id="jv-broll-platform" class="jv-text-input"><option>Instagram Reels</option><option>TikTok</option><option>YouTube Shorts</option><option>YouTube</option><option>Facebook</option></select></label>
+              <label>Direction artistique<select id="jv-broll-style" class="jv-text-input"><option>cinématographique, naturel et premium</option><option>UGC authentique et spontané</option><option>publicitaire, dynamique et rythmé</option><option>documentaire et réaliste</option><option>minimaliste et élégant</option><option>3D cartoon premium et pédagogique</option></select></label>
+            </div>
+            <button type="button" class="jv-action jv-action-primary" id="jv-generate-broll">✦ Générer le storyboard B-roll</button>
+            <p id="jv-broll-status" class="jv-feedback" role="status" aria-live="polite"></p>
+            <div id="jv-broll-result" class="jv-script-result"></div>
+          </article>
         </div>
       </div>
       <div class="jv-suite-footer"><span>Les outils locaux sont utilisables avec vos fichiers.</span><button type="button" data-action="save-session">Enregistrer la configuration du montage</button></div>

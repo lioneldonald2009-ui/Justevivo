@@ -34,7 +34,8 @@
         <button type="button" data-tab="audio">Audio</button>
         <button type="button" data-tab="brand">Brand Kit</button>
         <button type="button" data-tab="clips">Magic Clips</button>
-        <button type="button" data-tab="timeline">Timeline</button>\n        <button type="button" data-tab="production">Production IA</button>
+        <button type="button" data-tab="timeline">Timeline</button>
+        <button type="button" data-tab="production">Production IA</button>
       </div>
       <div class="jv-suite-view" data-view="media">
         <div class="jv-suite-grid">

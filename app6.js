@@ -86,7 +86,7 @@
       <section class="jv-settings-card" aria-labelledby="jv-settings-account-title">
         <h5 id="jv-settings-account-title">Mon compte et mon utilisation</h5>
         <div class="jv-account-summary" id="jv-settings-account" aria-live="polite">Chargement des informations du compte…</div>
-        <button type="button" class="button ghost full" id="jv-settings-plans">Consulter les formules et abonnements</button>
+        <button type="button" class="button ghost full" id="jv-settings-plans">Voir les formules et abonnements <span aria-hidden="true">→</span></button>
       </section>
       <section class="jv-settings-card" aria-labelledby="jv-settings-security-title">
         <h5 id="jv-settings-security-title">Sécurité du compte</h5>
@@ -302,13 +302,38 @@
         box.textContent = 'Compte : ' + ((session && session.email) || '') + '\\nInformations temporairement indisponibles.';
         return;
       }
-      box.textContent = [
-        'Email : ' + (me.email || (session && session.email) || ''),
-        'Formule : ' + (me.planName || 'Gratuit'),
-        'Vidéos ce mois-ci : ' + me.videosUsed + ' / ' + me.videosLimit,
-        'Durée maximale : ' + (me.maxSeconds >= 60 ? Math.round(me.maxSeconds / 60) + ' min' : me.maxSeconds + ' s'),
-        'Générations aujourd’hui : ' + me.genUsed + ' / ' + me.genLimit
-      ].join('\\n');
+
+      const isUnlimited = Boolean(me.isAdmin);
+      const formatCount = (used, limit) => {
+        const n = Number(used);
+        const l = Number(limit);
+        return (Number.isFinite(n) ? n.toLocaleString('fr-FR') : '0') + ' / ' +
+          (isUnlimited || l >= 100000000 ? 'Illimité' : (Number.isFinite(l) ? l.toLocaleString('fr-FR') : '—'));
+      };
+      const rows = [
+        ['Email', me.email || (session && session.email) || '—'],
+        ['Formule', me.planName || (isUnlimited ? 'Administrateur' : 'Gratuit')],
+        ['Vidéos ce mois-ci', formatCount(me.videosUsed, me.videosLimit)],
+        ['Durée maximale par vidéo', isUnlimited ? 'Illimitée' :
+          (Number(me.maxSeconds) >= 60 ? Math.round(Number(me.maxSeconds) / 60).toLocaleString('fr-FR') + ' min' :
+          (Number(me.maxSeconds) || 0).toLocaleString('fr-FR') + ' s')],
+        ['Générations aujourd’hui', formatCount(me.genUsed, me.genLimit)]
+      ];
+      if (me.planUntil) rows.push(['Abonnement valable jusqu’au', new Date(me.planUntil).toLocaleDateString('fr-FR')]);
+
+      box.replaceChildren();
+      rows.forEach(([label, value]) => {
+        const row = document.createElement('div');
+        row.className = 'jv-account-summary-row';
+        const name = document.createElement('span');
+        name.className = 'jv-account-summary-label';
+        name.textContent = label;
+        const data = document.createElement('strong');
+        data.className = 'jv-account-summary-value';
+        data.textContent = String(value);
+        row.append(name, data);
+        box.appendChild(row);
+      });
     } catch (error) {
       box.textContent = 'Impossible de charger les informations du compte. Réessayez dans quelques instants.';
     }

@@ -55,7 +55,7 @@ document.addEventListener("DOMContentLoaded", function () {
         <article class="is-featured"><span class="jv-subscription-tag">LE PLUS POPULAIRE</span><h4>Pro</h4><strong>15 $ <small>/ mois</small></strong><p>Pour les créateurs actifs.</p><ul><li>50 vidéos par mois</li><li>Jusqu'à 10 minutes par vidéo</li><li>Outils IA avancés</li><li>Modèles de texte animés</li><li>Export sans filigrane</li></ul><button type="button" data-subscription-plan="Pro">Choisir Pro</button></article>
         <article><span class="jv-subscription-tag">POUR LES ÉQUIPES</span><h4>Business</h4><strong>25 $ <small>/ mois</small></strong><p>Pour les productions soutenues.</p><ul><li>110 vidéos par mois</li><li>Jusqu'à 30 minutes par vidéo</li><li>Outils IA avancés</li><li>Personnalisation avancée</li><li>Export HD sans filigrane</li></ul><button type="button" data-subscription-plan="Business">Choisir Business</button></article>
       </div>
-      <p class="jv-subscription-notice">Information importante : les tarifs ci-dessus sont les tarifs actuellement affichés. Le paiement en ligne et l'activation automatique des abonnements ne sont pas encore ouverts. Le bouton de choix prépare votre demande, mais aucun paiement ne sera débité.</p>`;
+      <p class="jv-subscription-notice">Paiement sécurisé par Dodo Payments · Abonnement mensuel renouvelé automatiquement. Vous pouvez gérer ou annuler votre abonnement depuis votre espace de facturation. Votre formule sera activée après confirmation sécurisée du paiement.</p>`;
     workspace.insertBefore(subscriptionPage, workspace.querySelector(".upload-zone"));
   }
 
@@ -120,7 +120,22 @@ document.addEventListener("DOMContentLoaded", function () {
   dashboard.querySelectorAll("[data-jv-plan]").forEach(b=>b.addEventListener("click",showSubscription));
   document.getElementById("jv-subscription-back").addEventListener("click",showDashboard);
   document.getElementById("jv-subscription-refresh").addEventListener("click",async()=>{await refreshDashboard();showSubscription();});
-  subscriptionPage.querySelectorAll("[data-subscription-plan]").forEach(b=>b.addEventListener("click",()=>{const p=b.dataset.subscriptionPlan;const note=document.getElementById("jv-subscription-current-note");note.textContent="Votre demande pour la formule "+p+" est notée. Le paiement en ligne n’est pas encore activé ; contactez justevivo221@gmail.com pour connaître les modalités.";note.scrollIntoView({behavior:"smooth",block:"nearest"});}));
+  subscriptionPage.querySelectorAll("[data-subscription-plan]").forEach(b=>b.addEventListener("click",async()=>{
+    const plan=String(b.dataset.subscriptionPlan||"").toLowerCase();
+    const note=document.getElementById("jv-subscription-current-note");
+    let session=null;try{session=JSON.parse(localStorage.getItem("justevivo_session_v1")||"null")}catch(_){}
+    if(!session||!session.access_token){note.textContent="Connectez-vous et confirmez votre adresse e-mail avant de souscrire à une formule.";note.scrollIntoView({behavior:"smooth",block:"nearest"});return;}
+    const label=b.textContent;b.disabled=true;b.textContent="Préparation du paiement…";note.textContent="Connexion sécurisée à Dodo Payments…";
+    try{
+      const response=await fetch(API_URL+"/api/me/pay/create",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+session.access_token},body:JSON.stringify({plan})});
+      const data=await response.json().catch(()=>({}));
+      if(!response.ok)throw new Error(data.error||"Le paiement n'est pas disponible pour le moment.");
+      const url=new URL(data.checkoutUrl||"");
+      if(url.protocol!=="https:"||!url.hostname.endsWith("dodopayments.com"))throw new Error("Lien de paiement non reconnu. Contactez le support.");
+      note.textContent="Redirection vers le paiement sécurisé…";window.location.assign(url.href);
+    }catch(e){note.textContent=e.message||"Impossible de lancer le paiement. Réessayez.";}
+    finally{b.disabled=false;b.textContent=label;}
+  }));
   dashboard.querySelectorAll("[data-jv-action]").forEach(b=>b.addEventListener("click",()=>{const a=b.dataset.jvAction;if(a==="new"){showStudio();return;}showStudio();const p=a==="captions"?"text":a==="styles"?"styles":a==="audio"?"audio":a==="export"?"export":"text";const tab=document.querySelector('.jv-editor-panel-tab[data-panel="'+p+'"]');if(tab)tab.click();if(a==="translate"){const tr=document.getElementById("translateSubtitlesButton");if(tr)tr.click();}}));
 
   document.getElementById("jv-dashboard-projects").addEventListener("click", () => {

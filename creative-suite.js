@@ -93,13 +93,14 @@
               <label>Début du B-roll (secondes)<input id="jv-broll-start" class="jv-text-input" type="number" min="0" step="0.5" value="0"></label>
               <label>Fin du B-roll (secondes)<input id="jv-broll-end" class="jv-text-input" type="number" min="0.5" step="0.5" value="8"></label>
               <label>Taille de l’incrustation<select id="jv-broll-scale" class="jv-text-input"><option value="22">Petite · 22 %</option><option value="28" selected>Moyenne · 28 %</option><option value="38">Grande · 38 %</option><option value="48">Très grande · 48 %</option></select></label>
+              <label>Position du B-roll<select id="jv-broll-position" class="jv-text-input"><option value="bottom-right" selected>Bas · droite</option><option value="bottom-left">Bas · gauche</option><option value="top-right">Haut · droite</option><option value="top-left">Haut · gauche</option><option value="center">Centre</option></select></label>
             </div>
             <label>Voix off ou musique (facultatif)<input id="jv-compose-audio" class="jv-text-input" type="file" accept="audio/*"></label>
             <label>Volume de la piste ajoutée <output id="jv-compose-volume-label">22 %</output><input id="jv-compose-volume" type="range" min="0" max="100" value="22"></label>
             <button type="button" class="jv-action jv-action-primary" id="jv-compose-video">▶ Assembler et exporter le MP4</button>
             <p class="jv-feedback" id="jv-compose-status" role="status" aria-live="polite"></p>
             <div id="jv-compose-result"></div>
-            <small class="jv-note">Le B-roll est ajouté en incrustation dans le coin inférieur droit. La piste audio ajoutée est mixée à la vidéo d’origine. Le traitement est réalisé par FFmpeg sur le serveur.</small>
+            <small class="jv-note">Le B-roll est ajouté en incrustation à la position choisie. La piste audio ajoutée est mixée à la vidéo d’origine. Le traitement est réalisé par FFmpeg sur le serveur.</small>
           </article>
         </div>
       </div>

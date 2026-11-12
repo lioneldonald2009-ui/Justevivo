@@ -26,6 +26,11 @@ jobs:
         run: npm run build:web
       - name: Generate iOS project
         run: npx cap add ios
+      - name: Generate branded iOS app icons
+        run: |
+          mkdir -p resources
+          cp icons/icon-512.png resources/icon.png
+          npx capacitor-assets generate --ios
       - name: Sync native project
         run: npx cap sync ios
       - name: Build for iOS Simulator

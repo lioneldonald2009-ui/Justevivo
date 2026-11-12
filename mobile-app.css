@@ -74,3 +74,44 @@
   .jv-account-summary { grid-template-columns:minmax(0,1fr)!important; }
   .jv-production-fields { grid-template-columns:minmax(0,1fr)!important; }
 }
+
+
+/* Bouton d'installation multiplateforme */
+.topbar-actions {
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  gap:9px!important;
+  flex:0 0 auto!important;
+}
+.app-install-cta {
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  gap:8px!important;
+  min-height:42px!important;
+  padding:10px 14px!important;
+  border:1px solid #ff5a1f!important;
+  border-radius:12px!important;
+  background:#fff!important;
+  color:#e94b12!important;
+  font:700 12px/1.2 'DM Sans',sans-serif!important;
+  cursor:pointer!important;
+  white-space:nowrap!important;
+  box-shadow:0 5px 16px rgba(255,90,31,.10)!important;
+}
+.app-install-cta svg { width:17px!important;height:17px!important;fill:none!important;stroke:currentColor!important;stroke-width:2!important;stroke-linecap:round!important;stroke-linejoin:round!important;flex:0 0 auto!important; }
+.app-install-cta:hover,.app-install-cta.is-install-ready { background:#fff3ed!important; }
+.app-install-cta[hidden] { display:none!important; }
+@media(max-width:1024px) {
+  .topbar-actions { order:2!important; margin-left:auto!important; gap:7px!important; }
+  .topbar-actions .top-cta { min-height:40px!important; }
+  .app-install-cta { min-height:40px!important; padding:9px 10px!important; font-size:11px!important; }
+}
+@media(max-width:520px) {
+  .topbar { align-items:center!important; }
+  .topbar-actions { width:auto!important; flex:0 0 auto!important; }
+  .app-install-cta { width:42px!important; min-width:42px!important; height:42px!important; padding:0!important; border-radius:12px!important; }
+  .app-install-cta span { display:none!important; }
+  .topbar-actions .top-cta { padding:9px 10px!important; font-size:10px!important; }
+}

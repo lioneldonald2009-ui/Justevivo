@@ -687,27 +687,88 @@
     showToast('Projet remis en place. Vous pouvez lire et exporter la vidéo.');
   });
 
-  let activeProjectPoll = null;
-  let activeProjectUpdatedAt = "";
-  function watchSharedProject(row) {
-    if (activeProjectPoll) clearInterval(activeProjectPoll);
-    activeProjectUpdatedAt = row.updated_at || "";
+  let activeProjectRow = null;
+  let realtimeProjectClient = null;
+  let realtimeProjectChannel = null;
+  let sharedSaveTimer = null;
+  let sharedSaveBusy = false;
+  let sharedDirty = false;
+  let sharedRemotePending = null;
+  let lastSharedWriteAt = "";
+  async function watchSharedProject(row) {
+    activeProjectRow = row;
+    sharedDirty = false;
+    sharedRemotePending = null;
+    lastSharedWriteAt = row.updated_at || "";
+    if (realtimeProjectChannel && realtimeProjectClient) {
+      try { await realtimeProjectClient.removeChannel(realtimeProjectChannel); } catch (_) {}
+      realtimeProjectChannel = null;
+    }
     if (!row.id) return;
-    activeProjectPoll = setInterval(async () => {
-      try {
-        const rows = await sb("GET", "projects?id=eq." + encodeURIComponent(row.id) + "&select=updated_at,data");
-        if (!rows.length || !rows[0].updated_at || rows[0].updated_at === activeProjectUpdatedAt) return;
-        activeProjectUpdatedAt = rows[0].updated_at;
-        const reload = confirm("Une nouvelle version de ce projet a été enregistrée par un collaborateur. Recharger cette version partagée ? Vos modifications non enregistrées seront remplacées.");
-        if (reload) {
-          pending = { data: rows[0].data || {}, videoName: row.video_name || "" };
-          restore(rows[0].data || {});
-          showToast("Version partagée actualisée.");
-        } else {
-          showToast("Nouvelle version disponible. Enregistrez ou rechargez le projet quand vous le souhaitez.");
-        }
-      } catch (_) { /* la surveillance reprend au prochain passage */ }
-    }, 6000);
+    try {
+      const c = await getConf(), t = await token();
+      if (c.disabled || !t || !window.supabase?.createClient) return;
+      realtimeProjectClient = window.supabase.createClient(c.url, c.key, {
+        auth: { persistSession: false, autoRefreshToken: false },
+        global: { headers: { Authorization: "Bearer " + t } },
+        realtime: { params: { eventsPerSecond: 10 } }
+      });
+      realtimeProjectClient.realtime.setAuth(t);
+      realtimeProjectChannel = realtimeProjectClient.channel("jv-project-" + row.id)
+        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "projects", filter: "id=eq." + row.id }, payload => {
+          const next = payload.new || {};
+          if (!next.updated_at || next.updated_at === lastSharedWriteAt) return;
+          if (sharedDirty || sharedSaveBusy) {
+            sharedRemotePending = next;
+            showToast("Un collaborateur modifie aussi ce projet. Enregistrez vos changements avant de recharger sa version.");
+            return;
+          }
+          lastSharedWriteAt = next.updated_at;
+          activeProjectRow = { ...activeProjectRow, ...next };
+          pending = { data: next.data || {}, videoName: next.video_name || "" };
+          restore(next.data || {});
+          showToast("Projet synchronisé : nouvelle modification reçue.");
+        })
+        .subscribe(status => {
+          if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") console.warn("JUSTEVIVO Realtime:", status);
+        });
+    } catch (error) { console.warn("JUSTEVIVO Realtime indisponible:", error); }
+  }
+  async function saveSharedProjectNow() {
+    if (!activeProjectRow?.id || !sharedDirty || sharedSaveBusy) return;
+    sharedSaveBusy = true;
+    const row = activeProjectRow;
+    const data = collect();
+    if (JSON.stringify(data).length > 450000) {
+      sharedSaveBusy = false;
+      showToast("Projet trop volumineux pour la coédition.");
+      return;
+    }
+    const stamp = new Date().toISOString();
+    try {
+      await sb("PATCH", "projects?id=eq." + encodeURIComponent(row.id), {
+        data, video_name: selectedFile ? selectedFile.name : (row.video_name || ""), updated_at: stamp
+      }, { Prefer: "return=minimal" });
+      lastSharedWriteAt = stamp;
+      sharedDirty = false;
+      activeProjectRow = { ...row, data, updated_at: stamp };
+      showToast("Modifications partagées enregistrées.");
+      if (sharedRemotePending) {
+        showToast("Une modification distante est en attente. Rechargez le projet après avoir vérifié vos changements.");
+      }
+    } catch (error) {
+      showToast("Synchronisation impossible : " + (error.message || "réessayez."));
+    } finally { sharedSaveBusy = false; }
+  }
+  function queueSharedProjectSave() {
+    if (!activeProjectRow?.id) return;
+    sharedDirty = true;
+    if (sharedSaveTimer) clearTimeout(sharedSaveTimer);
+    sharedSaveTimer = setTimeout(saveSharedProjectNow, 850);
+  }
+  if (workspace) {
+    workspace.addEventListener("input", queueSharedProjectSave, true);
+    workspace.addEventListener("change", queueSharedProjectSave, true);
   }
 
   function openProject(row) {
@@ -747,11 +808,12 @@
         throw new Error('Maximum 30 projets. Supprimez-en un dans « Mes projets ».');
       }
 
-      await sb(
+      const created = await sb(
         'POST', 'projects',
         { name, video_name: selectedFile ? selectedFile.name : '', data },
-        { Prefer: 'return=minimal' }
+        { Prefer: 'return=representation' }
       );
+      if (created?.[0]) watchSharedProject(created[0]);
       showToast('Projet « ' + name + ' » enregistré.');
     } catch (e) {
       showToast(e.message || 'Enregistrement impossible.');
@@ -771,11 +833,14 @@
     try {
       const data = collect();
       if (JSON.stringify(data).length > 450000) throw new Error('Ce projet est trop volumineux pour être enregistré.');
+      const stamp = new Date().toISOString();
       await sb('PATCH', 'projects?id=eq.' + encodeURIComponent(row.id), {
         video_name: selectedFile ? selectedFile.name : (row.video_name || ''),
-        data,
-        updated_at: new Date().toISOString()
+        data, updated_at: stamp
       }, { Prefer: 'return=minimal' });
+      activeProjectRow = { ...row, data, updated_at: stamp };
+      lastSharedWriteAt = stamp;
+      sharedDirty = false;
       pmStatus.textContent = 'Projet « ' + row.name + ' » mis à jour.';
       loadProjects();
     } catch (error) {

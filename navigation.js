@@ -136,7 +136,7 @@ document.addEventListener("DOMContentLoaded", function () {
   document.getElementById("jv-subscription-back").addEventListener("click",showDashboard);
   document.getElementById("jv-subscription-refresh").addEventListener("click",async()=>{await refreshDashboard();showSubscription();});
   subscriptionPage.querySelectorAll("[data-subscription-plan]").forEach(b=>b.addEventListener("click",async()=>{
-    const plan=String(b.dataset.subscriptionPlan||"").toLowerCase();
+    const plan=String(b.dataset.subscriptionPlan||"").toLowerCase().replace(/-/g,"_");
     const note=document.getElementById("jv-subscription-current-note");
     let session=null;try{session=JSON.parse(localStorage.getItem("justevivo_session_v1")||"null")}catch(_){}
     if(!session||!session.access_token){note.textContent="Connectez-vous et confirmez votre adresse e-mail avant de souscrire à une formule.";note.scrollIntoView({behavior:"smooth",block:"nearest"});return;}

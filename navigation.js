@@ -17,7 +17,7 @@ document.addEventListener("DOMContentLoaded", function () {
     dashboard.className = "workspace-page";
     dashboard.hidden = true;
     dashboard.innerHTML = `
-      <div class="jv-account-heading"><div><span class="jv-account-eyebrow">JUSTEVIVO AI · ESPACE PERSONNEL</span><h3>Mon compte</h3><p>Gérez votre profil, votre abonnement, votre utilisation et la sécurité de votre compte.</p></div><button type="button" class="jv-create-main" id="jv-dashboard-create">＋ Créer une vidéo IA</button></div>
+      <div class="jv-account-heading"><div><span class="jv-account-eyebrow">JUSTEVIVO AI · ESPACE PERSONNEL</span><h3>Mon compte</h3><p>Gérez votre profil, votre abonnement, votre utilisation et la sécurité de votre compte.</p></div><div class="jv-heading-actions"><button type="button" class="jv-create-main" id="jv-dashboard-create">＋ Créer une vidéo IA</button><button type="button" class="jv-new-features-trigger" id="jv-new-features-trigger" aria-expanded="false">✦ Nouveautés</button></div></div>
       <div class="jv-account-overview">
         <article class="jv-account-profile"><div class="jv-profile-top"><div class="jv-avatar" id="jv-account-avatar">MG</div><div><strong id="jv-account-display-name">Votre compte</strong><span id="jv-account-role">Créateur JUSTEVIVO</span></div><span class="jv-online-dot"></span></div><div class="jv-profile-details"><div>✉ <span id="jv-account-email">Chargement…</span></div><div>♛ <span id="jv-account-plan">Formule en cours de chargement</span></div><div>◷ <span>Votre espace de création vidéo</span></div></div><button type="button" class="jv-profile-edit" id="jv-open-account-settings">⚙ Gérer mon compte et ma sécurité</button></article>
         <article class="jv-usage-card"><div class="jv-card-heading"><div><span class="jv-card-kicker">VOTRE ACTIVITÉ</span><h4>Mon utilisation ce mois-ci</h4></div><span class="jv-live-chip">● En direct</span></div><div class="jv-usage-content"><div class="jv-usage-ring" id="jv-usage-ring"><div><strong id="jv-usage-percent">0%</strong><span id="jv-usage-ratio">0 / —</span><small>Vidéos générées</small></div></div><div class="jv-usage-metrics"><div><b>▣</b><span><strong>Vidéos générées</strong><small id="jv-quota-value">—</small></span></div><div><b>◷</b><span><strong>Durée maximale</strong><small id="jv-duration-limit">—</small></span></div><div><b>✧</b><span><strong>Générations IA</strong><small id="jv-generation-quota">—</small></span></div><div><b>☁</b><span><strong>Stockage</strong><small id="jv-storage-quota">Selon formule</small></span></div></div></div><div class="jv-usage-foot"><span id="jv-quota-note">Chargement des quotas…</span><div class="jv-usage-progress"><i id="jv-quota-fill"></i></div></div></article>
@@ -196,6 +196,79 @@ document.addEventListener("DOMContentLoaded", function () {
       const studio = document.getElementById("studio");
       if (studio) requestAnimationFrame(() => studio.scrollIntoView({behavior:"smooth", block:"start"}));
     });
+  });
+
+
+  // Centre des nouveautés : accès direct aux outils récemment ajoutés.
+  const featureStyle=document.createElement("style");
+  featureStyle.textContent=`
+    .jv-heading-actions{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+    .jv-new-features-trigger{border:1px solid #e5dafa;background:#f6f0ff;color:#743bd1;border-radius:12px;padding:11px 15px;font:700 13px system-ui;cursor:pointer}
+    .jv-new-features-trigger:hover{background:#eee3ff}
+    .jv-feature-hub{position:fixed;z-index:9998;inset:0;background:#10132380;display:grid;place-items:center;padding:18px}
+    .jv-feature-hub[hidden]{display:none}
+    .jv-feature-hub-card{width:min(560px,100%);max-height:85vh;overflow:auto;background:#fff;color:#25233a;border-radius:20px;padding:22px;box-shadow:0 24px 80px #090b1c55}
+    .jv-feature-hub-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+    .jv-feature-hub-head h3{margin:0;font-size:20px}
+    .jv-feature-hub-close{border:0;background:#f1eff7;border-radius:10px;padding:8px 12px;font-size:18px;cursor:pointer}
+    .jv-feature-hub-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+    .jv-feature-hub-grid button{display:flex;align-items:center;gap:12px;text-align:left;border:1px solid #e8e5ef;background:#fff;border-radius:13px;padding:13px;cursor:pointer;color:#28243b}
+    .jv-feature-hub-grid button b{display:grid;place-items:center;width:38px;height:38px;flex:0 0 38px;border-radius:11px;background:#f3eaff;color:#8446d8;font-size:19px}
+    .jv-feature-hub-grid small{display:block;color:#77758a;margin-top:3px;font-size:11px}
+    .jv-feature-hub-note{font-size:12px;color:#77758a;line-height:1.5;margin:16px 0 0}
+    .jv-feature-page{background:#fff;border:1px solid #e8e5ef;border-radius:18px;padding:22px;margin-bottom:18px}
+    .jv-feature-page h3{margin:4px 0 8px}.jv-feature-page p{color:#77758a;line-height:1.55}
+    .jv-feature-form{display:grid;gap:12px;max-width:620px}.jv-feature-form label{display:grid;gap:6px;font-size:13px;font-weight:700}
+    .jv-feature-form input,.jv-feature-form select,.jv-feature-form textarea{width:100%;box-sizing:border-box;border:1px solid #dedbe8;border-radius:10px;padding:11px;font:inherit;background:#fff;color:#25233a}
+    .jv-feature-form button,.jv-feature-action{border:0;border-radius:10px;background:#7542d3;color:white;padding:11px 15px;font-weight:700;cursor:pointer}
+    .jv-schedule-item{display:flex;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #eeeaf4;font-size:13px}
+    .jv-feature-grid article[data-feature]{cursor:pointer;transition:transform .15s,border-color .15s}.jv-feature-grid article[data-feature]:hover{transform:translateY(-2px);border-color:#bda2ef}
+    @media(max-width:520px){.jv-feature-hub-grid{grid-template-columns:1fr}.jv-feature-page{padding:16px}}
+  `;
+  document.head.appendChild(featureStyle);
+  const featureHub=document.createElement("div");
+  featureHub.className="jv-feature-hub";featureHub.id="jv-feature-hub";featureHub.hidden=true;
+  featureHub.innerHTML='<div class="jv-feature-hub-card" role="dialog" aria-modal="true" aria-labelledby="jv-feature-hub-title"><div class="jv-feature-hub-head"><h3 id="jv-feature-hub-title">Nouveautés JUSTEVIVO</h3><button type="button" class="jv-feature-hub-close" aria-label="Fermer">×</button></div><div class="jv-feature-hub-grid"><button data-feature-go="ai-video"><b>🎬</b><span>Génération vidéo IA<small>Créer des scènes à partir d’un texte</small></span></button><button data-feature-go="production"><b>✦</b><span>Production IA<small>Outils de création assistée</small></span></button><button data-feature-go="broll"><b>◉</b><span>B-Roll & médias<small>Ajouter des plans complémentaires</small></span></button><button data-feature-go="dubbing"><b>文</b><span>Traduction & doublage<small>Traduire puis travailler la voix</small></span></button><button data-feature-go="calendar"><b>◷</b><span>Calendrier éditorial<small>Planifier vos publications</small></span></button><button data-feature-go="team"><b>♧</b><span>Partager un projet<small>Inviter un collaborateur par e-mail</small></span></button></div><p class="jv-feature-hub-note">La planification est enregistrée dans ce navigateur. La publication automatique et la coédition en temps réel nécessitent des connexions supplémentaires.</p></div>';
+  document.body.appendChild(featureHub);
+  const featureTrigger=document.getElementById("jv-new-features-trigger");
+  const closeFeatureHub=()=>{featureHub.hidden=true;featureTrigger.setAttribute("aria-expanded","false");};
+  featureTrigger.addEventListener("click",()=>{featureHub.hidden=!featureHub.hidden;featureTrigger.setAttribute("aria-expanded",String(!featureHub.hidden));});
+  featureHub.querySelector(".jv-feature-hub-close").addEventListener("click",closeFeatureHub);
+  featureHub.addEventListener("click",e=>{if(e.target===featureHub)closeFeatureHub();});
+  document.addEventListener("keydown",e=>{if(e.key==="Escape")closeFeatureHub();});
+
+  let featurePage=document.getElementById("jv-feature-workspace");
+  if(!featurePage){featurePage=document.createElement("section");featurePage.id="jv-feature-workspace";featurePage.className="workspace-page";featurePage.hidden=true;workspace.insertBefore(featurePage,workspace.querySelector(".upload-zone"));}
+  function openFeaturePage(html){
+    showStudio();featurePage.hidden=false;studioParts.forEach(el=>{el.hidden=true;});featurePage.innerHTML='<div class="jv-feature-page"><button type="button" class="jv-profile-edit" id="jv-feature-back">← Retour au studio</button><span class="jv-account-eyebrow">JUSTEVIVO · OUTILS</span>'+html+'</div>';
+    featurePage.querySelector("#jv-feature-back").addEventListener("click",()=>{featurePage.hidden=true;studioParts.forEach(el=>{el.hidden=false;});});
+    setActive("dashboard");featurePage.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+  function openCalendar(){
+    const key="justevivo_editorial_calendar_v1";let items=[];try{items=JSON.parse(localStorage.getItem(key)||"[]");if(!Array.isArray(items))items=[];}catch(_){}
+    openFeaturePage('<h3>Calendrier éditorial</h3><p>Préparez et organisez vos prochaines publications. La publication automatique sur les réseaux n’est pas encore connectée.</p><form class="jv-feature-form" id="jv-calendar-form"><label>Réseau<select name="network"><option>Instagram</option><option>Facebook</option><option>TikTok</option><option>YouTube</option><option>LinkedIn</option></select></label><label>Titre de la publication<input name="title" required maxlength="120" placeholder="Ex. Présentation du nouveau produit"></label><label>Date et heure<input name="date" type="datetime-local" required></label><label>Note / légende<textarea name="caption" rows="3" placeholder="Votre idée de contenu…"></textarea></label><button type="submit">Enregistrer dans le calendrier</button></form><h4>Publications planifiées</h4><div id="jv-calendar-list"></div>');
+    const list=featurePage.querySelector("#jv-calendar-list");
+    const render=()=>{list.innerHTML="";if(!items.length){list.textContent="Aucune publication planifiée pour le moment.";return;}items.sort((a,b)=>a.date.localeCompare(b.date)).forEach((item,index)=>{const row=document.createElement("div");row.className="jv-schedule-item";const info=document.createElement("span");info.textContent=item.network+" · "+item.title+" — "+new Date(item.date).toLocaleString("fr-FR");const del=document.createElement("button");del.type="button";del.textContent="Supprimer";del.className="jv-profile-edit";del.addEventListener("click",()=>{items.splice(index,1);localStorage.setItem(key,JSON.stringify(items));render();});row.append(info,del);list.append(row);});};
+    featurePage.querySelector("#jv-calendar-form").addEventListener("submit",e=>{e.preventDefault();const data=Object.fromEntries(new FormData(e.currentTarget).entries());if(!data.title.trim()||!data.date)return;items.push(data);localStorage.setItem(key,JSON.stringify(items));e.currentTarget.reset();render();});
+    render();
+  }
+  function openTeam(){
+    openFeaturePage('<h3>Partager un projet</h3><p>Préparez une invitation par e-mail à un client ou collaborateur. Les espaces d’équipe partagés et les droits d’accès ne sont pas encore activés côté serveur.</p><form class="jv-feature-form" id="jv-team-form"><label>Adresse e-mail du collaborateur<input name="email" type="email" required placeholder="nom@exemple.com"></label><label>Message<input name="message" maxlength="240" placeholder="Je souhaite partager un projet avec vous."></label><button type="submit">Préparer l’invitation e-mail</button></form><button type="button" class="jv-feature-action" id="jv-share-app">Partager JUSTEVIVO</button>');
+    featurePage.querySelector("#jv-team-form").addEventListener("submit",e=>{e.preventDefault();const d=Object.fromEntries(new FormData(e.currentTarget).entries());const subject=encodeURIComponent("Invitation à collaborer sur JUSTEVIVO");const body=encodeURIComponent((d.message||"Je souhaite partager un projet avec vous.")+"\n\nAccédez à JUSTEVIVO : "+location.origin);location.href="mailto:"+encodeURIComponent(d.email)+"?subject="+subject+"&body="+body;});
+    featurePage.querySelector("#jv-share-app").addEventListener("click",async()=>{const data={title:"JUSTEVIVO",text:"Découvrez JUSTEVIVO, mon studio vidéo.",url:location.origin};if(navigator.share){try{await navigator.share(data);}catch(_){}}else if(navigator.clipboard){await navigator.clipboard.writeText(location.origin);alert("Lien JUSTEVIVO copié.");}});
+  }
+  function goFeature(name){
+    closeFeatureHub();
+    if(name==="ai-video"||name==="production"){showStudio();featurePage.hidden=true;studioParts.forEach(el=>{el.hidden=false;});const nav=links.find(l=>l.dataset.page===name);if(nav)nav.click();return;}
+    if(name==="broll"){showStudio();featurePage.hidden=true;studioParts.forEach(el=>{el.hidden=false;});const nav=links.find(l=>l.dataset.page==="media");if(nav)nav.click();return;}
+    if(name==="dubbing"){showStudio();featurePage.hidden=true;studioParts.forEach(el=>{el.hidden=false;});const tab=document.querySelector('.jv-editor-panel-tab[data-panel="text"]');if(tab)tab.click();const nav=links.find(l=>l.dataset.page==="audio");if(nav)nav.click();return;}
+    if(name==="calendar"){openCalendar();return;}if(name==="team"){openTeam();return;}
+  }
+  featureHub.querySelectorAll("[data-feature-go]").forEach(b=>b.addEventListener("click",()=>goFeature(b.dataset.featureGo)));
+  dashboard.querySelectorAll(".jv-feature-grid article").forEach(card=>{
+    const title=(card.querySelector("strong")?.textContent||"").toLowerCase();
+    const feature=title.includes("b-roll")?"broll":title.includes("doublage")?"dubbing":title.includes("publication")?"calendar":title.includes("collaboration")?"team":null;
+    if(feature){card.dataset.feature=feature;card.setAttribute("role","button");card.setAttribute("tabindex","0");const activate=()=>goFeature(feature);card.addEventListener("click",activate);card.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();activate();}});}
   });
 
   // Entrée initiale : conserver le dashboard comme page d'accueil.

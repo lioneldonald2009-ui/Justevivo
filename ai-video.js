@@ -3,7 +3,7 @@
 document.addEventListener("DOMContentLoaded",()=>{
  const workspace=document.querySelector(".workspace"),sidebar=document.querySelector(".sidebar");
  if(!workspace||!sidebar)return;
- const page=document.createElement("section");page.className="jv-ai-video-page";page.id="jv-ai-video-page";
+ const page=document.createElement("section");page.className="jv-ai-video-page workspace-page";page.id="jv-ai-video-page";
  page.innerHTML=`
  <div class="jv-ai-video-head"><div><span class="jv-ai-video-kicker">JUSTEVIVO STUDIO · CRÉATION GÉNÉRATIVE</span><h2>Générateur vidéo IA</h2><p>Décrivez une scène, choisissez son format et générez un plan vidéo. Construisez votre film scène par scène, puis réunissez les séquences dans votre montage.</p></div></div>
  <div class="jv-ai-video-layout"><section class="jv-ai-video-card"><h3>Créer une scène vidéo</h3><label class="jv-ai-video-label" for="jv-ai-prompt">Décrivez précisément ce que vous voulez voir</label><textarea id="jv-ai-prompt" maxlength="1800" placeholder="Exemple : plan cinématographique d'une entrepreneuse dans un atelier lumineux, lumière naturelle, caméra qui avance lentement, rendu réaliste et premium…"></textarea>
@@ -14,10 +14,10 @@ document.addEventListener("DOMContentLoaded",()=>{
  workspace.appendChild(page);
  const editorParts=[workspace.querySelector(".workspace-head"),workspace.querySelector(".upload-zone"),workspace.querySelector(".editor-grid"),workspace.querySelector(".demo-warning")].filter(Boolean);
  const back=document.getElementById("jv-workspace-back");
- function show(){editorParts.forEach(x=>x.hidden=true);document.querySelectorAll(".workspace-page").forEach(x=>x.hidden=true);page.classList.add("is-active");if(back)back.style.display="inline-flex";sidebar.querySelectorAll(".side-link").forEach(x=>x.classList.toggle("active",x.dataset.page==="ai-video"));loadConfig();workspace.scrollIntoView({behavior:"smooth",block:"start"});}
+ function show(){editorParts.forEach(x=>x.hidden=true);document.querySelectorAll(".workspace-page").forEach(x=>x.hidden=true);page.hidden=false;page.classList.add("is-active");if(back)back.style.display="inline-flex";sidebar.querySelectorAll(".side-link").forEach(x=>x.classList.toggle("active",x.dataset.page==="ai-video"));loadConfig();workspace.scrollIntoView({behavior:"smooth",block:"start"});}
  function hide(){page.classList.remove("is-active");editorParts.forEach(x=>x.hidden=false);}
  const link=sidebar.querySelector('[data-page="ai-video"]');if(link)link.addEventListener("click",show);
- if(back)back.addEventListener("click",hide);
+
  let token=()=>{try{return JSON.parse(localStorage.getItem("justevivo_session_v1")||"null")?.access_token||""}catch(_){return ""}};
  const api=()=>typeof API_URL!=="undefined"?API_URL:"https://justevivo-backend.onrender.com";
  async function call(path,opts={}){const t=token();if(!t)throw Error("Connectez-vous pour utiliser le générateur vidéo IA.");const r=await fetch(api()+path,{...opts,headers:{Authorization:"Bearer "+t,"Content-Type":"application/json",...(opts.headers||{})}});const d=await r.json().catch(()=>({}));if(!r.ok)throw Error(d.error||"Une erreur est survenue.");return d;}

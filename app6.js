@@ -840,6 +840,8 @@
     const update = btn('Mettre à jour', 'button ghost', { padding: '8px 14px', fontSize: '11px' });
     const rename = btn('Renommer', 'button ghost', { padding: '8px 14px', fontSize: '11px' });
     const del = btn('Supprimer', 'button ghost', { padding: '8px 14px', fontSize: '11px' });
+    const share = btn('Partager / inviter', 'button ghost', { padding: '8px 14px', fontSize: '11px' });
+    share.addEventListener('click', () => shareProject(r));
 
     update.addEventListener('click', () => {
       if (!confirm('Remplacer le contenu enregistré de « ' + r.name + ' » par le contenu actuel du studio ?')) return;
@@ -871,10 +873,46 @@
 
     actions.appendChild(open);
     actions.appendChild(update);
+    actions.appendChild(share);
     actions.appendChild(rename);
     actions.appendChild(del);
     row.appendChild(actions);
     return row;
+  }
+
+  async function shareProject(row) {
+    if (!hasSession()) { openLogin(); return; }
+    const email=(prompt("Adresse e-mail du collaborateur :")||"").trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+    const role=confirm("OK = autoriser la modification du projet. Annuler = accès lecture seule.") ? "editor" : "viewer";
+    try {
+      const bytes=new Uint8Array(32);crypto.getRandomValues(bytes);
+      const raw=Array.from(bytes,b=>b.toString(16).padStart(2,"0")).join("");
+      const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(raw));
+      const hash=Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,"0")).join("");
+      await sb("POST","project_invitations",{project_id:row.id,email,token_hash:hash,role,invited_by:readSession()?.user?.id||readSession()?.user_id||null,expires_at:new Date(Date.now()+7*86400000).toISOString()},{Prefer:"return=minimal"});
+      const invite=new URL(location.href);invite.searchParams.set("jv_invite",raw);
+      const link=invite.toString();
+      const subject=encodeURIComponent("Invitation à collaborer sur JUSTEVIVO");
+      const body=encodeURIComponent("Vous êtes invité(e) à collaborer sur le projet « "+row.name+" » dans JUSTEVIVO.\n\nOuvrez ce lien après connexion avec l'adresse "+email+" :\n"+link+"\n\nCe lien expire dans 7 jours.");
+      if(navigator.share){try{await navigator.share({title:"Invitation JUSTEVIVO",text:body,url:link});}catch(_){}}
+      else {window.prompt("Copiez ce lien et envoyez-le à "+email+" :",link);}
+      pmStatus.textContent="Invitation créée. Le collaborateur doit se connecter avec "+email+" et ouvrir le lien.";
+    } catch(e) { pmStatus.textContent="Partage impossible : "+(e.message||"vérifiez vos droits sur ce projet."); }
+  }
+
+  async function acceptProjectInviteFromUrl() {
+    const url=new URL(location.href),raw=url.searchParams.get("jv_invite");
+    if(!raw)return;
+    if(!hasSession()){showToast("Connectez-vous avec l’adresse e-mail invitée pour accepter le partage.");openLogin();return;}
+    try{
+      const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(raw));
+      const hash=Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,"0")).join("");
+      await sb("POST","rpc/accept_project_invite",{p_token_hash:hash},{});
+      url.searchParams.delete("jv_invite");history.replaceState({},"",url.toString());
+      showToast("Invitation acceptée. Le projet partagé est disponible dans Mes projets.");
+      loadProjects();
+    }catch(e){showToast("Invitation non acceptée : "+(e.message||"lien invalide, expiré ou adresse e-mail différente."));}
   }
 
   async function loadProjects() {
@@ -901,6 +939,7 @@
     }
     pm.show();
     loadProjects();
+  acceptProjectInviteFromUrl();
   }
 
   // ===== Fenêtre « Paramètres » =====

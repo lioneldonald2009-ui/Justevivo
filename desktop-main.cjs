@@ -20,7 +20,7 @@ function createWindow() {
   });
 
   win.once('ready-to-show', () => win.show());
-  win.loadFile(path.join(__dirname, 'www', 'index.html'));
+  win.loadURL(process.env.JUSTEVIVO_APP_URL || 'https://justevivo.pages.dev');
 
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (url.startsWith('https://') || url.startsWith('mailto:')) {

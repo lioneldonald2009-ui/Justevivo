@@ -1,0 +1,24 @@
+{
+  "name": "justevivo-ai",
+  "version": "1.0.0",
+  "private": true,
+  "description": "JUSTEVIVO AI multiplatform video creation studio",
+  "scripts": {
+    "build:web": "node scripts/prepare-web.mjs",
+    "cap:sync": "npm run build:web && cap sync",
+    "cap:sync:android": "npm run build:web && cap sync android",
+    "cap:sync:ios": "npm run build:web && cap sync ios",
+    "android:add": "cap add android",
+    "ios:add": "cap add ios",
+    "android:open": "cap open android",
+    "ios:open": "cap open ios"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.5.3",
+    "@capacitor/ios": "8.5.3",
+    "@capacitor/core": "8.5.3"
+  },
+  "devDependencies": {
+    "@capacitor/cli": "8.5.3"
+  }
+}

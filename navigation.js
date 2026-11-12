@@ -248,15 +248,74 @@ document.addEventListener("DOMContentLoaded", function () {
     setActive("dashboard");featurePage.scrollIntoView({behavior:"smooth",block:"start"});
   }
   function openCalendar(){
-    const key="justevivo_editorial_calendar_v1";let items=[];try{items=JSON.parse(localStorage.getItem(key)||"[]");if(!Array.isArray(items))items=[];}catch(_){}
-    openFeaturePage('<h3>Calendrier éditorial & publication assistée</h3><p>Planifiez vos contenus, exportez les rappels dans votre calendrier et ouvrez le bon outil de publication. La mise en ligne automatique en arrière-plan nécessite une application développeur et des autorisations officielles des réseaux.</p><form class="jv-feature-form" id="jv-calendar-form"><label>Réseau<select name="network"><option>Instagram</option><option>Facebook</option><option>TikTok</option><option>YouTube</option><option>LinkedIn</option></select></label><label>Titre de la publication<input name="title" required maxlength="120" placeholder="Ex. Présentation du nouveau produit"></label><label>Date et heure<input name="date" type="datetime-local" required></label><label>Légende / texte<textarea name="caption" rows="3" maxlength="3000" placeholder="Votre texte prêt à publier…"></textarea></label><button type="submit">Enregistrer la publication</button></form><div class="jv-dub-actions"><button type="button" class="jv-feature-action" id="jv-calendar-ics">Exporter les rappels (.ics)</button><button type="button" class="jv-profile-edit" id="jv-calendar-export">Exporter les publications (.csv)</button></div><h4>Publications planifiées</h4><div id="jv-calendar-list"></div><p class="jv-feature-note">Les éléments sont enregistrés sur cet appareil. Pour une publication automatique réelle, Meta, TikTok et YouTube exigent des applications développeur, des jetons OAuth et parfois une validation de compte. Ces démarches sont gratuites, mais les accès doivent être créés par le propriétaire des comptes.</p>');
-    const list=featurePage.querySelector("#jv-calendar-list");
-    const save=()=>localStorage.setItem(key,JSON.stringify(items));
-    const render=()=>{list.replaceChildren();if(!items.length){list.textContent="Aucune publication planifiée pour le moment.";return;}items.sort((a,b)=>a.date.localeCompare(b.date)).forEach((item,index)=>{const row=document.createElement("div");row.className="jv-schedule-item";const info=document.createElement("span");info.textContent=item.network+" · "+item.title+" — "+new Date(item.date).toLocaleString("fr-FR");const actions=document.createElement("span");const publish=document.createElement("button");publish.type="button";publish.className="jv-profile-edit";publish.textContent="Ouvrir pour publier";publish.addEventListener("click",async()=>{if(item.caption&&navigator.clipboard){try{await navigator.clipboard.writeText(item.caption)}catch(_){}}const urls={Instagram:"https://www.instagram.com/",Facebook:"https://www.facebook.com/",TikTok:"https://www.tiktok.com/upload",YouTube:"https://studio.youtube.com/",LinkedIn:"https://www.linkedin.com/feed/"};window.open(urls[item.network]||"https://www.facebook.com/","_blank","noopener");});const del=document.createElement("button");del.type="button";del.textContent="Supprimer";del.className="jv-profile-edit";del.addEventListener("click",()=>{items.splice(index,1);save();render();});actions.append(publish,del);row.append(info,actions);list.append(row);});};
-    featurePage.querySelector("#jv-calendar-form").addEventListener("submit",e=>{e.preventDefault();const data=Object.fromEntries(new FormData(e.currentTarget).entries());if(!data.title.trim()||!data.date)return;items.push(data);save();e.currentTarget.reset();render();});
-    featurePage.querySelector("#jv-calendar-ics").addEventListener("click",()=>{const esc=s=>String(s||"").replace(/\\/g,"\\\\").replace(/\n/g,"\\n").replace(/,/g,"\\,").replace(/;/g,"\\;");const stamp=d=>new Date(d).toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"");const events=items.map((x,i)=>"BEGIN:VEVENT\r\nUID:justevivo-"+i+"-"+Date.now()+"@justevivo\r\nDTSTAMP:"+stamp(new Date())+"\r\nDTSTART:"+stamp(x.date)+"\r\nSUMMARY:"+esc(x.network+" · "+x.title)+"\r\nDESCRIPTION:"+esc(x.caption)+"\r\nEND:VEVENT").join("\r\n");const blob=new Blob(["BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//JUSTEVIVO//Editorial Calendar//FR\r\n"+events+"\r\nEND:VCALENDAR"],{type:"text/calendar;charset=utf-8"});const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="justevivo-calendrier.ics";a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);});
-    featurePage.querySelector("#jv-calendar-export").addEventListener("click",()=>{const rows=[["Réseau","Titre","Date","Légende"],...items.map(x=>[x.network,x.title,x.date,x.caption])];const csv=rows.map(row=>row.map(v=>'"'+String(v||"").replace(/"/g,'""')+'"').join(",")).join("\r\n");const url=URL.createObjectURL(new Blob(["\\ufeff"+csv],{type:"text/csv;charset=utf-8"})),a=document.createElement("a");a.href=url;a.download="justevivo-publications.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);});
-    render();
+    const platformUrls={Instagram:"https://www.instagram.com/",Facebook:"https://www.facebook.com/",TikTok:"https://www.tiktok.com/upload",YouTube:"https://studio.youtube.com/",LinkedIn:"https://www.linkedin.com/feed/"};
+    let items=[];
+    let calendarClient=null,calendarChannel=null;
+    openFeaturePage('<h3>Calendrier éditorial & publication</h3><p>Les publications planifiées sont enregistrées dans votre compte JUSTEVIVO et restent accessibles sur vos appareils. La mise en ligne automatique sera activée après connexion officielle de chaque réseau social.</p><form class="jv-feature-form" id="jv-calendar-form"><label>Réseau<select name="network"><option>Instagram</option><option>Facebook</option><option>TikTok</option><option>YouTube</option><option>LinkedIn</option></select></label><label>Titre de la publication<input name="title" required maxlength="120" placeholder="Ex. Présentation du nouveau produit"></label><label>Date et heure<input name="date" type="datetime-local" required></label><label>Légende / texte<textarea name="caption" rows="3" maxlength="3000" placeholder="Votre texte prêt à publier…"></textarea></label><button type="submit">Enregistrer la programmation</button></form><p id="jv-calendar-status" aria-live="polite">Chargement de votre calendrier…</p><div class="jv-dub-actions"><button type="button" class="jv-feature-action" id="jv-calendar-ics">Exporter les rappels (.ics)</button><button type="button" class="jv-profile-edit" id="jv-calendar-export">Exporter les publications (.csv)</button></div><h4>Publications planifiées</h4><div id="jv-calendar-list"></div><p class="jv-feature-note">Important : la programmation est enregistrée sur le serveur. Pour publier automatiquement, vous devrez connecter vos comptes Meta, TikTok, YouTube ou LinkedIn et autoriser JUSTEVIVO. Ces autorisations développeur sont gratuites, mais les identifiants OAuth doivent être créés par le propriétaire des comptes. Aucune publication n’est envoyée sans cette connexion.</p>');
+    const form=featurePage.querySelector("#jv-calendar-form"),list=featurePage.querySelector("#jv-calendar-list"),status=featurePage.querySelector("#jv-calendar-status");
+    async function db(method,path,body){
+      const token=featureToken();if(!token)throw new Error("Connectez-vous pour accéder au calendrier partagé.");
+      const cfg=await fetch(featureApi()+"/api/config").then(x=>x.json());
+      if(!cfg.enabled)throw new Error("La base de données n’est pas disponible.");
+      const headers={apikey:cfg.anonKey,Authorization:"Bearer "+token};
+      if(body!==undefined)headers["Content-Type"]="application/json";
+      const res=await fetch(cfg.url+"/rest/v1/"+path,{method,headers,body:body===undefined?undefined:JSON.stringify(body)});
+      if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(err.message||err.error||"Erreur d’accès au calendrier.");}
+      return res.status===204?[]:res.json().catch(()=>[]);
+    }
+    const decodeUser=()=>{try{return JSON.parse(decodeURIComponent(escape(atob(featureToken().split(".")[1].replace(/-/g,"+").replace(/_/g,"/"))))).sub}catch(_){return null}};
+    const render=()=>{
+      list.replaceChildren();
+      if(!items.length){list.textContent="Aucune publication programmée.";return;}
+      items.sort((a,b)=>a.scheduled_at.localeCompare(b.scheduled_at)).forEach(item=>{
+        const row=document.createElement("div");row.className="jv-schedule-item";
+        const info=document.createElement("span");info.textContent=item.network+" · "+item.title+" — "+new Date(item.scheduled_at).toLocaleString("fr-FR")+" · "+(item.status==="published"?"Publiée":item.status==="failed"?"Échec":item.status==="needs_connection"?"Connexion requise":"Programmée");
+        const actions=document.createElement("span");
+        const publish=document.createElement("button");publish.type="button";publish.className="jv-profile-edit";publish.textContent="Ouvrir le réseau";
+        publish.addEventListener("click",async()=>{if(item.caption&&navigator.clipboard){try{await navigator.clipboard.writeText(item.caption)}catch(_){}}window.open(platformUrls[item.network]||"https://www.facebook.com/","_blank","noopener");});
+        const del=document.createElement("button");del.type="button";del.textContent="Supprimer";del.className="jv-profile-edit";
+        del.addEventListener("click",async()=>{try{await db("DELETE","scheduled_posts?id=eq."+encodeURIComponent(item.id));items=items.filter(x=>x.id!==item.id);render();status.textContent="Publication supprimée.";}catch(e){status.textContent=e.message;}});
+        actions.append(publish,del);row.append(info,actions);list.append(row);
+      });
+    };
+    async function load(){
+      try{
+        items=await db("GET","scheduled_posts?select=id,network,title,caption,scheduled_at,status,created_at&order=scheduled_at.asc");
+        render();status.textContent="Calendrier synchronisé avec votre compte.";
+        const cfg=await fetch(featureApi()+"/api/config").then(x=>x.json());
+        const token=featureToken();
+        if(window.supabase?.createClient&&cfg.enabled&&token){
+          calendarClient=window.supabase.createClient(cfg.url,cfg.anonKey,{auth:{persistSession:false,autoRefreshToken:false},global:{headers:{Authorization:"Bearer "+token}}});
+          calendarClient.realtime.setAuth(token);
+          calendarChannel=calendarClient.channel("jv-scheduled-posts-"+(decodeUser()||"user")).on("postgres_changes",{event:"*",schema:"public",table:"scheduled_posts"},()=>load()).subscribe();
+        }
+      }catch(e){status.textContent=e.message;}
+    }
+    form.addEventListener("submit",async e=>{
+      e.preventDefault();const data=Object.fromEntries(new FormData(form).entries());
+      if(!data.title.trim()||!data.date)return;
+      const userId=decodeUser();if(!userId){status.textContent="Session invalide. Reconnectez-vous.";return;}
+      const scheduledAt=new Date(data.date).toISOString();
+      if(new Date(scheduledAt)<=new Date()){status.textContent="Choisissez une date future.";return;}
+      const submit=form.querySelector('button[type="submit"]');submit.disabled=true;status.textContent="Enregistrement sur le serveur…";
+      try{
+        const created=await db("POST","scheduled_posts",{user_id:userId,network:data.network,title:data.title.trim(),caption:data.caption||"",scheduled_at:scheduledAt,status:"scheduled"});
+        if(created?.[0])items.push(created[0]);else await load();
+        form.reset();render();status.textContent="Publication programmée et sauvegardée dans votre compte. La mise en ligne attend la connexion officielle du réseau.";
+      }catch(err){status.textContent=err.message;}finally{submit.disabled=false;}
+    });
+    featurePage.querySelector("#jv-calendar-ics").addEventListener("click",()=>{
+      const esc=s=>String(s||"").replace(/\\/g,"\\\\").replace(/\n/g,"\\n").replace(/,/g,"\\,").replace(/;/g,"\\;");
+      const stamp=d=>new Date(d).toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"Z");
+      const events=items.map((x,i)=>"BEGIN:VEVENT\r\nUID:justevivo-"+x.id+"@justevivo\r\nDTSTAMP:"+stamp(new Date())+"\r\nDTSTART:"+stamp(x.scheduled_at)+"\r\nSUMMARY:"+esc(x.network+" · "+x.title)+"\r\nDESCRIPTION:"+esc(x.caption)+"\r\nEND:VEVENT").join("\r\n");
+      const blob=new Blob(["BEGIN:VCALENDAR\r\nVERSION:2.0\r\nPRODID:-//JUSTEVIVO//Editorial Calendar//FR\r\n"+events+"\r\nEND:VCALENDAR"],{type:"text/calendar;charset=utf-8"});const url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="justevivo-calendrier.ics";a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);
+    });
+    featurePage.querySelector("#jv-calendar-export").addEventListener("click",()=>{
+      const rows=[["Réseau","Titre","Date","Légende","Statut"],...items.map(x=>[x.network,x.title,x.scheduled_at,x.caption,x.status])];
+      const csv=rows.map(row=>row.map(v=>'"'+String(v||"").replace(/"/g,'""')+'"').join(",")).join("\r\n");
+      const url=URL.createObjectURL(new Blob(["\ufeff"+csv],{type:"text/csv;charset=utf-8"})),a=document.createElement("a");a.href=url;a.download="justevivo-publications.csv";a.click();setTimeout(()=>URL.revokeObjectURL(url),10000);
+    });
+    load();
   }
   function openTeam(){
     openFeaturePage('<h3>Projets partagés & collaboration</h3><p>Vous pouvez inviter un autre utilisateur à consulter ou modifier un projet JUSTEVIVO. L’invitation est sécurisée, liée à son adresse e-mail et valable 7 jours.</p><ol><li>Ouvrez « Mes projets » dans le menu du studio.</li><li>Choisissez le projet puis « Partager / inviter ».</li><li>Saisissez l’adresse e-mail du collaborateur et choisissez lecture seule ou modification.</li><li>Envoyez le lien d’invitation. Le collaborateur doit se connecter avec cette adresse e-mail.</li></ol><p>Les projets partagés sont enregistrés dans le même espace et peuvent être modifiés par les personnes autorisées. Les fichiers vidéo locaux doivent être importés séparément sur chaque appareil.</p><button type="button" class="jv-feature-action" id="jv-open-projects">Ouvrir Mes projets</button><p class="jv-feature-note">La coédition est basée sur des projets partagés et des sauvegardes communes. Les curseurs et la synchronisation instantanée en direct ne sont pas encore activés.</p>');

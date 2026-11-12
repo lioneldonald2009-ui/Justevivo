@@ -1,0 +1,40 @@
+name: Build JUSTEVIVO iOS simulator app
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "package.json"
+      - "capacitor.config.ts"
+      - "scripts/**"
+      - ".github/workflows/build-ios-simulator.yml"
+permissions:
+  contents: read
+jobs:
+  ios-simulator:
+    runs-on: macos-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install dependencies
+        run: npm install
+      - name: Prepare web bundle
+        run: npm run build:web
+      - name: Generate iOS project
+        run: npx cap add ios
+      - name: Sync native project
+        run: npx cap sync ios
+      - name: Build for iOS Simulator
+        run: |
+          xcodebuild -project ios/App/App.xcodeproj -scheme App -sdk iphonesimulator -configuration Debug -derivedDataPath ios/build CODE_SIGNING_ALLOWED=NO build
+      - name: Upload simulator app
+        uses: actions/upload-artifact@v4
+        with:
+          name: JUSTEVIVO-AI-iOS-Simulator
+          path: ios/build/Build/Products/Debug-iphonesimulator/App.app
+          if-no-files-found: error
+          retention-days: 14

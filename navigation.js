@@ -258,7 +258,8 @@ document.addEventListener("DOMContentLoaded", function () {
       const cfg=await fetch(featureApi()+"/api/config").then(x=>x.json());
       if(!cfg.enabled)throw new Error("La base de données n’est pas disponible.");
       const headers={apikey:cfg.anonKey,Authorization:"Bearer "+token};
-      if(body!==undefined)headers["Content-Type"]="application/json";\n      if(method==="POST")headers["Prefer"]="return=representation";
+      if(body!==undefined)headers["Content-Type"]="application/json";
+      if(method==="POST")headers["Prefer"]="return=representation";
       const res=await fetch(cfg.url+"/rest/v1/"+path,{method,headers,body:body===undefined?undefined:JSON.stringify(body)});
       if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(err.message||err.error||"Erreur d’accès au calendrier.");}
       return res.status===204?[]:res.json().catch(()=>[]);

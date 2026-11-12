@@ -250,7 +250,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function openCalendar(){
     const platformUrls={Instagram:"https://www.instagram.com/",Facebook:"https://www.facebook.com/",TikTok:"https://www.tiktok.com/upload",YouTube:"https://studio.youtube.com/",LinkedIn:"https://www.linkedin.com/feed/"};
     let items=[];
-    let calendarClient=null,calendarChannel=null;
+    let calendarClient=null,calendarChannel=null,calendarSubscribed=false;
     openFeaturePage('<h3>Calendrier éditorial & publication</h3><p>Les publications planifiées sont enregistrées dans votre compte JUSTEVIVO et restent accessibles sur vos appareils. La mise en ligne automatique sera activée après connexion officielle de chaque réseau social.</p><form class="jv-feature-form" id="jv-calendar-form"><label>Réseau<select name="network"><option>Instagram</option><option>Facebook</option><option>TikTok</option><option>YouTube</option><option>LinkedIn</option></select></label><label>Titre de la publication<input name="title" required maxlength="120" placeholder="Ex. Présentation du nouveau produit"></label><label>Date et heure<input name="date" type="datetime-local" required></label><label>Légende / texte<textarea name="caption" rows="3" maxlength="3000" placeholder="Votre texte prêt à publier…"></textarea></label><button type="submit">Enregistrer la programmation</button></form><p id="jv-calendar-status" aria-live="polite">Chargement de votre calendrier…</p><div class="jv-dub-actions"><button type="button" class="jv-feature-action" id="jv-calendar-ics">Exporter les rappels (.ics)</button><button type="button" class="jv-profile-edit" id="jv-calendar-export">Exporter les publications (.csv)</button></div><h4>Publications planifiées</h4><div id="jv-calendar-list"></div><p class="jv-feature-note">Important : la programmation est enregistrée sur le serveur. Pour publier automatiquement, vous devrez connecter vos comptes Meta, TikTok, YouTube ou LinkedIn et autoriser JUSTEVIVO. Ces autorisations développeur sont gratuites, mais les identifiants OAuth doivent être créés par le propriétaire des comptes. Aucune publication n’est envoyée sans cette connexion.</p>');
     const form=featurePage.querySelector("#jv-calendar-form"),list=featurePage.querySelector("#jv-calendar-list"),status=featurePage.querySelector("#jv-calendar-status");
     async function db(method,path,body){
@@ -258,7 +258,7 @@ document.addEventListener("DOMContentLoaded", function () {
       const cfg=await fetch(featureApi()+"/api/config").then(x=>x.json());
       if(!cfg.enabled)throw new Error("La base de données n’est pas disponible.");
       const headers={apikey:cfg.anonKey,Authorization:"Bearer "+token};
-      if(body!==undefined)headers["Content-Type"]="application/json";
+      if(body!==undefined)headers["Content-Type"]="application/json";\n      if(method==="POST")headers["Prefer"]="return=representation";
       const res=await fetch(cfg.url+"/rest/v1/"+path,{method,headers,body:body===undefined?undefined:JSON.stringify(body)});
       if(!res.ok){const err=await res.json().catch(()=>({}));throw new Error(err.message||err.error||"Erreur d’accès au calendrier.");}
       return res.status===204?[]:res.json().catch(()=>[]);
@@ -282,12 +282,15 @@ document.addEventListener("DOMContentLoaded", function () {
       try{
         items=await db("GET","scheduled_posts?select=id,network,title,caption,scheduled_at,status,created_at&order=scheduled_at.asc");
         render();status.textContent="Calendrier synchronisé avec votre compte.";
-        const cfg=await fetch(featureApi()+"/api/config").then(x=>x.json());
-        const token=featureToken();
-        if(window.supabase?.createClient&&cfg.enabled&&token){
-          calendarClient=window.supabase.createClient(cfg.url,cfg.anonKey,{auth:{persistSession:false,autoRefreshToken:false},global:{headers:{Authorization:"Bearer "+token}}});
-          calendarClient.realtime.setAuth(token);
-          calendarChannel=calendarClient.channel("jv-scheduled-posts-"+(decodeUser()||"user")).on("postgres_changes",{event:"*",schema:"public",table:"scheduled_posts"},()=>load()).subscribe();
+        if(!calendarSubscribed){
+          const cfg=await fetch(featureApi()+"/api/config").then(x=>x.json());
+          const token=featureToken();
+          if(window.supabase?.createClient&&cfg.enabled&&token){
+            calendarClient=window.supabase.createClient(cfg.url,cfg.anonKey,{auth:{persistSession:false,autoRefreshToken:false},global:{headers:{Authorization:"Bearer "+token}}});
+            calendarClient.realtime.setAuth(token);
+            calendarChannel=calendarClient.channel("jv-scheduled-posts-"+(decodeUser()||"user")).on("postgres_changes",{event:"*",schema:"public",table:"scheduled_posts"},()=>load()).subscribe();
+            calendarSubscribed=true;
+          }
         }
       }catch(e){status.textContent=e.message;}
     }
@@ -318,7 +321,7 @@ document.addEventListener("DOMContentLoaded", function () {
     load();
   }
   function openTeam(){
-    openFeaturePage('<h3>Projets partagés & collaboration</h3><p>Vous pouvez inviter un autre utilisateur à consulter ou modifier un projet JUSTEVIVO. L’invitation est sécurisée, liée à son adresse e-mail et valable 7 jours.</p><ol><li>Ouvrez « Mes projets » dans le menu du studio.</li><li>Choisissez le projet puis « Partager / inviter ».</li><li>Saisissez l’adresse e-mail du collaborateur et choisissez lecture seule ou modification.</li><li>Envoyez le lien d’invitation. Le collaborateur doit se connecter avec cette adresse e-mail.</li></ol><p>Les projets partagés sont enregistrés dans le même espace et peuvent être modifiés par les personnes autorisées. Les fichiers vidéo locaux doivent être importés séparément sur chaque appareil.</p><button type="button" class="jv-feature-action" id="jv-open-projects">Ouvrir Mes projets</button><p class="jv-feature-note">La coédition est basée sur des projets partagés et des sauvegardes communes. Les curseurs et la synchronisation instantanée en direct ne sont pas encore activés.</p>');
+    openFeaturePage('<h3>Projets partagés & collaboration</h3><p>Vous pouvez inviter un autre utilisateur à consulter ou modifier un projet JUSTEVIVO. L’invitation est sécurisée, liée à son adresse e-mail et valable 7 jours.</p><ol><li>Ouvrez « Mes projets » dans le menu du studio.</li><li>Choisissez le projet puis « Partager / inviter ».</li><li>Saisissez l’adresse e-mail du collaborateur et choisissez lecture seule ou modification.</li><li>Envoyez le lien d’invitation. Le collaborateur doit se connecter avec cette adresse e-mail.</li></ol><p>Les modifications sont enregistrées automatiquement et synchronisées en temps réel entre les collaborateurs connectés. Les fichiers vidéo locaux doivent être importés séparément sur chaque appareil.</p><button type="button" class="jv-feature-action" id="jv-open-projects">Ouvrir Mes projets</button><p class="jv-feature-note">La synchronisation en direct fonctionne lorsque le projet est ouvert dans le studio et que la connexion internet est active. Évitez de modifier exactement le même champ au même instant pour prévenir les conflits.</p>');
     featurePage.querySelector("#jv-open-projects").addEventListener("click",()=>{const link=links.find(x=>x.dataset.page==="projects");if(link)link.click();});
   }
 

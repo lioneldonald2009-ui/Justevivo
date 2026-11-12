@@ -1,0 +1,76 @@
+/* JUSTEVIVO AI — expérience mobile/PWA
+   Force une vraie disposition tactile sur les écrans de téléphone et les fenêtres PWA étroites. */
+@media (max-width: 1024px) {
+  html, body { width:100%; max-width:100%; overflow-x:hidden; }
+  body { -webkit-text-size-adjust:100%; }
+  .topbar { min-height:60px!important; height:auto!important; padding:10px 14px!important; gap:10px!important; flex-wrap:wrap!important; }
+  .topbar nav { order:3!important; width:100%!important; display:flex!important; overflow-x:auto!important; gap:16px!important; padding:5px 0!important; scrollbar-width:none; }
+  .topbar nav::-webkit-scrollbar { display:none; }
+  .topbar nav a { white-space:nowrap!important; font-size:12px!important; }
+  .hero { grid-template-columns:minmax(0,1fr)!important; min-height:0!important; padding:44px 18px 34px!important; gap:18px!important; }
+  .hero h1 { font-size:clamp(34px,7vw,48px)!important; letter-spacing:-.055em!important; }
+  .hero-copy>p { font-size:14px!important; }
+  .hero-art { width:100%!important; max-width:560px!important; margin:0 auto!important; padding:12px 12px 25px!important; }
+  .video-scene { height:clamp(180px,42vw,260px)!important; }
+  .feature-strip { margin:0 12px!important; grid-template-columns:repeat(2,minmax(0,1fr))!important; padding:15px!important; }
+  .studio-section { padding:42px 10px!important; }
+  .section-heading { align-items:flex-start!important; flex-direction:column!important; gap:8px!important; }
+  .studio { display:flex!important; flex-direction:column!important; width:100%!important; min-width:0!important; }
+  .jv-sidebar, .studio>.sidebar {
+    position:sticky!important; top:0!important; z-index:30!important;
+    display:flex!important; flex-direction:row!important; flex-wrap:nowrap!important;
+    align-items:center!important; gap:7px!important; width:100%!important;
+    min-width:0!important; min-height:0!important; max-height:none!important;
+    overflow-x:auto!important; overflow-y:hidden!important;
+    padding:9px!important; border-radius:12px 12px 0 0!important;
+    scrollbar-width:none!important;
+  }
+  .jv-sidebar::-webkit-scrollbar, .studio>.sidebar::-webkit-scrollbar { display:none!important; }
+  .jv-sidebar .mini-brand { display:flex!important; flex:0 0 auto!important; margin:0 5px 0 0!important; font-size:12px!important; }
+  .jv-sidebar .mini-brand .brand-mark { width:30px!important;height:30px!important; }
+  .jv-sidebar .mini-brand small, .jv-sidebar .mini-brand em { display:none!important; }
+  .jv-sidebar-new { display:block!important; flex:0 0 auto!important; width:auto!important; margin:0!important; padding:10px 12px!important; white-space:nowrap!important; font-size:11px!important; }
+  .jv-sidebar-label, .jv-sidebar .side-bottom { display:none!important; }
+  .jv-sidebar .side-link, .studio>.sidebar .side-link {
+    display:flex!important; flex:0 0 auto!important; align-items:center!important;
+    min-height:38px!important; margin:0!important; padding:9px 11px!important;
+    white-space:nowrap!important; font-size:11px!important;
+  }
+  .workspace { width:100%!important; min-width:0!important; padding:14px!important; }
+  .workspace-head { gap:10px!important; flex-wrap:wrap!important; }
+  .workspace-head h3 { font-size:18px!important; }
+  .editor-grid { display:grid!important; grid-template-columns:minmax(0,1fr)!important; gap:12px!important; }
+  .preview-panel, .controls-panel { width:100%!important; min-width:0!important; }
+  .preview-frame { max-width:100%!important; }
+  .jv-account-overview { grid-template-columns:minmax(0,1fr)!important; }
+  .jv-quick-grid { grid-template-columns:repeat(3,minmax(0,1fr))!important; }
+  .jv-plan-cards, .jv-subscription-grid { grid-template-columns:repeat(2,minmax(0,1fr))!important; }
+  .jv-feature-grid { grid-template-columns:repeat(2,minmax(0,1fr))!important; }
+  .jv-production-grid { grid-template-columns:minmax(0,1fr)!important; }
+  .dashboard-card, .dashboard-recent, .jv-settings-card, .jv-project-card { min-width:0!important; }
+  button, .button, input, select, textarea { max-width:100%; }
+  button, .button { min-height:42px; touch-action:manipulation; }
+  input, select, textarea { font-size:16px!important; }
+  .plans-grid { grid-template-columns:minmax(0,1fr)!important; max-width:560px!important; margin-inline:auto!important; }
+  .plan-card { width:100%!important; }
+  .showcase-grid, .marketing-feature-grid, .usecase-grid, .steps { grid-template-columns:minmax(0,1fr)!important; }
+  .showcase-main { grid-column:auto!important; }
+  .site-footer { flex-direction:column!important; align-items:flex-start!important; }
+}
+@media (max-width: 520px) {
+  .topbar .brand { font-size:18px!important; }
+  .top-cta { padding:9px 10px!important; font-size:11px!important; }
+  .hero { padding:34px 16px 28px!important; }
+  .hero h1 { font-size:clamp(32px,9vw,42px)!important; }
+  .hero-actions { flex-direction:column!important; align-items:stretch!important; }
+  .hero-actions .button { width:100%!important; }
+  .feature-strip { gap:12px!important; }
+  .feature-strip strong { font-size:11px!important; }
+  .workspace { padding:11px!important; }
+  .jv-account-bar { align-items:stretch!important; }
+  .jv-account-bar>div:last-child { justify-content:flex-start!important; flex-wrap:wrap!important; }
+  .jv-quick-grid { grid-template-columns:repeat(2,minmax(0,1fr))!important; }
+  .jv-plan-cards, .jv-subscription-grid { grid-template-columns:minmax(0,1fr)!important; }
+  .jv-account-summary { grid-template-columns:minmax(0,1fr)!important; }
+  .jv-production-fields { grid-template-columns:minmax(0,1fr)!important; }
+}

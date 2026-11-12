@@ -4,15 +4,6 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths:
-      - "package.json"
-      - "capacitor.config.ts"
-      - "scripts/**"
-      - "index.html"
-      - "*.css"
-      - "*.js"
-      - "icons/**"
-      - ".github/workflows/build-native.yml"
 
 permissions:
   contents: read
@@ -62,7 +53,7 @@ jobs:
           name: JUSTEVIVO-Android-debug-APK
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 30
 
   ios-simulator:
     name: iOS simulator build (unsigned)
@@ -105,4 +96,4 @@ jobs:
           name: JUSTEVIVO-iOS-Simulator-unsigned
           path: build/ios/Build/Products/JUSTEVIVO-iOS-Simulator.zip
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 30

@@ -66,6 +66,20 @@ document.addEventListener("DOMContentLoaded", function () {
     links.forEach(link => link.classList.toggle("active", link.dataset.page === page));
   }
 
+  // Bouton de retour commun aux vues internes du studio.
+  let workspaceBack = document.getElementById("jv-workspace-back");
+  if (!workspaceBack) {
+    workspaceBack = document.createElement("button");
+    workspaceBack.id = "jv-workspace-back";
+    workspaceBack.type = "button";
+    workspaceBack.className = "jv-workspace-back";
+    workspaceBack.innerHTML = '<span aria-hidden="true">←</span> Retour au tableau de bord';
+    workspaceBack.setAttribute("aria-label", "Retour au tableau de bord");
+    workspaceBack.style.cssText = "display:none;align-items:center;gap:9px;margin:0 0 14px;padding:10px 15px;border:1px solid #dfe3ef;border-radius:11px;background:#fff;color:#30294b;font:700 13px system-ui;cursor:pointer;box-shadow:0 3px 12px #17203310";
+    workspace.insertBefore(workspaceBack, workspace.firstChild);
+    workspaceBack.addEventListener("click", showDashboard);
+  }
+
   function showDashboard() {
     subscriptionPage.hidden = true;
     dashboard.hidden = false;

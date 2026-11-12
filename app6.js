@@ -890,7 +890,11 @@
       const raw=Array.from(bytes,b=>b.toString(16).padStart(2,"0")).join("");
       const digest=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(raw));
       const hash=Array.from(new Uint8Array(digest),b=>b.toString(16).padStart(2,"0")).join("");
-      await sb("POST","project_invitations",{project_id:row.id,email,token_hash:hash,role,invited_by:readSession()?.user?.id||readSession()?.user_id||null,expires_at:new Date(Date.now()+7*86400000).toISOString()},{Prefer:"return=minimal"});
+      const conf=await getConf(),sessionToken=await token();
+      const userResponse=await window.fetch(conf.url+"/auth/v1/user",{headers:{apikey:conf.key,Authorization:"Bearer "+sessionToken}});
+      if(!userResponse.ok)throw new Error("Impossible de vérifier le compte connecté.");
+      const currentUser=await userResponse.json();
+      await sb("POST","project_invitations",{project_id:row.id,email,token_hash:hash,role,invited_by:currentUser.id,expires_at:new Date(Date.now()+7*86400000).toISOString()},{Prefer:"return=minimal"});
       const invite=new URL(location.href);invite.searchParams.set("jv_invite",raw);
       const link=invite.toString();
       const subject=encodeURIComponent("Invitation à collaborer sur JUSTEVIVO");

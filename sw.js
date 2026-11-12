@@ -1,5 +1,5 @@
-const CACHE_NAME = "justevivo-shell-v1";
-const APP_SHELL = ["/", "/index.html", "/offline.html", "/icons/icon-192.svg", "/icons/icon-512.svg"];
+const CACHE_NAME = "justevivo-shell-v2";
+const APP_SHELL = ["/", "/index.html", "/offline.html", "/icons/icon-192.png", "/icons/icon-512.png"];
 
 self.addEventListener("install", event => {
   event.waitUntil((async () => {

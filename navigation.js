@@ -251,8 +251,46 @@ document.addEventListener("DOMContentLoaded", function () {
     const platformUrls={Instagram:"https://www.instagram.com/",Facebook:"https://www.facebook.com/",TikTok:"https://www.tiktok.com/upload",YouTube:"https://studio.youtube.com/",LinkedIn:"https://www.linkedin.com/feed/"};
     let items=[];
     let calendarClient=null,calendarChannel=null,calendarSubscribed=false;
-    openFeaturePage('<h3>Calendrier éditorial & publication</h3><p>Les publications planifiées sont enregistrées dans votre compte JUSTEVIVO et restent accessibles sur vos appareils. La mise en ligne automatique sera activée après connexion officielle de chaque réseau social.</p><form class="jv-feature-form" id="jv-calendar-form"><label>Réseau<select name="network"><option>Instagram</option><option>Facebook</option><option>TikTok</option><option>YouTube</option><option>LinkedIn</option></select></label><label>Titre de la publication<input name="title" required maxlength="120" placeholder="Ex. Présentation du nouveau produit"></label><label>Date et heure<input name="date" type="datetime-local" required></label><label>Légende / texte<textarea name="caption" rows="3" maxlength="3000" placeholder="Votre texte prêt à publier…"></textarea></label><button type="submit">Enregistrer la programmation</button></form><p id="jv-calendar-status" aria-live="polite">Chargement de votre calendrier…</p><div class="jv-dub-actions"><button type="button" class="jv-feature-action" id="jv-calendar-ics">Exporter les rappels (.ics)</button><button type="button" class="jv-profile-edit" id="jv-calendar-export">Exporter les publications (.csv)</button></div><h4>Publications planifiées</h4><div id="jv-calendar-list"></div><p class="jv-feature-note">Important : la programmation est enregistrée sur le serveur. Pour publier automatiquement, vous devrez connecter vos comptes Meta, TikTok, YouTube ou LinkedIn et autoriser JUSTEVIVO. Ces autorisations développeur sont gratuites, mais les identifiants OAuth doivent être créés par le propriétaire des comptes. Aucune publication n’est envoyée sans cette connexion.</p>');
+    openFeaturePage('<h3>Calendrier éditorial & publication</h3><p>Les publications planifiées sont enregistrées dans votre compte JUSTEVIVO et restent accessibles sur vos appareils. La mise en ligne automatique sera activée après connexion officielle de chaque réseau social.</p><section class="jv-social-connections"><h4>Comptes sociaux connectés</h4><p>Reliez vos comptes pour préparer la publication directe. Vos jetons restent chiffrés sur le serveur JUSTEVIVO.</p><div id="jv-social-provider-list">Chargement des connexions…</div><p id="jv-social-status" aria-live="polite"></p></section><form class="jv-feature-form" id="jv-calendar-form"><label>Réseau<select name="network"><option>Instagram</option><option>Facebook</option><option>TikTok</option><option>YouTube</option><option>LinkedIn</option></select></label><label>Titre de la publication<input name="title" required maxlength="120" placeholder="Ex. Présentation du nouveau produit"></label><label>Date et heure<input name="date" type="datetime-local" required></label><label>Légende / texte<textarea name="caption" rows="3" maxlength="3000" placeholder="Votre texte prêt à publier…"></textarea></label><button type="submit">Enregistrer la programmation</button></form><p id="jv-calendar-status" aria-live="polite">Chargement de votre calendrier…</p><div class="jv-dub-actions"><button type="button" class="jv-feature-action" id="jv-calendar-ics">Exporter les rappels (.ics)</button><button type="button" class="jv-profile-edit" id="jv-calendar-export">Exporter les publications (.csv)</button></div><h4>Publications planifiées</h4><div id="jv-calendar-list"></div><p class="jv-feature-note">Important : la programmation est enregistrée sur le serveur. Pour publier automatiquement, vous devrez connecter vos comptes Meta, TikTok, YouTube ou LinkedIn et autoriser JUSTEVIVO. Ces autorisations développeur sont gratuites, mais les identifiants OAuth doivent être créés par le propriétaire des comptes. Aucune publication n’est envoyée sans cette connexion.</p>');
     const form=featurePage.querySelector("#jv-calendar-form"),list=featurePage.querySelector("#jv-calendar-list"),status=featurePage.querySelector("#jv-calendar-status");
+    const socialList=featurePage.querySelector("#jv-social-provider-list"),socialStatus=featurePage.querySelector("#jv-social-status");
+    async function loadSocialConnections(){
+      try{
+        const token=featureToken();if(!token)throw new Error("Connectez-vous à JUSTEVIVO.");
+        const response=await fetch(featureApi()+"/api/social/providers",{headers:{Authorization:"Bearer "+token}});
+        const data=await response.json();if(!response.ok)throw new Error(data.error||"Chargement des comptes impossible.");
+        socialList.replaceChildren();
+        data.providers.forEach(provider=>{
+          const card=document.createElement("div");card.className="jv-schedule-item";
+          const info=document.createElement("span");info.textContent=provider.label+" · "+(provider.connected?(provider.accountName||"Connecté"):"Non connecté")+(provider.configured?"":" · Configuration développeur à compléter");
+          const button=document.createElement("button");button.type="button";button.className="jv-feature-action";button.textContent=provider.connected?"Déconnecter":"Connecter";
+          button.disabled=!provider.connected&&!provider.configured;
+          button.addEventListener("click",async()=>{
+            button.disabled=true;
+            try{
+              if(provider.connected){
+                const out=await fetch(featureApi()+"/api/social/disconnect/"+provider.id,{method:"DELETE",headers:{Authorization:"Bearer "+token}});
+                const result=await out.json();if(!out.ok)throw new Error(result.error||"Déconnexion impossible.");
+                socialStatus.textContent=provider.label+" déconnecté.";
+                await loadSocialConnections();
+              }else{
+                const out=await fetch(featureApi()+"/api/social/connect/"+provider.id+"?json=1",{headers:{Authorization:"Bearer "+token}});
+                const result=await out.json();if(!out.ok)throw new Error(result.error||"Connexion impossible.");
+                location.assign(result.url);
+              }
+            }catch(error){socialStatus.textContent=error.message;button.disabled=false;}
+          });
+          card.append(info,button);socialList.append(card);
+        });
+      }catch(error){socialList.textContent=error.message;}
+    }
+    const socialParams=new URLSearchParams(location.search);
+    if(socialParams.has("social_connection")){
+      socialStatus.textContent=socialParams.get("social_message")||"Retour de connexion sociale.";
+      history.replaceState({},document.title,location.pathname+location.hash);
+    }
+    loadSocialConnections();
+
     async function db(method,path,body){
       const token=featureToken();if(!token)throw new Error("Connectez-vous pour accéder au calendrier partagé.");
       const cfg=await fetch(featureApi()+"/api/config").then(x=>x.json());

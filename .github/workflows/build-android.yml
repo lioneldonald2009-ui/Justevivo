@@ -1,0 +1,53 @@
+name: Build JUSTEVIVO Android app
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - "package.json"
+      - "capacitor.config.ts"
+      - "scripts/**"
+      - "mobile-app.css"
+      - ".github/workflows/build-android.yml"
+permissions:
+  contents: read
+jobs:
+  android-debug:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+      - name: Install dependencies
+        run: npm install
+      - name: Prepare web bundle
+        run: npm run build:web
+      - name: Generate Android project
+        run: npx cap add android
+      - name: Generate branded launcher icons
+        run: |
+          mkdir -p resources
+          cp icons/icon-512.png resources/icon.png
+          npx capacitor-assets generate --android
+      - name: Sync native project
+        run: npx cap sync android
+      - name: Build Android APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+      - name: Upload installable debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: JUSTEVIVO-AI-Android-debug
+          path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
+          retention-days: 14

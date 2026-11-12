@@ -687,7 +687,31 @@
     showToast('Projet remis en place. Vous pouvez lire et exporter la vidéo.');
   });
 
+  let activeProjectPoll = null;
+  let activeProjectUpdatedAt = "";
+  function watchSharedProject(row) {
+    if (activeProjectPoll) clearInterval(activeProjectPoll);
+    activeProjectUpdatedAt = row.updated_at || "";
+    if (!row.id) return;
+    activeProjectPoll = setInterval(async () => {
+      try {
+        const rows = await sb("GET", "projects?id=eq." + encodeURIComponent(row.id) + "&select=updated_at,data");
+        if (!rows.length || !rows[0].updated_at || rows[0].updated_at === activeProjectUpdatedAt) return;
+        activeProjectUpdatedAt = rows[0].updated_at;
+        const reload = confirm("Une nouvelle version de ce projet a été enregistrée par un collaborateur. Recharger cette version partagée ? Vos modifications non enregistrées seront remplacées.");
+        if (reload) {
+          pending = { data: rows[0].data || {}, videoName: row.video_name || "" };
+          restore(rows[0].data || {});
+          showToast("Version partagée actualisée.");
+        } else {
+          showToast("Nouvelle version disponible. Enregistrez ou rechargez le projet quand vous le souhaitez.");
+        }
+      } catch (_) { /* la surveillance reprend au prochain passage */ }
+    }, 6000);
+  }
+
   function openProject(row) {
+    watchSharedProject(row);
     pending = { data: row.data || {}, videoName: row.video_name || '' };
     restore(row.data || {});
     pm.hide();
@@ -852,7 +876,7 @@
     open.addEventListener('click', async () => {
       try {
         const rows = await sb(
-          'GET', 'projects?id=eq.' + encodeURIComponent(r.id) + '&select=name,video_name,data'
+          'GET', 'projects?id=eq.' + encodeURIComponent(r.id) + '&select=id,name,video_name,data,updated_at'
         );
         if (!rows.length) throw new Error('Projet introuvable.');
         openProject(rows[0]);

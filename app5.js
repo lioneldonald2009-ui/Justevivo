@@ -482,7 +482,12 @@
     msg.textContent = 'Création du compte...';
 
     try {
-      const redirect = window.location.origin + window.location.pathname + window.location.search;
+      const isNativeApp = !!(window.Capacitor && typeof window.Capacitor.isNativePlatform === 'function' && window.Capacitor.isNativePlatform());
+      // Les liens de confirmation email doivent s'ouvrir sur le domaine HTTPS public,
+      // pas sur l'origine locale du WebView Capacitor.
+      const redirect = isNativeApp
+        ? 'https://justevivo.pages.dev/'
+        : window.location.origin + window.location.pathname + window.location.search;
       const d = await authCall('signup?redirect_to=' + encodeURIComponent(redirect), {
         email: f.email,
         password: f.pass

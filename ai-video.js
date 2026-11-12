@@ -17,6 +17,9 @@ document.addEventListener("DOMContentLoaded",()=>{
  function show(){editorParts.forEach(x=>x.hidden=true);document.querySelectorAll(".workspace-page").forEach(x=>x.hidden=true);page.hidden=false;page.classList.add("is-active");if(back)back.style.display="inline-flex";sidebar.querySelectorAll(".side-link").forEach(x=>x.classList.toggle("active",x.dataset.page==="ai-video"));loadConfig();workspace.scrollIntoView({behavior:"smooth",block:"start"});}
  function hide(){page.classList.remove("is-active");editorParts.forEach(x=>x.hidden=false);}
  const link=sidebar.querySelector('[data-page="ai-video"]');if(link)link.addEventListener("click",show);
+ const allInOneCta=document.querySelector('[data-plan="All-in-One"]');
+ if(allInOneCta)allInOneCta.addEventListener("click",()=>{const pricing=sidebar.querySelector('[data-page="pricing"]');if(pricing)pricing.click();setTimeout(()=>{const choose=document.querySelector('[data-subscription-plan="All-in-One"]');if(choose)choose.scrollIntoView({behavior:"smooth",block:"center"});},250);});
+
 
  let token=()=>{try{return JSON.parse(localStorage.getItem("justevivo_session_v1")||"null")?.access_token||""}catch(_){return ""}};
  const api=()=>typeof API_URL!=="undefined"?API_URL:"https://justevivo-backend.onrender.com";

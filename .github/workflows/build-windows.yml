@@ -4,16 +4,6 @@ on:
   workflow_dispatch:
   push:
     branches: [main]
-    paths:
-      - "package.json"
-      - "desktop-main.cjs"
-      - "desktop-preload.cjs"
-      - "scripts/**"
-      - "index.html"
-      - "*.css"
-      - "*.js"
-      - "icons/**"
-      - ".github/workflows/build-windows.yml"
 
 permissions:
   contents: read
@@ -40,7 +30,6 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: JUSTEVIVO-Windows
-          path: |
-            release/*.exe
+          path: release/*.exe
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 30

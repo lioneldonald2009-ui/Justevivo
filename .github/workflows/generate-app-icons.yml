@@ -1,0 +1,34 @@
+name: Generate PWA PNG icons
+on:
+  push:
+    branches: [main]
+    paths:
+      - "icons/icon-192.svg"
+      - "icons/icon-512.svg"
+      - ".github/workflows/generate-app-icons.yml"
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  icons:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Convert SVG icons to PNG
+        run: |
+          npm install --no-save sharp
+          node -e "const sharp=require('sharp'); Promise.all([[192, 'icons/icon-192.svg'],[512, 'icons/icon-512.svg']].map(([size,src])=>sharp(src).resize(size,size).png().toFile('icons/icon-'+size+'.png'))).catch(e=>{console.error(e);process.exit(1)})"
+      - name: Commit generated PNG icons
+        run: |
+          if git status --porcelain | grep -q 'icons/icon-.*.png'; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add icons/icon-192.png icons/icon-512.png
+            git commit -m "Generate PNG app icons for PWA"
+            git push
+          fi

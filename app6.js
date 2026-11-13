@@ -317,7 +317,8 @@
         ['Durée maximale par vidéo', isUnlimited ? 'Illimitée' :
           (Number(me.maxSeconds) >= 60 ? Math.round(Number(me.maxSeconds) / 60).toLocaleString('fr-FR') + ' min' :
           (Number(me.maxSeconds) || 0).toLocaleString('fr-FR') + ' s')],
-        ['Générations aujourd’hui', formatCount(me.genUsed, me.genLimit)],\n        ['Crédits vidéo IA', me.aiVideoCreditsUnlimited || isUnlimited ? 'Illimités' : (Number(me.aiVideoCredits) || 0).toLocaleString('fr-FR')]
+        ['Générations aujourd’hui', formatCount(me.genUsed, me.genLimit)],
+        ['Crédits vidéo IA', me.aiVideoCreditsUnlimited || isUnlimited ? 'Illimités' : (Number(me.aiVideoCredits) || 0).toLocaleString('fr-FR')]
       ];
       if (me.planUntil) rows.push(['Abonnement valable jusqu’au', new Date(me.planUntil).toLocaleDateString('fr-FR')]);
 

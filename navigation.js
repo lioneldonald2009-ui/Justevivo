@@ -432,12 +432,6 @@ document.addEventListener("DOMContentLoaded", function () {
     if(name==="dubbing"){openDubbing();return;}if(name==="calendar"){openCalendar();return;}if(name==="team"){openTeam();return;}
   }
   featureHub.querySelectorAll("[data-feature-go]").forEach(b=>b.addEventListener("click",()=>goFeature(b.dataset.featureGo)));
-  dashboard.querySelectorAll(".jv-feature-grid article").forEach(card=>{
-    const title=(card.querySelector("strong")?.textContent||"").toLowerCase();
-    const feature=title.includes("b-roll")?"broll":title.includes("doublage")?"dubbing":title.includes("publication")?"calendar":title.includes("collaboration")?"team":null;
-    if(feature){card.dataset.feature=feature;card.setAttribute("role","button");card.setAttribute("tabindex","0");const activate=()=>goFeature(feature);card.addEventListener("click",activate);card.addEventListener("keydown",e=>{if(e.key==="Enter"||e.key===" "){e.preventDefault();activate();}});}
-  });
-
   // Entrée initiale : conserver le dashboard comme page d'accueil.
   // Les cartes du répertoire de fonctionnalités sont de vrais raccourcis.
   const featureRoutes = [
@@ -446,7 +440,7 @@ document.addEventListener("DOMContentLoaded", function () {
     ["Audio & voix", "audio"], ["Export vidéo", "export"],
     ["Magic Clips", "clips"], ["B-Roll gratuit", "broll"],
     ["Timeline de montage", "timeline"], ["Bibliothèque média", "media"],
-    ["Traduction & doublage vocal", "text"], ["Brand Kit", "brand"],
+    ["Traduction & doublage vocal", "dubbing"], ["Brand Kit", "brand"],
     ["Calendrier & publication", "upcoming"], ["Projets partagés", "projects"]
   ];
   dashboard.querySelectorAll(".jv-feature-grid article").forEach(card => {
@@ -460,6 +454,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const activate = () => {
       const view = route[1];
       if (view === "broll") { openBroll(); return; }
+      if (view === "dubbing") { openDubbing(); return; }
       if (view === "upcoming") { openCalendar(); return; }
       if (view === "projects") { const projectLink=links.find(x=>x.dataset.page==="projects"); if(projectLink) projectLink.click(); return; }
       if (["audio","media","clips","brand","timeline"].includes(view)) { openSuiteView(view, view); return; }

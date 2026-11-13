@@ -180,6 +180,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const page = link.dataset.page;
     if (page === "dashboard") { showDashboard(); return; }
     if (page === "pricing") { showSubscription(); return; }
+    if (page === "projects") { showStudio(); const tab = Array.from(document.querySelectorAll(".studio-tab")).find(button => button.textContent.trim() === "Mes projets"); if (tab) tab.click(); return; }
     if (page === "upcoming") { openBroll(); return; }
     if (page === "photo-studio") return;
     const viewByPage = {audio:"audio",media:"media",clips:"clips",brand:"brand",timeline:"timeline",production:"production"};

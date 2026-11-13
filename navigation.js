@@ -180,13 +180,7 @@ document.addEventListener("DOMContentLoaded", function () {
     const page = link.dataset.page;
     if (page === "dashboard") { showDashboard(); return; }
     if (page === "pricing") { showSubscription(); return; }
-    if (page === "upcoming") {
-      showDashboard();
-      const features = dashboard.querySelector(".jv-feature-directory");
-      if (features) features.scrollIntoView({behavior:"smooth",block:"start"});
-      setActive("upcoming");
-      return;
-    }
+    if (page === "upcoming") { openBroll(); return; }
     if (page === "photo-studio") return;
     const viewByPage = {audio:"audio",media:"media",clips:"clips",brand:"brand",timeline:"timeline",production:"production"};
     if (viewByPage[page]) { openSuiteView(viewByPage[page], page); return; }
@@ -390,10 +384,35 @@ document.addEventListener("DOMContentLoaded", function () {
     if(!response.ok){const data=await response.json().catch(()=>({}));throw new Error(data.error||"Service momentanément indisponible.");}
     return response;
   }
-  async function openBroll(){
+  async function openBroll(initialQuery = ""){
     openFeaturePage('<h3>B-Roll gratuit</h3><p>Recherchez des vidéos sur Wikimedia Commons, bibliothèque publique gratuite. Vérifiez la licence et les conditions d’attribution affichées pour chaque fichier avant toute utilisation commerciale.</p><form class="jv-feature-form" id="jv-broll-form"><label>Mot-clé<input name="q" required minlength="2" placeholder="Ex. cuisine, entrepreneuriat, nature…"></label><label>Format<select name="orientation"><option value="all">Tous les formats</option><option value="portrait">Vertical</option><option value="landscape">Paysage</option><option value="square">Carré</option></select></label><button type="submit">Rechercher des vidéos gratuites</button></form><p id="jv-broll-status" aria-live="polite"></p><div id="jv-broll-results" class="jv-broll-results"></div>');
     const form=featurePage.querySelector("#jv-broll-form"),status=featurePage.querySelector("#jv-broll-status"),results=featurePage.querySelector("#jv-broll-results");
-    form.addEventListener("submit",async e=>{e.preventDefault();const d=new FormData(form);status.textContent="Recherche dans Wikimedia Commons…";results.replaceChildren();try{const response=await featureFetch("/api/media/broll?q="+encodeURIComponent(d.get("q"))+"&orientation="+encodeURIComponent(d.get("orientation")));const data=await response.json();status.textContent=data.total_results+" vidéo(s) trouvée(s).";data.videos.forEach(v=>{const card=document.createElement("article");card.className="jv-broll-card";const video=document.createElement("video");video.controls=true;video.preload="none";video.playsInline=true;video.src=v.url;if(v.thumbnail)video.poster=v.thumbnail;const title=document.createElement("strong");title.textContent=v.title;const meta=document.createElement("p");meta.textContent=(v.width&&v.height?v.width+" × "+v.height+" · ":"")+v.license;const author=document.createElement("p");author.textContent="Auteur : "+v.artist;const source=document.createElement("a");source.href=v.pageUrl;source.target="_blank";source.rel="noopener";source.textContent="Voir la licence et la source";const download=document.createElement("a");download.href=v.url;download.target="_blank";download.rel="noopener";download.textContent="Ouvrir / télécharger la vidéo";card.append(video,title,meta,author,source,document.createElement("br"),download);results.append(card);});if(!data.videos.length)status.textContent="Aucun fichier vidéo correspondant. Essayez un mot-clé en anglais.";}catch(err){status.textContent=err.message;}});
+    const runSearch=async()=>{
+      const d=new FormData(form),query=String(d.get("q")||"").trim();
+      if(query.length<2){status.textContent="Saisissez au moins deux caractères.";return;}
+      const submit=form.querySelector('button[type="submit"]');submit.disabled=true;status.textContent="Recherche dans Wikimedia Commons…";results.replaceChildren();
+      try{
+        const response=await featureFetch("/api/media/broll?q="+encodeURIComponent(query)+"&orientation="+encodeURIComponent(d.get("orientation")));
+        const data=await response.json();if(!response.ok)throw new Error(data.error||"Recherche B-roll indisponible.");
+        const videos=Array.isArray(data.videos)?data.videos:[];
+        status.textContent=(data.total_results??videos.length)+" vidéo(s) trouvée(s).";
+        videos.forEach(v=>{
+          const card=document.createElement("article");card.className="jv-broll-card";
+          const video=document.createElement("video");video.controls=true;video.preload="none";video.playsInline=true;video.src=v.url;if(v.thumbnail)video.poster=v.thumbnail;
+          const title=document.createElement("strong");title.textContent=v.title||"Vidéo sans titre";
+          const meta=document.createElement("p");meta.textContent=(v.width&&v.height?v.width+" × "+v.height+" · ":"")+(v.license||"Licence à vérifier");
+          const author=document.createElement("p");author.textContent="Auteur : "+(v.artist||"Non indiqué");
+          const source=document.createElement("a");source.href=v.pageUrl;source.target="_blank";source.rel="noopener";source.textContent="Voir la licence et la source";
+          const download=document.createElement("a");download.href=v.url;download.target="_blank";download.rel="noopener";download.textContent="Ouvrir / télécharger la vidéo";
+          card.append(video,title,meta,author,source,document.createElement("br"),download);results.append(card);
+        });
+        if(!videos.length)status.textContent="Aucun fichier vidéo correspondant. Essayez un mot-clé en anglais.";
+      }catch(err){status.textContent=err.message||"La recherche B-roll a échoué.";}
+      finally{submit.disabled=false;}
+    };
+    form.addEventListener("submit",e=>{e.preventDefault();runSearch();});
+    if(initialQuery){form.elements.q.value=initialQuery;runSearch();}
+    window.JVOpenBrollSearch=query=>openBroll(query);
   }
   async function openDubbing(){
     openFeaturePage('<h3>Traduction & doublage multilingue</h3><p>Traduisez vos scripts avec le moteur Groq déjà configuré pour JUSTEVIVO, puis écoutez la version traduite avec les voix installées sur votre appareil. Vous pouvez copier ou télécharger le texte traduit.</p><form class="jv-feature-form" id="jv-dub-form"><label>Texte original<textarea name="text" rows="6" required maxlength="5000" placeholder="Collez votre script ou transcription…"></textarea></label><label>Langue source<select name="source"><option value="auto">Détection automatique</option><option value="fr">Français</option><option value="en">Anglais</option><option value="pt">Portugais</option><option value="es">Espagnol</option><option value="de">Allemand</option><option value="it">Italien</option><option value="ar">Arabe</option></select></label><label>Langue cible<select name="target"><option value="fr">Français</option><option value="en">Anglais</option><option value="pt">Portugais</option><option value="es">Espagnol</option><option value="de">Allemand</option><option value="it">Italien</option><option value="ar">Arabe</option><option value="ja">Japonais</option><option value="zh">Chinois</option><option value="ru">Russe</option></select></label><button type="submit" id="jv-dub-translate">Traduire le texte</button></form><label class="jv-feature-form" style="margin-top:14px">Texte traduit<textarea id="jv-dub-output" rows="6" readonly placeholder="La traduction apparaîtra ici…"></textarea></label><div class="jv-dub-actions"><button type="button" class="jv-feature-action" id="jv-dub-copy" disabled>Copier la traduction</button><button type="button" class="jv-feature-action" id="jv-dub-download" disabled>Télécharger TXT</button><button type="button" class="jv-feature-action" id="jv-dub-speak" disabled>▶ Écouter</button><button type="button" class="jv-profile-edit" id="jv-dub-stop">■ Arrêter</button></div><label class="jv-feature-form" style="margin-top:12px">Voix installée<select id="jv-device-voice"></select></label><p id="jv-dub-status" aria-live="polite"></p><p class="jv-feature-note">La traduction IA utilise le quota quotidien et la clé Groq déjà configurée sur JUSTEVIVO. La synthèse vocale locale est gratuite ; les voix disponibles dépendent de votre téléphone ou ordinateur. L’export audio MP3 n’est pas inclus dans cette fonction.</p>');
@@ -425,7 +444,7 @@ document.addEventListener("DOMContentLoaded", function () {
     ["Sous-titres automatiques", "text"], ["Styles & animations", "styles"],
     ["Montage & scènes", "timeline"], ["Traduction des sous-titres", "text"],
     ["Audio & voix", "audio"], ["Export vidéo", "export"],
-    ["Magic Clips", "clips"], ["B-Roll gratuit", "media"],
+    ["Magic Clips", "clips"], ["B-Roll gratuit", "broll"],
     ["Timeline de montage", "timeline"], ["Bibliothèque média", "media"],
     ["Traduction & doublage vocal", "text"], ["Brand Kit", "brand"],
     ["Calendrier & publication", "upcoming"], ["Projets partagés", "projects"]
@@ -440,7 +459,8 @@ document.addEventListener("DOMContentLoaded", function () {
     card.style.cursor = "pointer";
     const activate = () => {
       const view = route[1];
-      if (view === "upcoming") { showDashboard(); dashboard.querySelector(".jv-feature-directory")?.scrollIntoView({behavior:"smooth",block:"start"}); return; }
+      if (view === "broll") { openBroll(); return; }
+      if (view === "upcoming") { openCalendar(); return; }
       if (view === "projects") { const projectLink=links.find(x=>x.dataset.page==="projects"); if(projectLink) projectLink.click(); return; }
       if (["audio","media","clips","brand","timeline"].includes(view)) { openSuiteView(view, view); return; }
       showStudio();

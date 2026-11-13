@@ -1,0 +1,94 @@
+/* JUSTEVIVO — studio plein écran : navigation fixe, zone de travail indépendante */
+@media (min-width: 761px) {
+  html, body { height:100%; }
+  body { overflow:hidden; }
+  .studio-section {
+    position:fixed!important;
+    inset:68px 0 0!important;
+    z-index:45!important;
+    width:100%!important;
+    max-width:none!important;
+    height:auto!important;
+    min-height:0!important;
+    display:flex!important;
+    flex-direction:column!important;
+    gap:0!important;
+    padding:0!important;
+    margin:0!important;
+    overflow:hidden!important;
+    background:#f5f6fb!important;
+  }
+  .studio-section > .section-heading { display:none!important; }
+  .studio {
+    flex:1 1 auto!important;
+    min-height:0!important;
+    height:100%!important;
+    max-width:none!important;
+    width:100%!important;
+    margin:0!important;
+    grid-template-columns: minmax(218px, 17.5vw) minmax(0,1fr)!important;
+    gap:0!important;
+    border:0!important;
+    border-radius:0!important;
+    overflow:hidden!important;
+    box-shadow:none!important;
+  }
+  .studio > .jv-sidebar {
+    position:relative!important;
+    top:auto!important;
+    align-self:stretch!important;
+    height:100%!important;
+    min-height:0!important;
+    max-height:none!important;
+    overflow:hidden!important;
+    display:flex!important;
+    flex-direction:column!important;
+    padding:12px 10px!important;
+    border-radius:0!important;
+  }
+  .jv-sidebar .mini-brand { flex:0 0 auto!important; margin-bottom:9px!important; }
+  .jv-sidebar-new { flex:0 0 auto!important; margin-bottom:7px!important; padding:9px 10px!important; }
+  .jv-sidebar-label { flex:0 0 auto!important; padding:7px 8px 3px!important; font-size:8px!important; }
+  .jv-sidebar .side-link {
+    flex:0 0 auto!important;
+    min-height:30px!important;
+    padding:6px 9px!important;
+    margin:1px 0!important;
+    font-size:10px!important;
+    line-height:1.15!important;
+    gap:7px!important;
+  }
+  .jv-sidebar .side-link span { white-space:nowrap!important; }
+  .jv-sidebar .side-bottom { flex:0 0 auto!important; margin-top:auto!important; padding:8px 7px!important; }
+  .studio > .workspace {
+    min-height:0!important;
+    height:100%!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain!important;
+    scrollbar-gutter:stable;
+    border:0!important;
+    border-radius:0!important;
+    padding:clamp(16px,2vw,28px)!important;
+  }
+  .studio > .workspace::-webkit-scrollbar { width:9px; }
+  .studio > .workspace::-webkit-scrollbar-thumb { background:#c7cbd8; border:2px solid #f5f6fb; border-radius:12px; }
+}
+@media (max-width:760px) {
+  .studio-section { padding:0!important; }
+  .studio-section > .section-heading { display:none!important; }
+  .studio { min-height:calc(100dvh - 62px)!important; }
+  .studio > .jv-sidebar {
+    position:sticky!important;
+    top:0!important;
+    z-index:20!important;
+    flex-wrap:nowrap!important;
+    overflow-x:auto!important;
+    overflow-y:hidden!important;
+    scrollbar-width:none!important;
+  }
+  .studio > .workspace {
+    min-height:0!important;
+    overflow:visible!important;
+  }
+}

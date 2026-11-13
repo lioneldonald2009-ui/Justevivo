@@ -170,6 +170,9 @@
       form.append("mainAudioVolume",String(Number($("jv-compose-original-volume").value)/100));
       form.append("audioFadeIn",String(Math.max(0,Math.min(15,Number($("jv-compose-fade-in").value)||0))));
       form.append("audioFadeOut",String(Math.max(0,Math.min(15,Number($("jv-compose-fade-out").value)||0))));
+      form.append("audioStart",String(Math.max(0,Number($("jv-compose-audio-start")?.value)||0)));
+      form.append("audioClipStart",String(Math.max(0,Number($("jv-compose-audio-clip-start")?.value)||0)));
+      form.append("audioClipEnd",String(Math.max(0,Number($("jv-compose-audio-clip-end")?.value)||0)));
       composeButton.disabled = true; composeButton.textContent = "Rendu FFmpeg en cours…";
       composeStatus.textContent = "Le serveur assemble vos pistes. Gardez cette page ouverte pendant le traitement.";
       composeResult.replaceChildren();

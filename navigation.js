@@ -61,7 +61,11 @@ document.addEventListener("DOMContentLoaded", function () {
   const studioParts = [editorHeading, upload, editor, warning].filter(Boolean);
 
   function setActive(page) {
-    links.forEach(link => link.classList.toggle("active", link.dataset.page === page));
+    sidebar.querySelectorAll(".side-link[data-page]").forEach(link => {
+      link.classList.toggle("active", link.dataset.page === page);
+      if (link.dataset.page === page) link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
+    });
   }
 
   // Bouton de retour commun aux vues internes du studio.
@@ -83,6 +87,7 @@ document.addEventListener("DOMContentLoaded", function () {
     subscriptionPage.hidden = true;
     dashboard.hidden = false;
     studioParts.forEach(el => { el.hidden = true; });
+    workspaceBack.style.display = "none";
     setActive("dashboard");
     refreshDashboard();
     workspace.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -94,6 +99,7 @@ document.addEventListener("DOMContentLoaded", function () {
     dashboard.hidden = true;
     subscriptionPage.hidden = false;
     studioParts.forEach(el => { el.hidden = true; });
+    workspaceBack.style.display = "none";
     setActive("pricing");
     const email=document.getElementById("jv-account-email");
     const current=document.getElementById("jv-subscription-current-plan");
@@ -109,6 +115,7 @@ document.addEventListener("DOMContentLoaded", function () {
     subscriptionPage.hidden = true;
     dashboard.hidden = true;
     studioParts.forEach(el => { el.hidden = false; });
+    workspaceBack.style.display = "inline-flex";
   }
 
   async function refreshDashboard() {
@@ -173,9 +180,10 @@ document.addEventListener("DOMContentLoaded", function () {
     if (page === "dashboard") { showDashboard(); return; }
     if (page === "pricing") { showSubscription(); return; }
     if (page === "upcoming") {
-
+      showDashboard();
       const features = dashboard.querySelector(".jv-feature-directory");
       if (features) features.scrollIntoView({behavior:"smooth",block:"start"});
+      setActive("upcoming");
       return;
     }
     if (page === "photo-studio") return;
@@ -194,8 +202,9 @@ document.addEventListener("DOMContentLoaded", function () {
   sidebar.addEventListener("click", event => {
     const link = event.target.closest(".side-link[data-page]");
     if (!link || !sidebar.contains(link)) return;
-    if (link.dataset.page === "photo-studio") return;
+    if (link.dataset.page === "photo-studio") return; // Le module photo gère sa propre vue.
     event.preventDefault();
+    event.stopImmediatePropagation();
     handleSidebarLink(link);
   }, true);
 

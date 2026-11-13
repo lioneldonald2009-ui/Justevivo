@@ -37,12 +37,19 @@
           <label>Texte sur la vidéo (facultatif)</label><input id="jvp-text" maxlength="100" placeholder="Votre titre ou votre message">
           <label>Position du texte</label><select id="jvp-text-position"><option value="bottom">Bas</option><option value="center">Centre</option><option value="top">Haut</option></select>
           <label>Couleur du texte</label><input id="jvp-text-color" type="color" value="#ffffff">
-          <label>Musique (facultatif)</label><input id="jvp-music" type="file" accept="audio/*">
+          <h3 style="margin-top:20px">3. Bibliothèque musicale</h3>
+          <p>Recherchez une musique libre pour vos montages. Les licences et crédits sont affichés avant l’ajout.</p>
+          <label for="jvp-music-search">Rechercher une musique</label>
+          <div class="jvp-row"><input id="jvp-music-search" type="search" placeholder="Ex. afrobeat, piano, ambiance..." style="flex:1;min-width:0"><button id="jvp-music-search-btn" type="button" class="primary">Rechercher</button></div>
+          <div id="jvp-music-results" aria-live="polite"></div>
+          <div id="jvp-music-selected" class="jvp-status">Aucune musique sélectionnée.</div>
+          <audio id="jvp-music-preview" controls style="width:100%;margin-top:8px;display:none"></audio>
+          <label>Ou importer votre propre musique</label><input id="jvp-music" type="file" accept="audio/*">
         </section>
       </div>`;
     workspace.appendChild(page);
     const $=id=>page.querySelector("#"+id),canvas=$("jvp-canvas"),ctx=canvas.getContext("2d");
-    let photos=[],raf=0,recorder=null,parts=[],musicUrl=null,audio=null;
+    let photos=[],raf=0,recorder=null,parts=[],musicUrl=null,audio=null,audioContext=null,selectedTrack=null,musicCredit="";
     const status=t=>$("jvp-status").textContent=t;
     const filters={none:"none",warm:"sepia(.25) saturate(1.2)",mono:"grayscale(1)",vivid:"saturate(1.5) contrast(1.08)",soft:"brightness(1.08) saturate(.82)",cinema:"contrast(1.15) saturate(.82) sepia(.12)"};
     const dims=()=>{const v=$("jvp-ratio").value;canvas.width=v==="9:16"?720:v==="1:1"?900:1280;canvas.height=v==="9:16"?1280:v==="1:1"?900:720;};
@@ -59,6 +66,7 @@
       else if(transition==="slide"&&progress>.78&&index<photos.length-1){drawOne(p,1,1,-w*((progress-.78)/.22));drawOne(photos[index+1],1,1,w*(1-(progress-.78)/.22));}
       else drawOne(p,1,zoom);
       const txt=$("jvp-text").value.trim();if(txt){const size=Math.round(w*.045);ctx.save();ctx.font="700 "+size+"px Arial";ctx.textAlign="center";ctx.textBaseline="middle";const y=$("jvp-text-position").value==="top"?h*.13:$("jvp-text-position").value==="center"?h*.5:h*.86;ctx.shadowColor="rgba(0,0,0,.8)";ctx.shadowBlur=12;ctx.fillStyle=$("jvp-text-color").value;ctx.fillText(txt,w*.5,y,w*.88);ctx.restore();}
+      if(musicCredit){ctx.save();ctx.font=Math.max(12,Math.round(w*.012))+"px Arial";ctx.textAlign="center";ctx.textBaseline="bottom";ctx.fillStyle="rgba(255,255,255,.92)";ctx.shadowColor="#000";ctx.shadowBlur=5;ctx.fillText("Musique : "+musicCredit,w*.5,h-12,w*.94);ctx.restore();}
     };
     const render=async()=>{
       if(!photos.length){status("Importez des photos avant la prévisualisation.");return;}
@@ -79,15 +87,48 @@
     $("jvp-ratio").addEventListener("change",()=>{dims();if(photos[0])draw(0);});
     ["jvp-filter","jvp-text","jvp-text-position","jvp-text-color"].forEach(id=>$(id).addEventListener("input",()=>{if(photos[0])draw(0);}));
     $("jvp-preview").onclick=render;$("jvp-stop").onclick=()=>{cancelAnimationFrame(raf);if(photos[0])draw(0);status("Prévisualisation arrêtée.");};
-    $("jvp-music").addEventListener("change",e=>{if(musicUrl)URL.revokeObjectURL(musicUrl);const f=e.target.files[0];musicUrl=f?URL.createObjectURL(f):null;});
+    $("jvp-music").addEventListener("change",e=>{if(musicUrl)URL.revokeObjectURL(musicUrl);const f=e.target.files[0];musicUrl=f?URL.createObjectURL(f):null;selectedTrack=null;musicCredit=f?"Fichier importé par l’utilisateur":"";$("jvp-music-selected").textContent=f?"Musique personnelle : "+f.name:"Aucune musique sélectionnée.";});
+    const musicResults=$("jvp-music-results"),musicPreview=$("jvp-music-preview");
+    $("jvp-music-search-btn").addEventListener("click",async()=>{
+      const q=$("jvp-music-search").value.trim();if(q.length<2){status("Saisissez au moins deux caractères pour rechercher une musique.");return;}
+      musicResults.textContent="Recherche de musiques libres en cours…";
+      try{
+        const response=await window.fetch(API_URL+"/api/music/search?q="+encodeURIComponent(q));
+        const data=await response.json();if(!response.ok)throw new Error(data.error||"Recherche impossible.");
+        musicResults.replaceChildren();
+        if(!data.tracks||!data.tracks.length){musicResults.textContent="Aucun résultat avec une licence compatible. Essayez un autre terme.";return;}
+        data.tracks.forEach(track=>{
+          const card=document.createElement("div");card.className="jvp-photo";card.style.alignItems="flex-start";
+          const info=document.createElement("span");info.style.whiteSpace="normal";info.innerHTML="";
+          const title=document.createElement("strong");title.textContent=track.name;
+          const meta=document.createElement("small");meta.textContent=" — "+track.artist+" · "+(track.license?.[0]?.name||"Licence à vérifier");
+          const source=document.createElement("a");source.href=track.sourceUrl;source.target="_blank";source.rel="noopener noreferrer";source.textContent="Voir la licence et la source";source.style.display="block";source.style.fontSize="11px";
+          info.append(title,meta,source);
+          const preview=document.createElement("button");preview.type="button";preview.textContent="▶";preview.title="Écouter un aperçu";preview.onclick=()=>{musicPreview.src=track.previewUrl;musicPreview.style.display="block";musicPreview.play().catch(()=>status("Lecture de l’aperçu impossible sur cet appareil."));};
+          const add=document.createElement("button");add.type="button";add.className="primary";add.textContent="Ajouter";add.onclick=async()=>{
+            add.disabled=true;add.textContent="Téléchargement…";
+            try{
+              const dl=await window.fetch(API_URL+"/api/music/download/"+encodeURIComponent(track.id));
+              if(!dl.ok){const err=await dl.json().catch(()=>({}));throw new Error(err.error||"Téléchargement impossible.");}
+              const blob=await dl.blob();if(musicUrl)URL.revokeObjectURL(musicUrl);musicUrl=URL.createObjectURL(blob);
+              selectedTrack=track;musicCredit=track.name+" — "+track.artist+" ("+(track.license?.[0]?.name||"licence libre")+")";
+              $("jvp-music-selected").textContent="Ajoutée : "+musicCredit+". Crédit intégré au montage; consultez la source pour les conditions complètes.";
+              $("jvp-music").value="";status("Musique ajoutée au montage photo.");add.textContent="Ajoutée";
+            }catch(error){status(error.message);add.disabled=false;add.textContent="Réessayer";}
+          };
+          card.append(info,preview,add);musicResults.append(card);
+        });
+        status(data.notice||"Musiques trouvées. Vérifiez les conditions de chaque piste.");
+      }catch(error){musicResults.textContent=error.message;status("La recherche musicale a échoué.");}
+    });
     $("jvp-export").onclick=async()=>{
       if(photos.length<1){status("Ajoutez au moins une photo.");return;}
       if(!canvas.captureStream||!window.MediaRecorder){status("L’export vidéo n’est pas pris en charge par ce navigateur. Essayez Chrome récent.");return;}
       cancelAnimationFrame(raf);const each=Number($("jvp-duration").value)*1000,total=each*photos.length,stream=canvas.captureStream(30);
       let mime=["video/webm;codecs=vp9","video/webm;codecs=vp8","video/webm"].find(t=>MediaRecorder.isTypeSupported(t));if(!mime){status("Format d’export non pris en charge sur cet appareil.");return;}
       let audioStream=null;
-      if(musicUrl){try{audio=new Audio(musicUrl);audio.loop=true;audio.volume=.8;const ac=new AudioContext(),source=ac.createMediaElementSource(audio),dest=ac.createMediaStreamDestination();source.connect(dest);audioStream=dest.stream;await audio.play();audioStream.getAudioTracks().forEach(t=>stream.addTrack(t));}catch(_){status("La musique n’a pas pu être intégrée. Export sans musique.");}}
-      parts=[];recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:5000000});recorder.ondataavailable=e=>{if(e.data.size)parts.push(e.data);};recorder.onstop=()=>{const blob=new Blob(parts,{type:mime}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="justevivo-montage-photo.webm";a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);if(audio){audio.pause();audio=null;}status("Montage exporté. Vous pouvez importer le fichier WebM dans l’éditeur principal.");};
+      if(musicUrl){try{audio=new Audio(musicUrl);audio.loop=true;audio.volume=.8;audioContext=new (window.AudioContext||window.webkitAudioContext)();if(audioContext.state==="suspended")await audioContext.resume();const source=audioContext.createMediaElementSource(audio),dest=audioContext.createMediaStreamDestination();source.connect(dest);audioStream=dest.stream;await audio.play();audioStream.getAudioTracks().forEach(t=>stream.addTrack(t));}catch(_){status("La musique n’a pas pu être intégrée. Export sans musique.");}}
+      parts=[];recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:5000000});recorder.ondataavailable=e=>{if(e.data.size)parts.push(e.data);};recorder.onstop=()=>{const blob=new Blob(parts,{type:mime}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="justevivo-montage-photo.webm";a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);if(audio){audio.pause();audio.src="";audio=null;}if(audioContext){audioContext.close().catch(()=>{});audioContext=null;}status("Montage exporté. Vous pouvez importer le fichier WebM dans l’éditeur principal.");};
       const start=performance.now();let frame=0;const tick=now=>{const elapsed=now-start;if(elapsed>=total){recorder.stop();return;}const index=Math.min(photos.length-1,Math.floor(elapsed/each)),progress=(elapsed%each)/each;draw(index,progress,$("jvp-transition").value);frame=requestAnimationFrame(tick);};draw(0);recorder.start(250);status("Export en cours… gardez cette page ouverte jusqu’au téléchargement.");frame=requestAnimationFrame(tick);
     };
     nav.addEventListener("click",()=>{document.querySelectorAll(".workspace-page").forEach(p=>p.hidden=true);const parts=[workspace.querySelector(".workspace-head"),workspace.querySelector(".upload-zone"),workspace.querySelector(".editor-grid"),workspace.querySelector(".demo-warning")].filter(Boolean);parts.forEach(p=>p.hidden=true);page.hidden=false;sidebar.querySelectorAll(".side-link").forEach(x=>x.classList.toggle("active",x===nav));const back=document.getElementById("jv-workspace-back");if(back)back.style.display="inline-flex";page.scrollIntoView({behavior:"smooth",block:"start"});});

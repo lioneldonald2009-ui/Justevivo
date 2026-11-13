@@ -154,7 +154,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }catch(e){note.textContent=e.message||"Impossible de lancer le paiement. Réessayez.";}
     finally{b.disabled=false;b.textContent=label;}
   }));
-  dashboard.querySelectorAll("[data-jv-action]").forEach(b=>b.addEventListener("click",()=>{const a=b.dataset.jvAction;if(a==="new"){showStudio();return;}showStudio();const p=a==="captions"?"text":a==="styles"?"styles":a==="audio"?"audio":a==="export"?"export":"text";const tab=document.querySelector('.jv-editor-panel-tab[data-panel="'+p+'"]');if(tab)tab.click();if(a==="translate"){const tr=document.getElementById("translateSubtitlesButton");if(tr)tr.click();}}));
+  dashboard.querySelectorAll("[data-jv-action]").forEach(b=>b.addEventListener("click",()=>{const a=b.dataset.jvAction;if(a==="new"){showStudio();return;}if(a==="audio"){openSuiteView("audio","audio");return;}showStudio();const p=a==="captions"?"text":a==="styles"?"styles":a==="export"?"export":"text";const tab=document.querySelector('.jv-editor-panel-tab[data-panel="'+p+'"]');if(tab)tab.click();if(a==="translate"){const tr=document.getElementById("translateSubtitlesButton");if(tr)tr.click();}}));
 
   document.getElementById("jv-dashboard-projects").addEventListener("click", () => {
     showStudio();
@@ -162,34 +162,81 @@ document.addEventListener("DOMContentLoaded", function () {
     if (projects) projects.click();
   });
 
-  links.forEach(link => {
-    link.addEventListener("click", () => {
-      if (link.dataset.page === "dashboard") {
-        showDashboard();
-      } else if (link.dataset.page === "pricing") {
-        showSubscription();
-      } else if (link.dataset.page === "upcoming") {
-        showDashboard();
-        const features = dashboard.querySelector(".jv-feature-directory");
-        if (features) features.scrollIntoView({behavior:"smooth",block:"start"});
-      } else {
-        showStudio();
-        if (link.dataset.page === "production") {
-          const productionTab = document.querySelector('#jv-creative-suite .jv-suite-tabs [data-tab="production"]');
-          if (productionTab) productionTab.click();
-          const productionView = document.querySelector('#jv-creative-suite [data-view="production"]');
-          if (productionView) productionView.scrollIntoView({behavior:"smooth",block:"start"});
-          setActive("production");
-          return;
-        }
-        const panel = link.dataset.jvPanel;
-        if (panel) {
-          const tab = document.querySelector('.jv-editor-panel-tab[data-panel="' + panel + '"]');
-          if (tab) tab.click();
-        }
-      }
-    });
+  function openSuiteView(view, activePage) {
+    showStudio();
+    const tab = document.querySelector('#jv-creative-suite .jv-suite-tabs [data-tab="' + view + '"]');
+    if (tab) tab.click();
+    const target = document.querySelector('#jv-creative-suite [data-view="' + view + '"]');
+    if (target) target.scrollIntoView({behavior:"smooth",block:"start"});
+    setActive(activePage || view);
+  }
+
+  function openPhotoStudio() {
+    showStudio();
+    const photoNav = sidebar.querySelector('[data-page="photo-studio"]');
+    if (photoNav) photoNav.click();
+  }
+
+  function handleSidebarLink(link) {
+    const page = link.dataset.page;
+    if (page === "dashboard") { showDashboard(); return; }
+    if (page === "pricing") { showSubscription(); return; }
+    if (page === "upcoming") {
+      // Les cartes du répertoire de fonctionnalités sont de vrais raccourcis.
+  const featureRoutes = [
+    ["Sous-titres automatiques", "text"], ["Styles & animations", "styles"],
+    ["Montage & scènes", "timeline"], ["Traduction des sous-titres", "text"],
+    ["Audio & voix", "audio"], ["Export vidéo", "export"],
+    ["Magic Clips", "clips"], ["B-Roll gratuit", "media"],
+    ["Timeline de montage", "timeline"], ["Bibliothèque média", "media"],
+    ["Traduction & doublage vocal", "text"], ["Brand Kit", "brand"],
+    ["Calendrier & publication", "upcoming"], ["Projets partagés", "projects"]
+  ];
+  dashboard.querySelectorAll(".jv-feature-grid article").forEach(card => {
+    const title = card.querySelector("strong");
+    const route = featureRoutes.find(([name]) => title && title.textContent.trim() === name);
+    if (!route) return;
+    card.tabIndex = 0;
+    card.setAttribute("role", "button");
+    card.setAttribute("aria-label", "Ouvrir " + route[0]);
+    card.style.cursor = "pointer";
+    const activate = () => {
+      const view = route[1];
+      if (view === "upcoming") { showDashboard(); dashboard.querySelector(".jv-feature-directory")?.scrollIntoView({behavior:"smooth",block:"start"}); return; }
+      if (view === "projects") { const projectLink=links.find(x=>x.dataset.page==="projects"); if(projectLink) projectLink.click(); return; }
+      if (["audio","media","clips","brand","timeline"].includes(view)) { openSuiteView(view, view); return; }
+      showStudio();
+      const tab=document.querySelector('.jv-editor-panel-tab[data-panel="'+view+'"]');
+      if(tab) tab.click();
+    };
+    card.addEventListener("click", activate);
+    card.addEventListener("keydown", e => { if(e.key==="Enter"||e.key===" "){e.preventDefault();activate();} });
   });
+
+  showDashboard();
+      const features = dashboard.querySelector(".jv-feature-directory");
+      if (features) features.scrollIntoView({behavior:"smooth",block:"start"});
+      return;
+    }
+    if (page === "photo-studio") { openPhotoStudio(); return; }
+    const viewByPage = {audio:"audio",media:"media",clips:"clips",brand:"brand",timeline:"timeline",production:"production"};
+    if (viewByPage[page]) { openSuiteView(viewByPage[page], page); return; }
+    showStudio();
+    const panel = link.dataset.jvPanel;
+    if (panel) {
+      const tab = document.querySelector('.jv-editor-panel-tab[data-panel="' + panel + '"]');
+      if (tab) tab.click();
+    }
+  }
+
+  // Délégation : les modules ajoutés après le chargement (ex. Montage photo)
+  // restent navigables, et chaque entrée ouvre son véritable espace.
+  sidebar.addEventListener("click", event => {
+    const link = event.target.closest(".side-link[data-page]");
+    if (!link || !sidebar.contains(link)) return;
+    event.preventDefault();
+    handleSidebarLink(link);
+  }, true);
 
   // Les CTA du site pointent vers #studio : ils doivent aussi réactiver le studio
   // après que le tableau de bord a masqué les éléments de montage.

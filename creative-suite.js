@@ -96,7 +96,12 @@
               <label>Position du B-roll<select id="jv-broll-position" class="jv-text-input"><option value="bottom-right" selected>Bas · droite</option><option value="bottom-left">Bas · gauche</option><option value="top-right">Haut · droite</option><option value="top-left">Haut · gauche</option><option value="center">Centre</option></select></label>
             </div>
             <label>Voix off ou musique (facultatif)<input id="jv-compose-audio" class="jv-text-input" type="file" accept="audio/*"></label>
-            <label>Volume de la piste ajoutée <output id="jv-compose-volume-label">22 %</output><input id="jv-compose-volume" type="range" min="0" max="100" value="22"></label>
+            <div class="jv-production-fields">
+              <label>Volume de la musique / voix ajoutée <output id="jv-compose-volume-label">22 %</output><input id="jv-compose-volume" type="range" min="0" max="100" value="22"></label>
+              <label>Volume du son original <output id="jv-compose-original-volume-label">100 %</output><input id="jv-compose-original-volume" type="range" min="0" max="100" value="100"></label>
+              <label>Fondu d’entrée de la piste (secondes)<input id="jv-compose-fade-in" class="jv-text-input" type="number" min="0" max="15" step="0.5" value="0"></label>
+              <label>Fondu de sortie de la piste (secondes)<input id="jv-compose-fade-out" class="jv-text-input" type="number" min="0" max="15" step="0.5" value="0"></label>
+            </div>
             <button type="button" class="jv-action jv-action-primary" id="jv-compose-video">▶ Assembler et exporter le MP4</button>
             <p class="jv-feedback" id="jv-compose-status" role="status" aria-live="polite"></p>
             <div id="jv-compose-result"></div>

@@ -75,9 +75,10 @@ document.addEventListener("DOMContentLoaded", function () {
     workspaceBack.id = "jv-workspace-back";
     workspaceBack.type = "button";
     workspaceBack.className = "jv-workspace-back";
-    workspaceBack.innerHTML = '<span aria-hidden="true">←</span> Retour au tableau de bord';
+    workspaceBack.innerHTML = '<span aria-hidden="true" style="font-size:25px;line-height:1;font-weight:500">←</span>';
     workspaceBack.setAttribute("aria-label", "Retour au tableau de bord");
-    workspaceBack.style.cssText = "display:none;align-items:center;gap:9px;margin:0 0 14px;padding:10px 15px;border:1px solid #dfe3ef;border-radius:11px;background:#fff;color:#30294b;font:700 13px system-ui;cursor:pointer;box-shadow:0 3px 12px #17203310";
+    workspaceBack.title = "Retour au tableau de bord";
+    workspaceBack.style.cssText = "display:none;align-items:center;justify-content:center;width:44px;height:44px;margin:0 0 14px;padding:0;border:1px solid #dfe3ef;border-radius:50%;background:#fff;color:#30294b;font:700 16px system-ui;cursor:pointer;box-shadow:0 3px 12px #17203318;transition:transform .18s ease,background .18s ease";
     workspace.insertBefore(workspaceBack, workspace.firstChild);
     workspaceBack.addEventListener("click", showDashboard);
   }

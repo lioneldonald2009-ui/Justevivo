@@ -131,6 +131,12 @@
           const prompt = document.createElement("p"); prompt.textContent = "Prompt visuel : " + (scene.aiVisualPrompt || "—");
           const actions = document.createElement("div"); actions.className = "jv-script-actions";
           actions.append(
+            makeButton("Rechercher ce B-roll", () => {
+              const query=String(scene.searchQuery||scene.visual||"").trim();
+              if(!query){brollStatus.textContent="Aucune requête de recherche n’est disponible pour ce plan.";return;}
+              if(typeof window.JVOpenBrollSearch==="function") window.JVOpenBrollSearch(query);
+              else brollStatus.textContent="Ouvrez d’abord la rubrique B-Roll intelligent dans le menu.";
+            }),
             makeButton("Copier recherche stock", () => copyText(scene.searchQuery || "")),
             makeButton("Copier prompt visuel", () => copyText(scene.aiVisualPrompt || "")),
             makeButton("Copier le plan", () => copyText([title.textContent,visual.textContent,search.textContent,transition.textContent,overlay.textContent,prompt.textContent].join("\n")))

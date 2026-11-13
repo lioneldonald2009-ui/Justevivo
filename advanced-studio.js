@@ -149,6 +149,9 @@
     $("jv-compose-volume").addEventListener("input", event => {
       $("jv-compose-volume-label").textContent = event.target.value + " %";
     });
+    $("jv-compose-original-volume").addEventListener("input", event => {
+      $("jv-compose-original-volume-label").textContent = event.target.value + " %";
+    });
     composeButton.addEventListener("click", async () => {
       const main = videoInput && videoInput.files && videoInput.files[0];
       const broll = $("jv-compose-broll").files[0];
@@ -164,6 +167,9 @@
       form.append("brollScale",$("jv-broll-scale").value);
       form.append("brollPosition",$("jv-broll-position").value);
       form.append("audioVolume",String(Number($("jv-compose-volume").value)/100));
+      form.append("mainAudioVolume",String(Number($("jv-compose-original-volume").value)/100));
+      form.append("audioFadeIn",String(Math.max(0,Math.min(15,Number($("jv-compose-fade-in").value)||0))));
+      form.append("audioFadeOut",String(Math.max(0,Math.min(15,Number($("jv-compose-fade-out").value)||0))));
       composeButton.disabled = true; composeButton.textContent = "Rendu FFmpeg en cours…";
       composeStatus.textContent = "Le serveur assemble vos pistes. Gardez cette page ouverte pendant le traitement.";
       composeResult.replaceChildren();

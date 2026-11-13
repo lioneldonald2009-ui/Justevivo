@@ -82,8 +82,8 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function showDashboard() {
+    workspace.querySelectorAll(".workspace-page").forEach(page => { page.hidden = true; });
     subscriptionPage.hidden = true;
-    if (typeof featurePage !== "undefined" && featurePage) featurePage.hidden = true;
     dashboard.hidden = false;
     studioParts.forEach(el => { el.hidden = true; });
     setActive("dashboard");
@@ -93,8 +93,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
   function showSubscription() {
+    workspace.querySelectorAll(".workspace-page").forEach(page => { page.hidden = true; });
     dashboard.hidden = true;
-    if (typeof featurePage !== "undefined" && featurePage) featurePage.hidden = true;
     subscriptionPage.hidden = false;
     studioParts.forEach(el => { el.hidden = true; });
     setActive("pricing");
@@ -108,8 +108,8 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function showStudio() {
+    workspace.querySelectorAll(".workspace-page").forEach(page => { page.hidden = true; });
     subscriptionPage.hidden = true;
-    if (typeof featurePage !== "undefined" && featurePage) featurePage.hidden = true;
     dashboard.hidden = true;
     studioParts.forEach(el => { el.hidden = false; });
   }

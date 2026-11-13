@@ -171,54 +171,17 @@ document.addEventListener("DOMContentLoaded", function () {
     setActive(activePage || view);
   }
 
-  function openPhotoStudio() {
-    showStudio();
-    const photoNav = sidebar.querySelector('[data-page="photo-studio"]');
-    if (photoNav) photoNav.click();
-  }
-
   function handleSidebarLink(link) {
     const page = link.dataset.page;
     if (page === "dashboard") { showDashboard(); return; }
     if (page === "pricing") { showSubscription(); return; }
     if (page === "upcoming") {
-      // Les cartes du répertoire de fonctionnalités sont de vrais raccourcis.
-  const featureRoutes = [
-    ["Sous-titres automatiques", "text"], ["Styles & animations", "styles"],
-    ["Montage & scènes", "timeline"], ["Traduction des sous-titres", "text"],
-    ["Audio & voix", "audio"], ["Export vidéo", "export"],
-    ["Magic Clips", "clips"], ["B-Roll gratuit", "media"],
-    ["Timeline de montage", "timeline"], ["Bibliothèque média", "media"],
-    ["Traduction & doublage vocal", "text"], ["Brand Kit", "brand"],
-    ["Calendrier & publication", "upcoming"], ["Projets partagés", "projects"]
-  ];
-  dashboard.querySelectorAll(".jv-feature-grid article").forEach(card => {
-    const title = card.querySelector("strong");
-    const route = featureRoutes.find(([name]) => title && title.textContent.trim() === name);
-    if (!route) return;
-    card.tabIndex = 0;
-    card.setAttribute("role", "button");
-    card.setAttribute("aria-label", "Ouvrir " + route[0]);
-    card.style.cursor = "pointer";
-    const activate = () => {
-      const view = route[1];
-      if (view === "upcoming") { showDashboard(); dashboard.querySelector(".jv-feature-directory")?.scrollIntoView({behavior:"smooth",block:"start"}); return; }
-      if (view === "projects") { const projectLink=links.find(x=>x.dataset.page==="projects"); if(projectLink) projectLink.click(); return; }
-      if (["audio","media","clips","brand","timeline"].includes(view)) { openSuiteView(view, view); return; }
-      showStudio();
-      const tab=document.querySelector('.jv-editor-panel-tab[data-panel="'+view+'"]');
-      if(tab) tab.click();
-    };
-    card.addEventListener("click", activate);
-    card.addEventListener("keydown", e => { if(e.key==="Enter"||e.key===" "){e.preventDefault();activate();} });
-  });
 
-  showDashboard();
       const features = dashboard.querySelector(".jv-feature-directory");
       if (features) features.scrollIntoView({behavior:"smooth",block:"start"});
       return;
     }
-    if (page === "photo-studio") { openPhotoStudio(); return; }
+    if (page === "photo-studio") return;
     const viewByPage = {audio:"audio",media:"media",clips:"clips",brand:"brand",timeline:"timeline",production:"production"};
     if (viewByPage[page]) { openSuiteView(viewByPage[page], page); return; }
     showStudio();
@@ -234,6 +197,7 @@ document.addEventListener("DOMContentLoaded", function () {
   sidebar.addEventListener("click", event => {
     const link = event.target.closest(".side-link[data-page]");
     if (!link || !sidebar.contains(link)) return;
+    if (link.dataset.page === "photo-studio") return;
     event.preventDefault();
     handleSidebarLink(link);
   }, true);
@@ -449,5 +413,36 @@ document.addEventListener("DOMContentLoaded", function () {
   });
 
   // Entrée initiale : conserver le dashboard comme page d'accueil.
+  // Les cartes du répertoire de fonctionnalités sont de vrais raccourcis.
+  const featureRoutes = [
+    ["Sous-titres automatiques", "text"], ["Styles & animations", "styles"],
+    ["Montage & scènes", "timeline"], ["Traduction des sous-titres", "text"],
+    ["Audio & voix", "audio"], ["Export vidéo", "export"],
+    ["Magic Clips", "clips"], ["B-Roll gratuit", "media"],
+    ["Timeline de montage", "timeline"], ["Bibliothèque média", "media"],
+    ["Traduction & doublage vocal", "text"], ["Brand Kit", "brand"],
+    ["Calendrier & publication", "upcoming"], ["Projets partagés", "projects"]
+  ];
+  dashboard.querySelectorAll(".jv-feature-grid article").forEach(card => {
+    const title = card.querySelector("strong");
+    const route = featureRoutes.find(([name]) => title && title.textContent.trim() === name);
+    if (!route) return;
+    card.tabIndex = 0;
+    card.setAttribute("role", "button");
+    card.setAttribute("aria-label", "Ouvrir " + route[0]);
+    card.style.cursor = "pointer";
+    const activate = () => {
+      const view = route[1];
+      if (view === "upcoming") { showDashboard(); dashboard.querySelector(".jv-feature-directory")?.scrollIntoView({behavior:"smooth",block:"start"}); return; }
+      if (view === "projects") { const projectLink=links.find(x=>x.dataset.page==="projects"); if(projectLink) projectLink.click(); return; }
+      if (["audio","media","clips","brand","timeline"].includes(view)) { openSuiteView(view, view); return; }
+      showStudio();
+      const tab=document.querySelector('.jv-editor-panel-tab[data-panel="'+view+'"]');
+      if(tab) tab.click();
+    };
+    card.addEventListener("click", activate);
+    card.addEventListener("keydown", e => { if(e.key==="Enter"||e.key===" "){e.preventDefault();activate();} });
+  });
+
   showDashboard();
 });

@@ -1,6 +1,7 @@
 // ===== JUSTEVIVO · PARTIE 1 sur 2 · fichier app.js =====
 const videoInput = document.getElementById('videoInput');
 const videoPreview = document.getElementById('videoPreview');
+const imagePreview = document.getElementById('imagePreview');
 const placeholder = document.getElementById('placeholderPreview');
 const fileName = document.getElementById('fileName');
 const captionText = document.getElementById('captionText');
@@ -227,14 +228,66 @@ function attachProjectVideo(file) {
   selectedFile = file || null;
   if (activeVideoObjectUrl) URL.revokeObjectURL(activeVideoObjectUrl);
   activeVideoObjectUrl = file ? URL.createObjectURL(file) : null;
+  if (imagePreview) {
+    imagePreview.hidden = true;
+    imagePreview.removeAttribute('src');
+  }
   if (file) {
     videoPreview.src = activeVideoObjectUrl;
     videoPreview.hidden = false;
     placeholder.hidden = true;
     fileName.textContent = file.name;
     videoPreview.load();
+  } else {
+    videoPreview.pause();
+    videoPreview.removeAttribute('src');
+    videoPreview.load();
+    videoPreview.hidden = true;
+    if (placeholder) placeholder.hidden = false;
+    if (fileName) fileName.textContent = 'Aucun média sélectionné';
   }
 }
+
+// Les photos sont prévisualisées dans le studio, mais ne sont pas envoyées
+// au moteur de transcription vidéo. Leur URL Blob reste gérée par le chutier.
+function attachProjectPhoto(file, objectUrl) {
+  selectedFile = null;
+  if (activeVideoObjectUrl) {
+    URL.revokeObjectURL(activeVideoObjectUrl);
+    activeVideoObjectUrl = null;
+  }
+  videoPreview.pause();
+  videoPreview.removeAttribute('src');
+  videoPreview.load();
+  videoPreview.hidden = true;
+  if (imagePreview && file) {
+    imagePreview.src = objectUrl || URL.createObjectURL(file);
+    imagePreview.alt = 'Aperçu de ' + file.name;
+    imagePreview.hidden = false;
+  }
+  if (placeholder) placeholder.hidden = true;
+  if (fileName) fileName.textContent = file ? file.name + ' · Photo' : 'Aucune photo sélectionnée';
+}
+
+function detachProjectMedia() {
+  selectedFile = null;
+  if (activeVideoObjectUrl) {
+    URL.revokeObjectURL(activeVideoObjectUrl);
+    activeVideoObjectUrl = null;
+  }
+  videoPreview.pause();
+  videoPreview.removeAttribute('src');
+  videoPreview.load();
+  videoPreview.hidden = true;
+  if (imagePreview) {
+    imagePreview.removeAttribute('src');
+    imagePreview.hidden = true;
+  }
+  if (placeholder) placeholder.hidden = false;
+  if (fileName) fileName.textContent = 'Aucun média sélectionné';
+}
+window.attachProjectPhoto = attachProjectPhoto;
+window.detachProjectMedia = detachProjectMedia;
 let currentTab = 'all';
 let presets = loadPresets();
 
@@ -1804,8 +1857,12 @@ videoInput.addEventListener('change', () => {
   const file = videoInput.files && videoInput.files[0];
   if (!file) return;
 
-  if (!file.type.startsWith('video/')) {
-    showToast('Choisissez une vidéo valide.');
+  if (file.type.startsWith('image/') || /\.(png|jpe?g|webp|gif|avif)$/i.test(file.name || '')) {
+    // La sélection des photos est prise en charge par le chutier multi-médias.
+    return;
+  }
+  if (!file.type.startsWith('video/') && !/\.(mp4|mov|webm|m4v|ogg)$/i.test(file.name || '')) {
+    showToast('Choisissez une vidéo ou une photo prise en charge.');
     return;
   }
 

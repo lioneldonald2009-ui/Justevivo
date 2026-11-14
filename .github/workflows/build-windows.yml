@@ -23,6 +23,9 @@ jobs:
         run: npm install
       - name: Build web app
         run: npm run build:web
+      - name: Verify web bundle manifest isolation
+        shell: pwsh
+        run: if (Test-Path www/package.json) { throw 'www/package.json must not exist; Electron reads the root package manifest.' }
       - name: Package Windows applications
         run: npx electron-builder --win nsis portable
       - name: Upload Windows installer and portable app

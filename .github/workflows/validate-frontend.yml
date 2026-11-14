@@ -17,4 +17,4 @@ jobs:
       - name: Validate syntax and core editor features
         run: npm test
       - name: Prepare web build
-        run: npm run build:web
+        run: npm run build:web && test ! -f www/package.json

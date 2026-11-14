@@ -5,7 +5,7 @@ const root = process.cwd();
 const out = path.join(root, 'www');
 const excluded = new Set([
   '.git', '.github', 'node_modules', 'www', 'android', 'ios',
-  'dist', 'coverage', '.DS_Store'
+  'dist', 'coverage', '.DS_Store', 'package.json'
 ]);
 
 fs.rmSync(out, { recursive: true, force: true });

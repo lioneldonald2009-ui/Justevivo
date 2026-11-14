@@ -1,8 +1,8 @@
 (function(){
 "use strict";
-document.addEventListener("DOMContentLoaded",()=>{
- const group=document.querySelector('.jv-editor-control-group[data-group="audio"]');
- if(!group || document.getElementById("jv-audio-studio")) return;
+const init = () => {
+  let group = document.querySelector('.jv-editor-control-group[data-group="audio"]');
+  if (!group) { const controls = document.querySelector(".controls-panel"); if (!controls) return; group = document.createElement("section"); group.className = "jv-editor-control-group"; group.dataset.group = "audio"; group.hidden = true; controls.appendChild(group); }
  const panel=document.createElement("section");panel.id="jv-audio-studio";panel.className="jv-audio-studio";
  panel.innerHTML=`
  <style>
@@ -29,12 +29,14 @@ document.addEventListener("DOMContentLoaded",()=>{
  const $=id=>document.getElementById(id),audio=$("jv-audio-player"),file=$("jv-audio-file");
  let objectUrl=null,sourceFile=null,fadeTimer=null;
  const fmt=n=>Number(n).toLocaleString("fr-FR",{maximumFractionDigits:2});
- file.addEventListener("change",()=>{const f=file.files&&file.files[0];if(!f)return;if(objectUrl)URL.revokeObjectURL(objectUrl);sourceFile=f;objectUrl=URL.createObjectURL(f);audio.src=objectUrl;audio.hidden=false;$("jv-audio-download").disabled=false;$("jv-audio-track-status").textContent=f.name+" · "+(f.size/1048576).toFixed(2)+" Mo";});
+ file.addEventListener("change",()=>{const f=file.files&&file.files[0];if(!f)return;if(objectUrl)URL.revokeObjectURL(objectUrl);sourceFile=f;objectUrl=URL.createObjectURL(f);audio.src=objectUrl;audio.hidden=false;audio.load();$("jv-audio-download").disabled=false;$("jv-audio-track-status").textContent=f.name+" · "+(f.size/1048576).toFixed(2)+" Mo";});
  $("jv-audio-volume").addEventListener("input",e=>{const v=Number(e.target.value);audio.volume=v/100;$("jv-audio-volume-out").textContent=v+" %";});
  $("jv-audio-speed").addEventListener("input",e=>{audio.playbackRate=Number(e.target.value);$("jv-audio-speed-out").textContent=fmt(e.target.value)+"×";});
  audio.volume=.8;
- audio.addEventListener("play",()=>{const fade=Math.max(0,Math.min(15,Number($("jv-audio-fadein").value)||0));if(fade){audio.volume=0;const target=Number($("jv-audio-volume").value)/100;const start=Date.now();clearInterval(fadeTimer);fadeTimer=setInterval(()=>{const p=Math.min(1,(Date.now()-start)/(fade*1000));audio.volume=target*p;if(p>=1)clearInterval(fadeTimer);},80);}});
+ audio.addEventListener("play",()=>{const fade=Math.max(0,Math.min(15,Number($("jv-audio-fadein").value)||0)),target=Number($("jv-audio-volume").value)/100;clearInterval(fadeTimer);if(fade){audio.volume=0;const start=Date.now();fadeTimer=setInterval(()=>{const p=Math.min(1,(Date.now()-start)/(fade*1000));audio.volume=target*p;if(p>=1)clearInterval(fadeTimer);},80);}else audio.volume=target;});
  audio.addEventListener("timeupdate",()=>{const fade=Math.max(0,Math.min(15,Number($("jv-audio-fadeout").value)||0));if(fade&&audio.duration&&audio.duration-audio.currentTime<=fade){const target=Number($("jv-audio-volume").value)/100;audio.volume=target*Math.max(0,(audio.duration-audio.currentTime)/fade);}});
+audio.addEventListener("ended",()=>{clearInterval(fadeTimer);audio.volume=Number($("jv-audio-volume").value)/100;});
+audio.addEventListener("error",()=>{$("jv-audio-track-status").textContent="Impossible de lire ce fichier. Essayez un MP3, WAV ou M4A.";});
  $("jv-audio-stop").addEventListener("click",()=>{audio.pause();audio.currentTime=0;clearInterval(fadeTimer);audio.volume=Number($("jv-audio-volume").value)/100;});
  $("jv-audio-download").addEventListener("click",()=>{if(!sourceFile)return;const u=URL.createObjectURL(sourceFile),a=document.createElement("a");a.href=u;a.download=sourceFile.name;a.click();setTimeout(()=>URL.revokeObjectURL(u),30000);});
  const musicSearch=$("jv-music-search"),musicQuery=$("jv-music-query"),musicResults=$("jv-music-results"),musicStatus=$("jv-music-status");
@@ -42,11 +44,72 @@ document.addEventListener("DOMContentLoaded",()=>{
  musicSearch.addEventListener("click",async()=>{const q=musicQuery.value.trim();if(q.length<2){musicStatus.textContent="Saisissez au moins 2 caractères.";return;}const session=getSession();if(!session.access_token){musicStatus.textContent="Connectez-vous pour rechercher des musiques.";return;}musicSearch.disabled=true;musicStatus.textContent="Recherche dans Internet Archive et vérification des licences…";musicResults.replaceChildren();try{const base=typeof API_URL!=="undefined"?API_URL:"https://justevivo-backend.onrender.com";const r=await fetch(base+"/api/music/search?q="+encodeURIComponent(q),{headers:{Authorization:"Bearer "+session.access_token}});const data=await r.json();if(!r.ok)throw new Error(data.error||"Recherche impossible.");if(!data.tracks||!data.tracks.length){musicStatus.textContent="Aucun morceau trouvé. Essayez un autre titre ou artiste.";return;}musicStatus.textContent=data.tracks.length+" résultat(s) trouvé(s).";data.tracks.forEach(track=>{const card=document.createElement("article");card.style.cssText="border:1px solid #e1e5ef;border-radius:10px;padding:10px;display:grid;gap:7px";const title=document.createElement("strong");title.textContent=track.name+" — "+track.artist;const meta=document.createElement("small");meta.textContent=(track.album?track.album+" · ":"")+(track.duration?Math.floor(track.duration/60)+":"+String(track.duration%60).padStart(2,"0"):"")+(track.downloadAllowed?" · Téléchargement autorisé par la plateforme":" · Aperçu uniquement");card.append(title,meta);if(track.previewUrl){const preview=document.createElement("audio");preview.controls=true;preview.preload="none";preview.src=track.previewUrl;card.appendChild(preview);}const license=document.createElement("small");license.textContent=(track.license||[]).map(x=>x.name||x.url).filter(Boolean).join(" · ")||"Licence à vérifier sur la page du morceau";card.appendChild(license);if(track.sourceUrl){const source=document.createElement("a");source.href=track.sourceUrl;source.target="_blank";source.rel="noopener noreferrer";source.textContent="Consulter la fiche et les conditions de licence";source.style.fontSize="11px";card.appendChild(source);}const add=document.createElement("button");add.type="button";add.textContent=track.downloadAllowed?"Ajouter cette musique à ma vidéo":"Téléchargement non autorisé";add.disabled=!track.downloadAllowed;add.addEventListener("click",async()=>{add.disabled=true;add.textContent="Téléchargement…";try{const dl=await fetch(base+"/api/music/download/"+encodeURIComponent(track.id),{headers:{Authorization:"Bearer "+session.access_token}});if(!dl.ok){const err=await dl.json().catch(()=>({}));throw new Error(err.error||"Téléchargement refusé.");}const blob=await dl.blob();const ext=((track.fileName||"musique.mp3").split(".").pop()||"mp3").toLowerCase();const file=new File([blob],(track.name||"musique").replace(/[^a-z0-9_-]/gi,"_")+"."+ext,{type:blob.type||"audio/mpeg"});const input=$("jv-compose-audio");if(!input)throw new Error("Le champ de composition audio est introuvable.");const dt=new DataTransfer();dt.items.add(file);input.files=dt.files;$("jv-compose-audio-clip-start").value="0";$("jv-compose-audio-clip-end").value=track.duration||"";musicStatus.textContent="Musique ajoutée à la composition. Réglez sa position et son extrait, puis exportez le MP4.";add.textContent="✓ Musique ajoutée";}catch(e){musicStatus.textContent=e.message;add.disabled=false;add.textContent="Réessayer";}});card.appendChild(add);musicResults.appendChild(card);});}catch(e){musicStatus.textContent=e.message;}finally{musicSearch.disabled=false;}});
  musicQuery.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();musicSearch.click();}});
  const voiceSelect=$("jv-tts-voice"),lang=$("jv-tts-language");
- function refreshVoices(){if(!("speechSynthesis" in window)){voiceSelect.innerHTML='<option value="">Synthèse vocale non prise en charge</option>';$("jv-tts-play").disabled=true;$("jv-tts-status").textContent="Votre navigateur ne prend pas en charge la synthèse vocale.";return;}const voices=speechSynthesis.getVoices();const selected=voiceSelect.value;voiceSelect.innerHTML="";const filtered=voices.filter(v=>v.lang.toLowerCase().startsWith(lang.value.slice(0,2).toLowerCase()));(filtered.length?filtered:voices).forEach(v=>{const o=document.createElement("option");o.value=v.name;o.textContent=v.name+" ("+v.lang+")";voiceSelect.appendChild(o);});if(selected&&voices.some(v=>v.name===selected))voiceSelect.value=selected;if(!voices.length){voiceSelect.innerHTML='<option value="">Aucune voix disponible pour le moment</option>';}}
- if("speechSynthesis" in window){refreshVoices();speechSynthesis.onvoiceschanged=refreshVoices;}lang.addEventListener("change",refreshVoices);
+  function refreshVoices() {
+    if (!("speechSynthesis" in window)) {
+      voiceSelect.replaceChildren(new Option("Synthèse vocale non prise en charge", ""));
+      $("jv-tts-play").disabled = true;
+      $("jv-tts-status").textContent = "Ce navigateur ne prend pas en charge la synthèse vocale.";
+      return;
+    }
+    const voices = speechSynthesis.getVoices() || [];
+    const previous = voiceSelect.value;
+    const language = String(lang.value || "fr-FR").slice(0, 2).toLowerCase();
+    const matching = voices.filter(voice => String(voice.lang || "").toLowerCase().startsWith(language));
+    const available = matching.length ? matching : voices;
+    voiceSelect.replaceChildren();
+    if (!available.length) {
+      voiceSelect.appendChild(new Option("Voix par défaut de l’appareil", ""));
+      $("jv-tts-status").textContent = "Chargement des voix de votre appareil. Vous pouvez essayer la voix par défaut.";
+      $("jv-tts-play").disabled = false;
+      return;
+    }
+    available.forEach(voice => voiceSelect.appendChild(new Option(voice.name + " (" + voice.lang + ")", voice.name)));
+    if (previous && available.some(voice => voice.name === previous)) voiceSelect.value = previous;
+    else voiceSelect.value = available[0].name;
+    $("jv-tts-status").textContent = available.length + " voix disponible(s). Saisissez un texte puis lancez la lecture.";
+    $("jv-tts-play").disabled = false;
+  }
+  if ("speechSynthesis" in window) {
+    refreshVoices();
+    if (typeof speechSynthesis.addEventListener === "function") speechSynthesis.addEventListener("voiceschanged", refreshVoices);
+    else speechSynthesis.onvoiceschanged = refreshVoices;
+  } else {
+    refreshVoices();
+  }
+  lang.addEventListener("change", refreshVoices);
  [["jv-tts-rate","jv-tts-rate-out","×"],["jv-tts-pitch","jv-tts-pitch-out",""],["jv-tts-volume","jv-tts-volume-out"," %"]].forEach(([id,out,suffix])=>$(id).addEventListener("input",e=>$(out).textContent=fmt(e.target.value)+suffix));
- $("jv-tts-play").addEventListener("click",()=>{const text=$("jv-tts-text").value.trim();if(!text){$("jv-tts-status").textContent="Écrivez un texte avant de lancer la lecture.";return;}if(!("speechSynthesis" in window)){return;}speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);const voice=speechSynthesis.getVoices().find(v=>v.name===voiceSelect.value);if(voice)u.voice=voice;u.lang=voice?voice.lang:lang.value;u.rate=Number($("jv-tts-rate").value);u.pitch=Number($("jv-tts-pitch").value);u.volume=Number($("jv-tts-volume").value)/100;u.onstart=()=>{$("jv-tts-status").textContent="Lecture de la voix en cours…";};u.onend=()=>{$("jv-tts-status").textContent="Lecture terminée. Cette pré-écoute n’a pas créé de fichier audio.";};u.onerror=()=>{$("jv-tts-status").textContent="La voix sélectionnée n’est pas disponible sur cet appareil.";};speechSynthesis.speak(u);});
- $("jv-tts-stop").addEventListener("click",()=>{if("speechSynthesis" in window)speechSynthesis.cancel();$("jv-tts-status").textContent="Lecture arrêtée.";});
+  $("jv-tts-play").addEventListener("click", () => {
+    const text = $("jv-tts-text").value.trim();
+    const status = $("jv-tts-status");
+    if (!text) { status.textContent = "Écrivez un texte avant de lancer la lecture."; return; }
+    if (!("speechSynthesis" in window) || typeof SpeechSynthesisUtterance === "undefined") {
+      status.textContent = "La synthèse vocale n’est pas disponible dans ce navigateur.";
+      return;
+    }
+    try {
+      speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(text);
+      const selected = speechSynthesis.getVoices().find(voice => voice.name === voiceSelect.value);
+      if (selected) { utterance.voice = selected; utterance.lang = selected.lang; }
+      else utterance.lang = lang.value || "fr-FR";
+      utterance.rate = Number($("jv-tts-rate").value) || 1;
+      utterance.pitch = Number($("jv-tts-pitch").value) || 1;
+      utterance.volume = Number($("jv-tts-volume").value) / 100;
+      utterance.onstart = () => { status.textContent = "Lecture de la voix en cours…"; };
+      utterance.onend = () => { status.textContent = "Lecture terminée. Cette pré-écoute n’a pas créé de fichier audio."; };
+      utterance.onerror = event => { status.textContent = "La synthèse vocale a échoué (" + (event.error || "erreur inconnue") + "). Vérifiez les voix installées sur votre appareil."; };
+      speechSynthesis.resume();
+      speechSynthesis.speak(utterance);
+    } catch (error) {
+      status.textContent = error.message || "Impossible de lancer la voix sur cet appareil.";
+    }
+  });
+  $("jv-tts-stop").addEventListener("click", () => {
+    if ("speechSynthesis" in window) { speechSynthesis.cancel(); speechSynthesis.resume(); }
+    $("jv-tts-status").textContent = "Lecture arrêtée.";
+  });
  $("jv-audio-enhance").addEventListener("click",async()=>{const video=$("videoInput")?.files?.[0];const status=$("jv-audio-enhance-status");if(!video){status.textContent="Importez d’abord une vidéo dans le studio principal.";return;}let session={};try{session=JSON.parse(localStorage.getItem("justevivo_session_v1")||"{}");}catch(_){}if(!session.access_token){status.textContent="Connectez-vous pour utiliser le traitement audio.";return;}const b=$("jv-audio-enhance");b.disabled=true;status.textContent="Traitement audio en cours…";try{const form=new FormData();form.append("video",video,video.name);form.append("denoise",$("jv-audio-denoise").checked?"true":"false");form.append("normalize",$("jv-audio-normalize").checked?"true":"false");const base=typeof API_URL!=="undefined"?API_URL:"https://justevivo-backend.onrender.com";const r=await fetch(base+"/api/video/enhance-audio",{method:"POST",headers:{Authorization:"Bearer "+session.access_token},body:form});if(!r.ok){const d=await r.json().catch(()=>({}));throw new Error(d.error||"Le traitement audio a échoué.");}const blob=await r.blob(),u=URL.createObjectURL(blob),a=document.createElement("a");a.href=u;a.download="justevivo-audio-ameliore.mp4";a.click();setTimeout(()=>URL.revokeObjectURL(u),60000);status.textContent="Vidéo améliorée téléchargée.";}catch(e){status.textContent=e.message;}finally{b.disabled=false;}});
-});
+};
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init, { once: true });
+else init();
 })();

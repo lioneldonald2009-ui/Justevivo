@@ -113,6 +113,8 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function showDashboard() {
+    const suite = document.getElementById("jv-creative-suite");
+    if (suite) suite.hidden = true;
     workspace.querySelectorAll(".workspace-page").forEach(page => { page.hidden = true; });
     subscriptionPage.hidden = true;
     dashboard.hidden = false;
@@ -126,6 +128,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
 
   function showSubscription() {
+    const suite = document.getElementById("jv-creative-suite");
+    if (suite) suite.hidden = true;
     workspace.querySelectorAll(".workspace-page").forEach(page => { page.hidden = true; });
     dashboard.hidden = true;
     subscriptionPage.hidden = false;
@@ -142,6 +146,8 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 
   function showStudio() {
+    const suite = document.getElementById("jv-creative-suite");
+    if (suite) suite.hidden = true;
     workspace.querySelectorAll(".workspace-page").forEach(page => { page.hidden = true; });
     subscriptionPage.hidden = true;
     dashboard.hidden = true;
@@ -192,7 +198,7 @@ document.addEventListener("DOMContentLoaded", function () {
   dashboard.querySelectorAll("[data-jv-action]").forEach(b=>b.addEventListener("click",()=>{
     const action=b.dataset.jvAction;
     if(action==="new"){showStudio();return;}
-    if(action==="audio"){openSuiteView("audio","audio");return;}
+    if(action==="audio"){openAudioStudio();return;}
     showStudio();
     const panel=action==="captions"?"text":action==="styles"?"styles":action==="export"?"export":"text";
     const tab=document.querySelector('.jv-editor-panel-tab[data-panel="'+panel+'"]');
@@ -211,8 +217,33 @@ document.addEventListener("DOMContentLoaded", function () {
     if (projects) projects.click();
   });
 
+  function openAudioStudio() {
+    showStudio();
+    const suite = document.getElementById("jv-creative-suite");
+    if (suite) suite.hidden = true;
+    const tab = document.querySelector('.jv-editor-panel-tab[data-panel="audio"]');
+    if (tab) {
+      tab.click();
+      setActive("audio");
+      const group = document.querySelector('.jv-editor-control-group[data-group="audio"]');
+      if (group) group.scrollIntoView({behavior:"smooth",block:"nearest"});
+      return true;
+    }
+    if (typeof window.JVCollectLateEditorControls === "function") window.JVCollectLateEditorControls();
+    showNavigationNotice("Le panneau Audio & Voix n’a pas pu être initialisé. Rechargez la page puis réessayez.");
+    return false;
+  }
+
   function openSuiteView(view, activePage) {
     showStudio();
+    const suite = document.getElementById("jv-creative-suite");
+    if (!suite) {
+      showNavigationNotice("Le studio de production n’a pas pu être chargé. Rechargez la page puis réessayez.");
+      return false;
+    }
+    suite.hidden = false;
+    studioParts.forEach(el => { el.hidden = true; });
+    workspaceBack.style.display = "inline-flex";
     const tab = document.querySelector('#jv-creative-suite .jv-suite-tabs [data-tab="' + view + '"]');
     const target = document.querySelector('#jv-creative-suite [data-view="' + view + '"]');
     if (!tab || !target) {
@@ -240,7 +271,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     if (page === "upcoming") { openBroll(); return; }
     if (page === "photo-studio") return;
-    const viewByPage = {audio:"audio",media:"media",clips:"clips",brand:"brand",timeline:"timeline",production:"production"};
+    if (page === "audio") { openAudioStudio(); return; }
+    const viewByPage = {media:"media",clips:"clips",brand:"brand",timeline:"timeline",production:"production"};
     if (viewByPage[page]) { openSuiteView(viewByPage[page], page); return; }
     showStudio();
     const panel = link.dataset.jvPanel;
@@ -516,7 +548,8 @@ document.addEventListener("DOMContentLoaded", function () {
       if (view === "dubbing") { openDubbing(); return; }
       if (view === "upcoming") { openCalendar(); return; }
       if (view === "projects") { const projectLink=links.find(x=>x.dataset.page==="projects"); if(projectLink) projectLink.click(); return; }
-      if (["audio","media","clips","brand","timeline"].includes(view)) { openSuiteView(view, view); return; }
+      if (view === "audio") { openAudioStudio(); return; }
+      if (["media","clips","brand","timeline"].includes(view)) { openSuiteView(view, view); return; }
       showStudio();
       const tab=document.querySelector('.jv-editor-panel-tab[data-panel="'+view+'"]');
       if(tab) tab.click();

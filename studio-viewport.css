@@ -92,3 +92,162 @@
     overflow:visible!important;
   }
 }
+
+
+/* JUSTEVIVO — navigation latérale verticale sur mobile et tablette étroite.
+   Le menu reste à gauche comme dans la référence, tandis que le contenu défile
+   indépendamment à droite. */
+@media (max-width: 760px) {
+  .studio-section {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+    max-width: none !important;
+  }
+  .studio-section > .section-heading { display: none !important; }
+  .studio {
+    display: grid !important;
+    grid-template-columns: clamp(104px, 17vw, 142px) minmax(0, 1fr) !important;
+    flex-direction: unset !important;
+    align-items: stretch !important;
+    gap: 0 !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: calc(100dvh - 60px) !important;
+    height: calc(100dvh - 60px) !important;
+    max-height: calc(100dvh - 60px) !important;
+    overflow: hidden !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+  }
+  .studio > .jv-sidebar,
+  .studio > .sidebar {
+    position: relative !important;
+    inset: auto !important;
+    z-index: 30 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    flex-wrap: nowrap !important;
+    align-items: stretch !important;
+    justify-content: flex-start !important;
+    gap: 2px !important;
+    width: auto !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    padding: 9px 6px 12px !important;
+    border: 0 !important;
+    border-right: 1px solid #24294b !important;
+    border-radius: 0 !important;
+    background: linear-gradient(180deg, #101329, #090d20 72%, #17103a) !important;
+    scrollbar-width: thin !important;
+  }
+  .jv-sidebar .mini-brand {
+    display: flex !important;
+    flex: 0 0 auto !important;
+    align-items: center !important;
+    gap: 5px !important;
+    margin: 0 0 9px !important;
+    font-size: 9px !important;
+    line-height: 1.15 !important;
+    white-space: normal !important;
+  }
+  .jv-sidebar .mini-brand .brand-mark {
+    flex: 0 0 25px !important;
+    width: 25px !important;
+    height: 25px !important;
+    margin: 0 !important;
+  }
+  .jv-sidebar .mini-brand > span:nth-child(2) { min-width: 0 !important; }
+  .jv-sidebar .mini-brand small {
+    display: block !important;
+    margin-top: 3px !important;
+    font-size: 5.5px !important;
+    letter-spacing: .04em !important;
+  }
+  .jv-sidebar .mini-brand em {
+    display: none !important;
+  }
+  .jv-sidebar-new {
+    display: block !important;
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    min-height: 34px !important;
+    margin: 0 0 7px !important;
+    padding: 7px 4px !important;
+    border-radius: 8px !important;
+    font-size: 8px !important;
+    line-height: 1.2 !important;
+    white-space: normal !important;
+  }
+  .jv-sidebar-label {
+    display: block !important;
+    flex: 0 0 auto !important;
+    padding: 8px 3px 3px !important;
+    font-size: 6px !important;
+    line-height: 1.2 !important;
+    letter-spacing: .08em !important;
+    overflow-wrap: anywhere !important;
+  }
+  .jv-sidebar .side-link,
+  .studio > .sidebar .side-link {
+    display: flex !important;
+    flex: 0 0 auto !important;
+    align-items: flex-start !important;
+    gap: 4px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 31px !important;
+    margin: 1px 0 !important;
+    padding: 7px 5px !important;
+    border-radius: 7px !important;
+    font-size: 9px !important;
+    line-height: 1.2 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+  .jv-sidebar .side-link > span {
+    display: inline !important;
+    min-width: 0 !important;
+    margin: 0 !important;
+    white-space: normal !important;
+    overflow-wrap: anywhere !important;
+  }
+  .jv-sidebar .side-link i { flex: 0 0 auto !important; font-size: 6px !important; }
+  .jv-sidebar .side-bottom { display: none !important; }
+  .studio > .workspace {
+    display: block !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 0 !important;
+    height: 100% !important;
+    max-height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    padding: 12px 10px !important;
+    border: 0 !important;
+    border-radius: 0 !important;
+  }
+  .studio > .workspace::-webkit-scrollbar { width: 5px; }
+  .studio > .workspace::-webkit-scrollbar-thumb {
+    background: #c7cbd8;
+    border: 1px solid #f5f6fb;
+    border-radius: 10px;
+  }
+}
+
+@media (max-width: 420px) {
+  .studio {
+    grid-template-columns: 100px minmax(0, 1fr) !important;
+  }
+  .jv-sidebar .mini-brand { font-size: 8px !important; }
+  .jv-sidebar .mini-brand small { font-size: 5px !important; }
+  .jv-sidebar .side-link { font-size: 8px !important; min-height: 29px !important; }
+  .jv-sidebar-label { font-size: 5.5px !important; }
+  .studio > .workspace { padding: 10px 8px !important; }
+}

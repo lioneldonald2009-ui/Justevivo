@@ -54,7 +54,7 @@ const checks = [
   ['mobile drawer', read('mobile-drawer.js').includes('jv-mobile-menu-toggle') && read('mobile-drawer.js').includes('aria-expanded')],
   ['mobile responsive width', read('mobile-drawer-fix.css').includes('overflow-x:hidden') && read('mobile-drawer-fix.css').includes('zoom:1')],
   ['family collage templates', read('photo-studio.js').includes('layout:"trio"') && read('photo-studio.js').includes('layout:"family"') && read('photo-studio.js').includes('const drawTile=')],
-  ['name presentation template', read('photo-studio.js').includes('Portraits & Prénoms') && read('photo-studio.js').includes('lastTemplateText')]
+  ['name presentation template', read('photo-studio.js').includes('Portraits & Prénoms') && read('photo-studio.js').includes('lastTemplateText')],
   ['standalone montage page loads its dedicated editor and styles', read('montage.html').includes('montage-editor.js') && read('montage.html').includes('montage.css')],
   ['photo montage opens in a separate tab', read('photo-studio.js').includes('window.open("montage.html","_blank")')],
   ['standalone editor provides timeline, templates and per-scene controls', read('montage-editor.js').includes('function renderTimeline()') && read('montage-editor.js').includes('function renderTemplatePanel()') && read('montage-editor.js').includes('Textes de cette scène')],

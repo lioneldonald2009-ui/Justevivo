@@ -248,7 +248,7 @@
     }
     categories.forEach(category=>{const button=document.createElement("button");button.type="button";button.textContent=category;button.className=category==="Tous"?"active":"";button.addEventListener("click",()=>{activeCategory=category;categoryBox.querySelectorAll("button").forEach(b=>b.classList.toggle("active",b===button));renderTemplateCards();});categoryBox.append(button);});
     $("jvp-template-search").addEventListener("input",renderTemplateCards);renderTemplateCards();
-    nav.addEventListener("click",()=>{const opened=window.open("montage.html","_blank","noopener");if(!opened)window.location.href="montage.html";});
+    nav.addEventListener("click",()=>{const opened=window.open("montage.html","_blank");if(opened)opened.opener=null;else window.location.href="montage.html";});
   };
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
 })();

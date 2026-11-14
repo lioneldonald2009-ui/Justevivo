@@ -45,7 +45,10 @@ const checks = [
   ['production feature views are made visible when opened', /suite\.hidden = false;/.test(read('navigation.js')) && /studioParts\.forEach\(el => \{ el\.hidden = true; \}\)/.test(read('navigation.js'))],
   ['audio sidebar opens the full audio and voice panel', /function openAudioStudio\(\)/.test(read('navigation.js')) && /jv-editor-panel-tab\[data-panel="audio"\]/.test(read('navigation.js'))],
   ['voice synthesis handles delayed device voices and playback errors', /voiceschanged/.test(read('audio-studio.js')) && /speechSynthesis\.resume\(\)/.test(read('audio-studio.js')) && /utterance\.onerror/.test(read('audio-studio.js'))],
-  ['audio player resets volume after playback', /audio\.addEventListener\("ended"/.test(read('audio-studio.js'))]
+  ['audio player resets volume after playback', /audio\.addEventListener\("ended"/.test(read('audio-studio.js'))],
+  ['photo studio accepts mixed image and video media', /accept="image\/\*,video\/\*"/.test(read('photo-studio.js')) && /kind:"video"/.test(read('photo-studio.js'))],
+  ['photo studio includes reusable editing templates and effects', /data-template="cinema"/.test(read('photo-studio.js')) && /data-template="promo"/.test(read('photo-studio.js')) && /jvp-effect/.test(read('photo-studio.js'))],
+  ['photo studio exports a mixed media timeline', /const durations=photos\.map/.test(read('photo-studio.js')) && /captureStream\(30\)/.test(read('photo-studio.js'))]
 ];
 for (const [label, ok] of checks) {
   console.log((ok ? 'PASS ' : 'FAIL ') + label);

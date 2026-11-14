@@ -613,10 +613,43 @@ async function exportVideo() {
         });
     });
 
-    const ext = blob.type.includes('mp4') ? 'mp4' : 'webm';
-    downloadBlob(blob, baseName() + '-sous-titres.' + ext);
+    let finalBlob = blob;
+    let ext = blob.type.includes('mp4') ? 'mp4' : 'webm';
+    let finalizationNote = '';
+
+    // Le navigateur compose déjà l'image, les sous-titres et le mixage audio.
+    // Le serveur convertit ensuite ce rendu en MP4 H.264/AAC pour une lecture universelle.
+    if (ext !== 'mp4') {
+      exportVideoButton.textContent = 'Finalisation MP4 sur le serveur...';
+      try {
+        const form = new FormData();
+        form.append('video', blob, baseName() + '-render.webm');
+        form.append('duration', String(Math.max(1, endT - startT)));
+        const response = await fetch(API_URL + '/api/video/finalize', {
+          method: 'POST',
+          body: form
+        });
+        if (!response.ok) {
+          let detail = {};
+          try { detail = await response.json(); } catch (_) {}
+          throw new Error(detail.error || 'Conversion MP4 indisponible (' + response.status + ').');
+        }
+        const mp4 = await response.blob();
+        if (!mp4.size || (mp4.type && !mp4.type.includes('mp4'))) {
+          throw new Error('Le serveur a retourné un fichier MP4 invalide.');
+        }
+        finalBlob = mp4;
+        ext = 'mp4';
+      } catch (finalizeError) {
+        console.warn('Finalisation MP4 indisponible, conservation du WebM :', finalizeError);
+        ext = 'webm';
+        finalizationNote = ' La conversion MP4 n’a pas abouti ; le rendu WebM original a été conservé.';
+      }
+    }
+
+    downloadBlob(finalBlob, baseName() + '-sous-titres.' + ext);
     showToast(
-      'Vidéo exportée (' + ext.toUpperCase() + ').' +
+      'Vidéo exportée (' + ext.toUpperCase() + ').' + finalizationNote +
       (creditsText() ? ' Pensez à copier les crédits des sons dans la description.' : '')
     );
   } catch (error) {

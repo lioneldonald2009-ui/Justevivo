@@ -37,7 +37,7 @@ const checks = [
   ['persistent media bin', /justevivo-media-bin-v1/.test(read('editor-essentials.js')) && /window\.JV_MEDIA_BIN/.test(read('editor-essentials.js'))],
   ['photo preview lifecycle', /function attachProjectPhoto/.test(read('app.js')) && /function detachProjectMedia/.test(read('app.js'))],
   ['authenticated MP4 finalization client', /isVideoFinalize/.test(read('app5.js')) && /\/api\/video\/finalize/.test(read('app3.js'))],
-  ['service worker cache revision', /justevivo-shell-v6/.test(read('sw.js'))]
+  ['service worker cache revision', /justevivo-shell-v7/.test(read('sw.js'))]
 ];
 for (const [label, ok] of checks) {
   console.log((ok ? 'PASS ' : 'FAIL ') + label);

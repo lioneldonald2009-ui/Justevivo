@@ -4,6 +4,7 @@
   "private": true,
   "description": "JUSTEVIVO AI multiplatform video creation studio",
   "scripts": {
+    "test": "node scripts/validate.mjs",
     "build:web": "node scripts/prepare-web.mjs",
     "cap:sync": "npm run build:web && cap sync",
     "cap:sync:android": "npm run build:web && cap sync android",

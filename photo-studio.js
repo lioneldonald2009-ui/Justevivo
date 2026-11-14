@@ -93,10 +93,27 @@
         ctx.drawImage(source,(w-dw)/2+offset,(h-dh)/2,dw,dh);ctx.restore();
       };
       const intensity=Number($("jvp-intensity")?.value||6)/100;const effect=$("jvp-effect")?.value||"kenburns";const zoom=1+(effect==="none"?0:Math.min(.15,intensity*(effect==="zoom"?1.5:effect==="pulse"?.5+Math.sin(progress*Math.PI*2)*.5:progress)));
-      if(transition==="fade"&&progress>.78&&index<photos.length-1){drawOne(p,1,zoom);drawOne(photos[index+1],(progress-.78)/.22,1);}
+      const template=activeTemplate||{};
+      const drawTile=(photo,x,y,tw,th)=>{
+        const source=photo.kind==="video"?photo.video:photo.img,iw=photo.kind==="video"?(source.videoWidth||1):source.naturalWidth,ih=photo.kind==="video"?(source.videoHeight||1):source.naturalHeight,cover=Math.max(tw/iw,th/ih)*1.04,dw=iw*cover,dh=ih*cover;
+        ctx.save();ctx.beginPath();ctx.rect(x,y,tw,th);ctx.clip();ctx.filter=filters[$("jvp-filter").value]||"none";ctx.drawImage(source,x+(tw-dw)/2,y+(th-dh)/2,dw,dh);ctx.restore();
+      };
+      if((template.layout==="trio"||template.layout==="family")&&photos.length){
+        const chosen=photos.slice(0,template.layout==="trio"?3:4),gap=Math.max(5,Math.round(w*.008)),count=chosen.length;
+        if(template.layout==="trio"){
+          const tileW=(w-gap*(count-1))/count;chosen.forEach((item,i)=>drawTile(item,i*(tileW+gap),0,tileW,h));
+        }else{
+          const cols=2,rows=2,tileW=(w-gap)/2,tileH=(h-gap)/2;
+          chosen.forEach((item,i)=>drawTile(item,(i%cols)*(tileW+gap),Math.floor(i/cols)*(tileH+gap),tileW,tileH));
+          if(count===1)drawTile(chosen[0],0,0,w,h);
+        }
+        ctx.save();ctx.strokeStyle="rgba(255,255,255,.9)";ctx.lineWidth=Math.max(3,gap*.65);
+        if(template.layout==="trio"){for(let i=1;i<count;i++){const x=i*(w/count);ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}}
+        else{ctx.beginPath();ctx.moveTo(w/2,0);ctx.lineTo(w/2,h);ctx.moveTo(0,h/2);ctx.lineTo(w,h/2);ctx.stroke();}
+        ctx.restore();
+      }else if(transition==="fade"&&progress>.78&&index<photos.length-1){drawOne(p,1,zoom);drawOne(photos[index+1],(progress-.78)/.22,1);}
       else if(transition==="slide"&&progress>.78&&index<photos.length-1){drawOne(p,1,1,-w*((progress-.78)/.22));drawOne(photos[index+1],1,1,w*(1-(progress-.78)/.22));}
       else drawOne(p,1,zoom);
-      const template=activeTemplate||{};
       if(template.decoration==="confetti"||template.decoration==="sparkles"||template.decoration==="hearts"||template.decoration==="balloons"){
         ctx.save();ctx.textAlign="center";ctx.textBaseline="middle";
         for(let i=0;i<26;i++){const seed=(i*37%101)/101,x=(seed*.92+.04)*w,y=((progress*1.25+seed*1.7)%1)*h;

@@ -104,10 +104,10 @@ document.addEventListener("DOMContentLoaded", function () {
     workspaceBack.id = "jv-workspace-back";
     workspaceBack.type = "button";
     workspaceBack.className = "jv-workspace-back";
-    workspaceBack.innerHTML = '<span aria-hidden="true" style="font-size:24px;line-height:1;font-weight:500">←</span><span class="jv-workspace-back-label">Retour au tableau de bord</span>';
-    workspaceBack.setAttribute("aria-label", "Retour au tableau de bord sans fermer le projet");
-    workspaceBack.title = "Retour au tableau de bord — le projet reste ouvert";
-    workspaceBack.style.cssText = "display:none;position:sticky;top:0;z-index:35;align-items:center;justify-content:flex-start;gap:9px;min-width:44px;height:42px;margin:0 0 14px;padding:0 14px;border:1px solid #dfe3ef;border-radius:12px;background:rgba(255,255,255,.97);color:#30294b;font:700 12px system-ui;cursor:pointer;box-shadow:0 3px 12px #17203318;transition:transform .18s ease,background .18s ease";
+    workspaceBack.innerHTML = '<span aria-hidden="true" style="font-size:25px;line-height:1;font-weight:700">←</span><span class="jv-workspace-back-label">Retour au compte</span>';
+    workspaceBack.setAttribute("aria-label", "Retour au compte sans fermer le projet en cours");
+    workspaceBack.title = "Retour au compte — le projet et ses médias restent ouverts";
+    workspaceBack.style.cssText = "display:none;position:sticky;top:8px;z-index:80;align-items:center;justify-content:flex-start;gap:10px;min-width:44px;min-height:44px;width:max-content;margin:0 0 14px;padding:0 16px;border:1px solid #d9d4ee;border-radius:12px;background:#fff;color:#34235f;font:800 12px system-ui;cursor:pointer;box-shadow:0 5px 18px #17102b1c;transition:transform .18s ease,background .18s ease";
     workspace.insertBefore(workspaceBack, workspace.firstChild);
     workspaceBack.addEventListener("click", showDashboard);
   }
@@ -121,6 +121,7 @@ document.addEventListener("DOMContentLoaded", function () {
     setActive("dashboard");
     refreshDashboard();
     workspace.scrollTop = 0;
+    workspaceBack.blur();
     workspace.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 

@@ -48,7 +48,9 @@ const checks = [
   ['audio player resets volume after playback', /audio\.addEventListener\("ended"/.test(read('audio-studio.js'))],
   ['photo studio accepts mixed image and video media', /accept="image\/\*,video\/\*"/.test(read('photo-studio.js')) && /kind:"video"/.test(read('photo-studio.js'))],
   ['photo studio includes reusable editing templates and effects', /data-template="cinema"/.test(read('photo-studio.js')) && /data-template="promo"/.test(read('photo-studio.js')) && /jvp-effect/.test(read('photo-studio.js'))],
-  ['photo studio exports a mixed media timeline', /const durations=photos\.map/.test(read('photo-studio.js')) && /captureStream\(30\)/.test(read('photo-studio.js'))]
+  ['photo studio exports a mixed media timeline', /const durations=photos\.map/.test(read('photo-studio.js')) && /captureStream\(30\)/.test(read('photo-studio.js'))],
+  ['animated template library includes occasion categories and use action', /id="jvp-template-grid"/.test(read('photo-studio.js')) && /Utiliser ce modèle/.test(read('photo-studio.js')) && /category:"Anniversaire"/.test(read('photo-studio.js')) && /category:"Voyage"/.test(read('photo-studio.js'))],
+  ['selected templates apply settings and animated decorations', /function applyTemplate\(t\)/.test(read('photo-studio.js')) && /decoration==="confetti"/.test(read('photo-studio.js')) && /textAnimation/.test(read('photo-studio.js'))]
 ];
 for (const [label, ok] of checks) {
   console.log((ok ? 'PASS ' : 'FAIL ') + label);

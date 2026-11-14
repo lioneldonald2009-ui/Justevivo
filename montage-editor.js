@@ -141,7 +141,7 @@ function applyTemplate(t){
   const groupId=t.layout?("group-"+Date.now()):null,limit=t.layout==="trio"?3:t.layout==="duo"?2:t.layout==="family"?4:0;
   state.clips.forEach((clip,i)=>{clip.duration=t.duration;clip.sourceDuration=clip.kind==="video"?(clip.sourceDuration||t.duration):t.duration;clip.filter=t.filter;clip.speed=t.speed;clip.fit="cover";clip.effect=t.effect;clip.text=t.texts[i%t.texts.length]||t.title;clip.textPosition="bottom";clip.textColor=t.colors?.[0]||"#fff";clip.textAnimation=t.textAnim||"pop";clip.group=groupId&&i<limit?groupId:null;clip.layout=clip.group?t.layout:null;if(clip.kind==="video"){clip.video.playbackRate=clip.speed;if(clip.sourceDuration)clip.duration=Math.max(.35,clip.sourceDuration/clip.speed);}});
  }else{state.sceneTexts=t.texts.slice();}
- renderTimeline();renderInspector("audio");drawFrame(0);
+ renderTimeline();document.querySelectorAll(".tool").forEach(x=>x.classList.toggle("active",x.dataset.tool==="audio"));renderInspector("audio");drawFrame(0);
  if(t.music)searchMusic(t.music);
  toast("Modèle « "+t.name+" » appliqué. Importez vos médias, personnalisez chaque scène et utilisez la musique suggérée.");
 }
@@ -169,6 +169,6 @@ document.querySelectorAll(".tool").forEach(b=>b.addEventListener("click",()=>{do
 document.querySelectorAll("[data-inspector]").forEach(b=>b.addEventListener("click",()=>renderInspector(b.dataset.inspector)));
 $("startImport").onclick=importClick;document.addEventListener("keydown",e=>{if(e.code==="Space"&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName)){e.preventDefault();state.playing?pause():play();}if((e.key==="Delete"||e.key==="Backspace")&&!/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))$("deleteClip").click();});
 $("renameProject").title="Renommer le projet";
-function initial(){dims();renderTimeline();renderInspectorForTool("templates");drawFrame(0);pushHistory();$("timeTotal").textContent="00:00";const zone=document.querySelector(".preview-wrap");zone.addEventListener("dragover",e=>{e.preventDefault();zone.style.outline="2px dashed #a78bfa";});zone.addEventListener("dragleave",()=>zone.style.outline="");zone.addEventListener("drop",e=>{e.preventDefault();zone.style.outline="";addMedia(e.dataTransfer.files);});}
+function initial(){dims();renderTimeline();document.querySelectorAll(".tool").forEach(x=>x.classList.toggle("active",x.dataset.tool==="templates"));renderInspectorForTool("templates");drawFrame(0);pushHistory();$("timeTotal").textContent="00:00";const zone=document.querySelector(".preview-wrap");zone.addEventListener("dragover",e=>{e.preventDefault();zone.style.outline="2px dashed #a78bfa";});zone.addEventListener("dragleave",()=>zone.style.outline="");zone.addEventListener("drop",e=>{e.preventDefault();zone.style.outline="";addMedia(e.dataTransfer.files);});}
 initial();
 })();

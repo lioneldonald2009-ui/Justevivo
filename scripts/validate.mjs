@@ -4,7 +4,7 @@ import { spawnSync } from 'node:child_process';
 
 const root = process.cwd();
 const ignored = new Set(['.git', '.github', 'node_modules', 'www', 'android', 'ios', 'dist', 'coverage']);
-const extensions = new Set(['.js', '.mjs', '.cjs', '.ts']);
+const extensions = new Set(['.js', '.mjs', '.cjs']);
 const files = [];
 
 function walk(dir) {

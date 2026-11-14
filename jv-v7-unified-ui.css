@@ -309,3 +309,92 @@ html[data-theme="light"] .jv-subscription-grid .is-featured button{background:li
 .jv-subscription-notice{margin:18px 0 0;padding:13px 15px;border-radius:12px;background:#f5f6fa;color:#596781;font-size:12px;line-height:1.7}
 @media(max-width:1000px){.jv-subscription-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:560px){.jv-subscription-grid{grid-template-columns:1fr}.jv-subscription-current{align-items:flex-start;flex-direction:column}.jv-subscription-grid p{min-height:0}}
+
+
+/* JUSTEVIVO — navigation latérale verticale sur tablettes, comme l'espace de travail de référence. */
+@media (min-width:521px) and (max-width:760px) {
+  .studio {
+    display:grid!important;
+    grid-template-columns:188px minmax(0,1fr)!important;
+    gap:10px!important;
+    align-items:start!important;
+  }
+  .jv-sidebar {
+    display:flex!important;
+    flex-direction:column!important;
+    flex-wrap:nowrap!important;
+    align-items:stretch!important;
+    gap:4px!important;
+    width:auto!important;
+    min-width:0!important;
+    min-height:calc(100vh - 28px)!important;
+    max-height:calc(100vh - 28px)!important;
+    position:sticky!important;
+    top:14px!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    padding:12px 9px!important;
+  }
+  .jv-sidebar .mini-brand {
+    flex:0 0 auto!important;
+    margin:0 0 12px!important;
+    gap:7px!important;
+    font-size:13px!important;
+  }
+  .jv-sidebar .mini-brand .brand-mark {
+    width:30px!important;
+    height:30px!important;
+  }
+  .jv-sidebar-new,
+  .jv-sidebar-label,
+  .jv-sidebar .side-bottom {
+    display:block!important;
+  }
+  .jv-sidebar-new {
+    flex:0 0 auto!important;
+    padding:10px 7px!important;
+    margin-bottom:8px!important;
+    font-size:10px!important;
+  }
+  .jv-sidebar-label {
+    flex:0 0 auto!important;
+    padding:11px 6px 5px!important;
+    font-size:8px!important;
+  }
+  .jv-sidebar .side-link {
+    display:flex!important;
+    flex:0 0 auto!important;
+    width:100%!important;
+    min-height:34px!important;
+    box-sizing:border-box!important;
+    justify-content:flex-start!important;
+    white-space:normal!important;
+    padding:7px 7px!important;
+    margin:1px 0!important;
+    gap:7px!important;
+    font-size:9px!important;
+    line-height:1.25!important;
+  }
+  .jv-sidebar .side-link>span {
+    margin:0!important;
+    min-width:0!important;
+    overflow-wrap:anywhere!important;
+  }
+  .jv-sidebar .side-bottom {
+    position:static!important;
+    margin-top:10px!important;
+    padding:10px 6px!important;
+    font-size:8px!important;
+  }
+  .workspace {
+    min-width:0!important;
+    padding:12px!important;
+  }
+  .workspace-head {
+    flex-wrap:wrap!important;
+    gap:8px!important;
+  }
+  .editor-grid {
+    grid-template-columns:minmax(0,1fr)!important;
+  }
+}

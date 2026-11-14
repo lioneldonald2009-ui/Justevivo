@@ -93,10 +93,27 @@
         ctx.drawImage(source,(w-dw)/2+offset,(h-dh)/2,dw,dh);ctx.restore();
       };
       const intensity=Number($("jvp-intensity")?.value||6)/100;const effect=$("jvp-effect")?.value||"kenburns";const zoom=1+(effect==="none"?0:Math.min(.15,intensity*(effect==="zoom"?1.5:effect==="pulse"?.5+Math.sin(progress*Math.PI*2)*.5:progress)));
-      if(transition==="fade"&&progress>.78&&index<photos.length-1){drawOne(p,1,zoom);drawOne(photos[index+1],(progress-.78)/.22,1);}
+      const template=activeTemplate||{};
+      const drawTile=(photo,x,y,tw,th)=>{
+        const source=photo.kind==="video"?photo.video:photo.img,iw=photo.kind==="video"?(source.videoWidth||1):source.naturalWidth,ih=photo.kind==="video"?(source.videoHeight||1):source.naturalHeight,cover=Math.max(tw/iw,th/ih)*1.04,dw=iw*cover,dh=ih*cover;
+        ctx.save();ctx.beginPath();ctx.rect(x,y,tw,th);ctx.clip();ctx.filter=filters[$("jvp-filter").value]||"none";ctx.drawImage(source,x+(tw-dw)/2,y+(th-dh)/2,dw,dh);ctx.restore();
+      };
+      if((template.layout==="trio"||template.layout==="family")&&photos.length){
+        const chosen=photos.slice(0,template.layout==="trio"?3:4),gap=Math.max(5,Math.round(w*.008)),count=chosen.length;
+        if(template.layout==="trio"){
+          const tileW=(w-gap*(count-1))/count;chosen.forEach((item,i)=>drawTile(item,i*(tileW+gap),0,tileW,h));
+        }else{
+          const cols=2,rows=2,tileW=(w-gap)/2,tileH=(h-gap)/2;
+          chosen.forEach((item,i)=>drawTile(item,(i%cols)*(tileW+gap),Math.floor(i/cols)*(tileH+gap),tileW,tileH));
+          if(count===1)drawTile(chosen[0],0,0,w,h);
+        }
+        ctx.save();ctx.strokeStyle="rgba(255,255,255,.9)";ctx.lineWidth=Math.max(3,gap*.65);
+        if(template.layout==="trio"){for(let i=1;i<count;i++){const x=i*(w/count);ctx.beginPath();ctx.moveTo(x,0);ctx.lineTo(x,h);ctx.stroke();}}
+        else{ctx.beginPath();ctx.moveTo(w/2,0);ctx.lineTo(w/2,h);ctx.moveTo(0,h/2);ctx.lineTo(w,h/2);ctx.stroke();}
+        ctx.restore();
+      }else if(transition==="fade"&&progress>.78&&index<photos.length-1){drawOne(p,1,zoom);drawOne(photos[index+1],(progress-.78)/.22,1);}
       else if(transition==="slide"&&progress>.78&&index<photos.length-1){drawOne(p,1,1,-w*((progress-.78)/.22));drawOne(photos[index+1],1,1,w*(1-(progress-.78)/.22));}
       else drawOne(p,1,zoom);
-      const template=activeTemplate||{};
       if(template.decoration==="confetti"||template.decoration==="sparkles"||template.decoration==="hearts"||template.decoration==="balloons"){
         ctx.save();ctx.textAlign="center";ctx.textBaseline="middle";
         for(let i=0;i<26;i++){const seed=(i*37%101)/101,x=(seed*.92+.04)*w,y=((progress*1.25+seed*1.7)%1)*h;
@@ -192,13 +209,19 @@
       {id:"new-year",name:"Bonne année",category:"Fêtes",emoji:"🎆",desc:"Feux d'artifice et vœux animés",duration:"3",ratio:"9:16",transition:"fade",filter:"cinema",effect:"zoom",intensity:"6",title:"Bonne année !",position:"center",decoration:"sparkles",textAnimation:"pop",accent:"#ffe7a3",cover:"linear-gradient(135deg,#071a52,#1e3a8a,#b7791f)"},
       {id:"christmas",name:"Joyeux Noël",category:"Fêtes",emoji:"🎄",desc:"Une carte vidéo festive et chaleureuse",duration:"4",ratio:"16:9",transition:"fade",filter:"warm",effect:"kenburns",intensity:"4",title:"Joyeux Noël",position:"center",decoration:"sparkles",textAnimation:"fade",font:"Georgia",accent:"#fff0d0",cover:"linear-gradient(135deg,#064e3b,#166534,#991b1b)"},
       {id:"fitness-motivation",name:"Motivation sportive",category:"Lifestyle",emoji:"💪",desc:"Un montage énergique pour vos performances",duration:"2",ratio:"9:16",transition:"cut",filter:"vivid",effect:"zoom",intensity:"10",title:"Dépasse tes limites",position:"center",decoration:"sparkles",textAnimation:"bounce",accent:"#ffffff",cover:"linear-gradient(135deg,#111827,#334155,#f97316)"},
-      {id:"cinematic-recap",name:"Récap cinématique",category:"Lifestyle",emoji:"🎬",desc:"Un résumé vidéo au style film",duration:"4",ratio:"16:9",transition:"fade",filter:"cinema",effect:"kenburns",intensity:"5",title:"Les moments forts",position:"bottom",decoration:"sparkles",textAnimation:"fade",font:"Georgia",accent:"#fff2dd",cover:"linear-gradient(135deg,#111827,#374151,#a16207)"}
+      {id:"cinematic-recap",name:"Récap cinématique",category:"Lifestyle",emoji:"🎬",desc:"Un résumé vidéo au style film",duration:"4",ratio:"16:9",transition:"fade",filter:"cinema",effect:"kenburns",intensity:"5",title:"Les moments forts",position:"bottom",decoration:"sparkles",textAnimation:"fade",font:"Georgia",accent:"#fff2dd",cover:"linear-gradient(135deg,#111827,#374151,#a16207)"},
+      {id:"best-trio",name:"Best Trio",category:"Amis & Famille",emoji:"🫶",desc:"Une composition en trois portraits pour votre trio préféré",duration:"3",ratio:"16:9",transition:"fade",filter:"vivid",effect:"pulse",intensity:"5",title:"BEST TRIO",position:"bottom",decoration:"sparkles",textAnimation:"pop",font:"Georgia",accent:"#fff0c8",layout:"trio",cover:"linear-gradient(135deg,#3b1d72,#8d4de8,#f2a1c4)"},
+      {id:"family-reunion",name:"La famille réunie",category:"Amis & Famille",emoji:"👨‍👩‍👧‍👦",desc:"Un tableau de famille chaleureux avec plusieurs portraits",duration:"4",ratio:"16:9",transition:"fade",filter:"warm",effect:"kenburns",intensity:"4",title:"La famille réunie",position:"bottom",decoration:"sparkles",textAnimation:"fade",font:"Georgia",accent:"#fff1d7",layout:"family",cover:"linear-gradient(135deg,#536b45,#a8b77a,#e5c99c)"},
+      {id:"family-portrait",name:"Portrait de famille",category:"Amis & Famille",emoji:"🏡",desc:"Un montage souvenir pour toutes les générations",duration:"4",ratio:"1:1",transition:"fade",filter:"soft",effect:"kenburns",intensity:"3",title:"Nos plus beaux liens",position:"bottom",decoration:"hearts",textAnimation:"fade",font:"Georgia",accent:"#fff5e6",layout:"family",cover:"linear-gradient(135deg,#7c5a43,#d4a77b,#f1dfc4)"},
+      {id:"name-intro",name:"Présentation de prénom",category:"Portraits & Prénoms",emoji:"✨",desc:"Présentez un prénom avec une animation élégante",duration:"3",ratio:"9:16",transition:"fade",filter:"soft",effect:"kenburns",intensity:"4",title:"Prénom",position:"center",decoration:"sparkles",textAnimation:"pop",font:"Georgia",accent:"#fff0cf",cover:"linear-gradient(135deg,#243b70,#8666c5,#e9b9d0)"},
+      {id:"family-names",name:"Les prénoms de la famille",category:"Portraits & Prénoms",emoji:"💞",desc:"Une introduction animée pour afficher les prénoms de vos proches",duration:"4",ratio:"16:9",transition:"fade",filter:"warm",effect:"pulse",intensity:"3",title:"Notre famille : Emma · Noah · Lina",position:"center",decoration:"sparkles",textAnimation:"slide",font:"Georgia",accent:"#fff3df",cover:"linear-gradient(135deg,#4b365f,#9c6c9f,#e6c1a8)"}
     ];
     const categories=["Tous",...new Set(templateCatalog.map(t=>t.category))];let activeCategory="Tous";
     const categoryBox=$("jvp-template-categories"),templateGrid=$("jvp-template-grid");
+    let lastTemplateText="";
     function applyTemplate(t){
       activeTemplate=t;$("jvp-ratio").value=t.ratio;$("jvp-duration").value=t.duration;$("jvp-transition").value=t.transition;$("jvp-filter").value=t.filter;$("jvp-effect").value=t.effect;$("jvp-intensity").value=t.intensity;$("jvp-text-position").value=t.position;$("jvp-text-color").value=t.accent;
-      if(!$("jvp-text").value.trim())$("jvp-text").value=t.title;
+      const textField=$("jvp-text");if(!textField.value.trim()||textField.value===lastTemplateText)textField.value=t.title;lastTemplateText=t.title;
       photos.forEach(item=>{if(item.kind==="image")item.duration=Number(t.duration);});
       templateGrid.querySelectorAll(".jvp-template-card").forEach(card=>card.classList.toggle("active",card.dataset.id===t.id));
       dims();if(photos.length)draw(0);

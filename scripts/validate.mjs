@@ -37,7 +37,7 @@ const checks = [
   ['persistent media bin', /justevivo-media-bin-v1/.test(read('editor-essentials.js')) && /window\.JV_MEDIA_BIN/.test(read('editor-essentials.js'))],
   ['photo preview lifecycle', /function attachProjectPhoto/.test(read('app.js')) && /function detachProjectMedia/.test(read('app.js'))],
   ['authenticated MP4 finalization client', /isVideoFinalize/.test(read('app5.js')) && /\/api\/video\/finalize/.test(read('app3.js'))],
-  ['service worker cache revision', /justevivo-shell-v10/.test(read('sw.js'))],
+  ['service worker cache revision', /justevivo-shell-v11/.test(read('sw.js'))],
   ['reference vertical sidebar on tablet', /navigation latérale verticale sur tablettes/.test(read('jv-v7-unified-ui.css')) && /max-width:760px/.test(read('jv-v7-unified-ui.css')) && /grid-template-columns:188px minmax\(0,1fr\)/.test(read('jv-v7-unified-ui.css'))],
   ['visible independent sidebar scrolling', /\.studio > \.jv-sidebar[\s\S]*?overflow-y:auto!important/.test(read('studio-viewport.css'))],
   ['dubbing menu opens its dedicated tool', /data-jv-feature="dubbing"/.test(read('index.html')) && /dataset\.jvFeature === "dubbing"/.test(read('navigation.js'))],
@@ -50,7 +50,11 @@ const checks = [
   ['photo studio includes reusable editing templates and effects', /id="jvp-template-grid"/.test(read('photo-studio.js')) && /templateCatalog/.test(read('photo-studio.js')) && /jvp-effect/.test(read('photo-studio.js'))],
   ['photo studio exports a mixed media timeline', /const durations=photos\.map/.test(read('photo-studio.js')) && /captureStream\(30\)/.test(read('photo-studio.js'))],
   ['animated template library includes occasion categories and use action', /id="jvp-template-grid"/.test(read('photo-studio.js')) && /Utiliser ce modèle/.test(read('photo-studio.js')) && /category:"Anniversaire"/.test(read('photo-studio.js')) && /category:"Voyage"/.test(read('photo-studio.js'))],
-  ['selected templates apply settings and animated decorations', /function applyTemplate\(t\)/.test(read('photo-studio.js')) && /decoration==="confetti"/.test(read('photo-studio.js')) && /textAnimation/.test(read('photo-studio.js'))]
+  ['selected templates apply settings and animated decorations', /function applyTemplate\(t\)/.test(read('photo-studio.js')) && /decoration==="confetti"/.test(read('photo-studio.js')) && /textAnimation/.test(read('photo-studio.js'))],
+  ['mobile drawer', read('mobile-drawer.js').includes('jv-mobile-menu-toggle') && read('mobile-drawer.js').includes('aria-expanded')],
+  ['mobile responsive width', read('mobile-drawer-fix.css').includes('overflow-x:hidden') && read('mobile-drawer-fix.css').includes('zoom:1')],
+  ['family collage templates', read('photo-studio.js').includes('layout:"trio"') && read('photo-studio.js').includes('layout:"family"') && read('photo-studio.js').includes('const drawTile=')],
+  ['name presentation template', read('photo-studio.js').includes('Portraits & Prénoms') && read('photo-studio.js').includes('lastTemplateText')]
 ];
 for (const [label, ok] of checks) {
   console.log((ok ? 'PASS ' : 'FAIL ') + label);

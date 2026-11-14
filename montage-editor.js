@@ -66,7 +66,17 @@ function drawFrame(time=0){
  }
  if(c.sticker){ctx.font=Math.round(w*.09)+"px Arial";ctx.textAlign="center";ctx.fillText(c.sticker,w*.82,h*.17);}
  ctx.restore();ctx.restore();
- if(index<state.clips.length-1&&transition==="fade"&&local>d-.42){const next=imageSource(state.clips[index+1]);if(next&&(state.clips[index+1].kind!=="video"||next.readyState>=2)){ctx.save();ctx.globalAlpha=Math.min(1,(local-(d-.42))/.42);const iw=state.clips[index+1].kind==="video"?next.videoWidth:next.naturalWidth,ih=state.clips[index+1].kind==="video"?next.videoHeight:next.naturalHeight,sc=Math.max(w/iw,h/ih),dw=iw*sc,dh=ih*sc;ctx.drawImage(next,(w-dw)/2,(h-dh)/2,dw,dh);ctx.restore();}}
+ if(index<state.clips.length-1&&transition!=="cut"&&local>d-.45){
+  const nextClip=state.clips[index+1],next=imageSource(nextClip);
+  if(next&&(nextClip.kind!=="video"||next.readyState>=2)){
+   const p=Math.min(1,(local-(d-.45))/.45),iw=nextClip.kind==="video"?(next.videoWidth||1):next.naturalWidth,ih=nextClip.kind==="video"?(next.videoHeight||1):next.naturalHeight,fit=nextClip.fit||state.fit,base=fit==="contain"?Math.min(w/iw,h/ih):Math.max(w/iw,h/ih),sc=base*(Number(nextClip.zoom||100)/100),dw=iw*sc,dh=ih*sc;
+   ctx.save();ctx.filter=filters[nextClip.filter||"none"]||"none";
+   if(transition==="fade"){ctx.globalAlpha=p;ctx.drawImage(next,(w-dw)/2,(h-dh)/2,dw,dh);}
+   else if(transition==="slide"){ctx.translate(w*(1-p),0);ctx.drawImage(next,(w-dw)/2,(h-dh)/2,dw,dh);}
+   else if(transition==="zoom"){ctx.globalAlpha=p;const zoom=1.28-.28*p;ctx.translate(w/2,h/2);ctx.scale(zoom,zoom);ctx.drawImage(next,-dw/2,-dh/2,dw,dh);}
+   ctx.restore();
+  }
+ }
 }
 function stopVideos(){state.clips.forEach(c=>{if(c.kind==="video"){c.video.pause();c.video.playbackRate=Number(c.speed)||1;}});}
 function playSfx(type){if(!type||type==="none")return;try{const ac=ensureAudio();const now=ac.currentTime,osc=ac.createOscillator(),gain=ac.createGain();const freq=type==="chime"?880:type==="pop"?520:type==="click"?1400:220;osc.type=type==="whoosh"?"sawtooth":"sine";osc.frequency.setValueAtTime(freq,now);osc.frequency.exponentialRampToValueAtTime(type==="whoosh"?90:freq*1.5,now+.18);gain.gain.setValueAtTime(.0001,now);gain.gain.exponentialRampToValueAtTime(.12,now+.025);gain.gain.exponentialRampToValueAtTime(.0001,now+.24);osc.connect(gain);gain.connect(ac.destination);if(state.recordDest)gain.connect(state.recordDest);osc.start(now);osc.stop(now+.25);}catch(_){}}

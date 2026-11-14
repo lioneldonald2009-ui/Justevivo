@@ -40,12 +40,19 @@
     height:100%!important;
     min-height:0!important;
     max-height:none!important;
-    overflow:hidden!important;
+    overflow-x:hidden!important;
+    overflow-y:auto!important;
+    overscroll-behavior:contain!important;
+    scrollbar-width:thin!important;
+    scrollbar-color:#7866b8 #111329!important;
     display:flex!important;
     flex-direction:column!important;
     padding:12px 10px!important;
     border-radius:0!important;
   }
+  .studio > .jv-sidebar::-webkit-scrollbar { width:9px; }
+  .studio > .jv-sidebar::-webkit-scrollbar-track { background:#111329; }
+  .studio > .jv-sidebar::-webkit-scrollbar-thumb { background:#7866b8; border:2px solid #111329; border-radius:12px; }
   .jv-sidebar .mini-brand { flex:0 0 auto!important; margin-bottom:9px!important; }
   .jv-sidebar-new { flex:0 0 auto!important; margin-bottom:7px!important; padding:9px 10px!important; }
   .jv-sidebar-label { flex:0 0 auto!important; padding:7px 8px 3px!important; font-size:8px!important; }
@@ -59,7 +66,9 @@
     gap:7px!important;
   }
   .jv-sidebar .side-link span { white-space:nowrap!important; }
-  .jv-sidebar .side-bottom { flex:0 0 auto!important; margin-top:auto!important; padding:8px 7px!important; }
+  .jv-sidebar .side-bottom { position:static!important; flex:0 0 auto!important; margin-top:auto!important; padding:8px 7px!important; }
+  .jv-sidebar .side-link { flex-shrink:0!important; }
+  .jv-sidebar .side-link:focus-visible { outline:2px solid #a88aff!important; outline-offset:2px!important; }
   .studio > .workspace {
     min-height:0!important;
     height:100%!important;
@@ -145,7 +154,11 @@
     border-radius: 0 !important;
     background: linear-gradient(180deg, #101329, #090d20 72%, #17103a) !important;
     scrollbar-width: thin !important;
+    scrollbar-color: #7866b8 #111329 !important;
   }
+  .studio > .jv-sidebar::-webkit-scrollbar { width:8px; }
+  .studio > .jv-sidebar::-webkit-scrollbar-track { background:#111329; }
+  .studio > .jv-sidebar::-webkit-scrollbar-thumb { background:#7866b8; border:2px solid #111329; border-radius:10px; }
   .jv-sidebar .mini-brand {
     display: flex !important;
     flex: 0 0 auto !important;
@@ -320,3 +333,26 @@
   .jv-media-card { flex-basis:148px; }
   .jv-media-bin-actions button { padding:5px 7px; font-size:8px; }
 }
+
+/* JUSTEVIVO — barre de menu toujours visible et défilement indépendant */
+@media (max-width: 760px) {
+  .studio > .jv-sidebar {
+    overflow-y: auto !important;
+    scrollbar-width: auto !important;
+  }
+}
+.jv-workspace-back {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 35 !important;
+  gap: 9px !important;
+  width: auto !important;
+  min-width: 44px !important;
+  height: 42px !important;
+  padding: 0 14px !important;
+  border-radius: 12px !important;
+  color: #35245e !important;
+  background: rgba(255,255,255,.97) !important;
+}
+.jv-workspace-back:hover { background:#f3edff !important; transform:translateX(-2px); }
+.jv-workspace-back-label { font-size:12px; font-weight:700; white-space:nowrap; }

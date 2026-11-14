@@ -1,6 +1,7 @@
 // JUSTEVIVO V6 — navigation unifiée : dashboard séparé, studio persistant.
 document.addEventListener("DOMContentLoaded", function () {
   const sidebar = document.querySelector(".sidebar");
+  if (!sidebar) return;
   const links = Array.from(document.querySelectorAll(".sidebar .side-link"));
   // Les entrées historiques sont des div : les rendre utilisables au clavier
   // sans changer leur apparence ni remplacer les gestionnaires de navigation.
@@ -18,7 +19,7 @@ document.addEventListener("DOMContentLoaded", function () {
   const upload = document.querySelector(".upload-zone");
   const editor = document.querySelector(".editor-grid");
   const warning = document.querySelector(".demo-warning");
-  if (!sidebar || !workspace || !editor) return;
+  if (!workspace || !editor) return;
 
   // Le dashboard est une vue d'accueil distincte. Toutes les autres rubriques
   // conservent le studio et son aperçu vidéo à l'écran.
@@ -79,6 +80,22 @@ document.addEventListener("DOMContentLoaded", function () {
       else link.removeAttribute("aria-current");
     });
   }
+  function setActiveLink(selected) {
+    sidebar.querySelectorAll(".side-link[data-page]").forEach(link => {
+      const active = link === selected;
+      link.classList.toggle("active", active);
+      if (active) link.setAttribute("aria-current", "page");
+      else link.removeAttribute("aria-current");
+    });
+  }
+  function showNavigationNotice(message) {
+    const toast = document.getElementById("toast");
+    if (!toast) { console.warn("[JUSTEVIVO navigation]", message); return; }
+    toast.textContent = message;
+    toast.classList.add("show");
+    window.clearTimeout(showNavigationNotice.timer);
+    showNavigationNotice.timer = window.setTimeout(() => toast.classList.remove("show"), 3200);
+  }
 
   // Bouton de retour commun aux vues internes du studio.
   let workspaceBack = document.getElementById("jv-workspace-back");
@@ -87,10 +104,10 @@ document.addEventListener("DOMContentLoaded", function () {
     workspaceBack.id = "jv-workspace-back";
     workspaceBack.type = "button";
     workspaceBack.className = "jv-workspace-back";
-    workspaceBack.innerHTML = '<span aria-hidden="true" style="font-size:25px;line-height:1;font-weight:500">←</span>';
-    workspaceBack.setAttribute("aria-label", "Retour au tableau de bord");
-    workspaceBack.title = "Retour au tableau de bord";
-    workspaceBack.style.cssText = "display:none;align-items:center;justify-content:center;width:44px;height:44px;margin:0 0 14px;padding:0;border:1px solid #dfe3ef;border-radius:50%;background:#fff;color:#30294b;font:700 16px system-ui;cursor:pointer;box-shadow:0 3px 12px #17203318;transition:transform .18s ease,background .18s ease";
+    workspaceBack.innerHTML = '<span aria-hidden="true" style="font-size:24px;line-height:1;font-weight:500">←</span><span class="jv-workspace-back-label">Retour au tableau de bord</span>';
+    workspaceBack.setAttribute("aria-label", "Retour au tableau de bord sans fermer le projet");
+    workspaceBack.title = "Retour au tableau de bord — le projet reste ouvert";
+    workspaceBack.style.cssText = "display:none;position:sticky;top:0;z-index:35;align-items:center;justify-content:flex-start;gap:9px;min-width:44px;height:42px;margin:0 0 14px;padding:0 14px;border:1px solid #dfe3ef;border-radius:12px;background:rgba(255,255,255,.97);color:#30294b;font:700 12px system-ui;cursor:pointer;box-shadow:0 3px 12px #17203318;transition:transform .18s ease,background .18s ease";
     workspace.insertBefore(workspaceBack, workspace.firstChild);
     workspaceBack.addEventListener("click", showDashboard);
   }
@@ -103,6 +120,7 @@ document.addEventListener("DOMContentLoaded", function () {
     workspaceBack.style.display = "none";
     setActive("dashboard");
     refreshDashboard();
+    workspace.scrollTop = 0;
     workspace.scrollIntoView({ behavior: "smooth", block: "start" });
   }
 
@@ -171,7 +189,21 @@ document.addEventListener("DOMContentLoaded", function () {
     }catch(e){note.textContent=e.message||"Impossible de lancer le paiement. Réessayez.";}
     finally{b.disabled=false;b.textContent=label;}
   }));
-  dashboard.querySelectorAll("[data-jv-action]").forEach(b=>b.addEventListener("click",()=>{const a=b.dataset.jvAction;if(a==="new"){showStudio();return;}if(a==="audio"){openSuiteView("audio","audio");return;}showStudio();const p=a==="captions"?"text":a==="styles"?"styles":a==="export"?"export":"text";const tab=document.querySelector('.jv-editor-panel-tab[data-panel="'+p+'"]');if(tab)tab.click();if(a==="translate"){const tr=document.getElementById("translateSubtitlesButton");if(tr)tr.click();}}));
+  dashboard.querySelectorAll("[data-jv-action]").forEach(b=>b.addEventListener("click",()=>{
+    const action=b.dataset.jvAction;
+    if(action==="new"){showStudio();return;}
+    if(action==="audio"){openSuiteView("audio","audio");return;}
+    showStudio();
+    const panel=action==="captions"?"text":action==="styles"?"styles":action==="export"?"export":"text";
+    const tab=document.querySelector('.jv-editor-panel-tab[data-panel="'+panel+'"]');
+    if(tab) tab.click();
+    else showNavigationNotice("Cette fonction n'est pas disponible dans cette version du studio.");
+    if(action==="translate"){
+      const translate=document.getElementById("translateSubtitlesButton");
+      if(translate) translate.click();
+      else showNavigationNotice("Le module de traduction n'a pas pu être chargé.");
+    }
+  }));
 
   document.getElementById("jv-dashboard-projects").addEventListener("click", () => {
     showStudio();
@@ -182,17 +214,29 @@ document.addEventListener("DOMContentLoaded", function () {
   function openSuiteView(view, activePage) {
     showStudio();
     const tab = document.querySelector('#jv-creative-suite .jv-suite-tabs [data-tab="' + view + '"]');
-    if (tab) tab.click();
     const target = document.querySelector('#jv-creative-suite [data-view="' + view + '"]');
-    if (target) target.scrollIntoView({behavior:"smooth",block:"start"});
+    if (!tab || !target) {
+      showNavigationNotice("Le module « " + view + " » n'a pas pu être chargé. Actualisez la page puis réessayez.");
+      return false;
+    }
+    tab.click();
+    target.scrollIntoView({behavior:"smooth",block:"start"});
     setActive(activePage || view);
+    return true;
   }
 
   function handleSidebarLink(link) {
     const page = link.dataset.page;
     if (page === "dashboard") { showDashboard(); return; }
     if (page === "pricing") { showSubscription(); return; }
-    if (page === "projects") { showStudio(); const tab = Array.from(document.querySelectorAll(".studio-tab")).find(button => button.textContent.trim() === "Mes projets"); if (tab) tab.click(); return; }
+    setActiveLink(link);
+    if (page === "projects") {
+      showStudio();
+      const tab = Array.from(document.querySelectorAll(".studio-tab")).find(button => button.textContent.trim() === "Mes projets");
+      if (tab) tab.click();
+      else showNavigationNotice("L'onglet « Mes projets » n'a pas été chargé. Actualisez la page puis réessayez.");
+      return;
+    }
     if (page === "upcoming") { openBroll(); return; }
     if (page === "photo-studio") return;
     const viewByPage = {audio:"audio",media:"media",clips:"clips",brand:"brand",timeline:"timeline",production:"production"};
@@ -202,6 +246,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (panel) {
       const tab = document.querySelector('.jv-editor-panel-tab[data-panel="' + panel + '"]');
       if (tab) tab.click();
+      else showNavigationNotice("Le panneau « " + panel + " » n'a pas été chargé. Actualisez la page puis réessayez.");
     }
   }
 

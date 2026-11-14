@@ -57,10 +57,14 @@ function drawFrame(time=0){
  if(c.effect==="confetti"||c.effect==="sparkle"||c.effect==="hearts"||c.effect==="balloons"||c.effect==="flash"){
   for(let i=0;i<20;i++){const seed=(i*37%101)/101,x=(seed*.9+.05)*w,y=((local*.28+seed*1.5)%1)*h;ctx.globalAlpha=.3+.45*Math.abs(Math.sin(local*3+i));ctx.fillStyle=(state.template?.colors||["#fff","#f4cf82"])[i%2];ctx.font=Math.max(15,w*.035)+"px Arial";ctx.textAlign="center";ctx.fillText(c.effect==="hearts"?"♥":c.effect==="balloons"?"🎈":c.effect==="confetti"?"✦":c.effect==="flash"?"✧":"✦",x,y);}
  }
- const title=c.text||"",sub=c.subtitle||"";const pos=c.textPosition||"bottom",baseY=pos==="top"?h*.14:pos==="center"?h*.5:h*.82;
- if(title){ctx.globalAlpha=1;ctx.textAlign=c.textAlign||"center";ctx.textBaseline="middle";ctx.font=(c.fontWeight||"800")+" "+Math.round(w*(Number(c.fontSize)||5)/100)+"px "+(c.fontFamily||"Arial");ctx.fillStyle=c.textColor||"#fff";ctx.shadowColor="#000";ctx.shadowBlur=12;ctx.lineWidth=Math.max(2,w*.004);ctx.strokeStyle="rgba(0,0,0,.55)";if(c.textOutline)ctx.strokeText(title,w/2,baseY,w*.88);ctx.fillText(title,w/2,baseY,w*.88);}
- if(sub){ctx.shadowBlur=8;ctx.font="600 "+Math.round(w*.027)+"px Arial";ctx.fillStyle=c.subtitleColor||"#fff";ctx.fillText(sub,w/2,baseY+Math.round(h*.055),w*.88);}
- if(c.sticker){ctx.font=Math.round(w*.09)+"px Arial";ctx.fillText(c.sticker,w*.82,h*.17);}
+ const title=c.text||"",sub=c.subtitle||"",pos=c.textPosition||"bottom",baseY=c.textY!=null?h*Number(c.textY)/100:(pos==="top"?h*.14:pos==="center"?h*.5:h*.82),textX=c.textX!=null?w*Number(c.textX)/100:(c.textAlign==="left"?w*.08:c.textAlign==="right"?w*.92:w*.5);
+ if(title){
+  const anim=c.textAnimation||"pop",progress=Math.min(1,local/.55);let alpha=1,scale=1,shift=0;
+  if(anim==="fade")alpha=progress;if(anim==="pop")scale=.72+.28*progress;if(anim==="bounce"){scale=.9+.1*Math.abs(Math.sin(progress*Math.PI*3));shift=-Math.abs(Math.sin(progress*Math.PI*3))*h*.018;}if(anim==="slide")shift=(1-progress)*h*.12;
+  ctx.save();ctx.globalAlpha=alpha;ctx.translate(textX,baseY+shift);ctx.scale(scale,scale);ctx.textAlign=c.textAlign||"center";ctx.textBaseline="middle";ctx.font=(c.fontWeight||"800")+" "+Math.round(w*(Number(c.fontSize)||5)/100)+"px "+(c.fontFamily||"Arial");ctx.fillStyle=c.textColor||"#fff";ctx.shadowColor="#000";ctx.shadowBlur=12;ctx.lineWidth=Math.max(2,w*.004);ctx.strokeStyle="rgba(0,0,0,.55)";if(c.textOutline)ctx.strokeText(title,0,0,w*.88);ctx.fillText(title,0,0,w*.88);
+  if(sub){ctx.shadowBlur=8;ctx.font="600 "+Math.round(w*.027)+"px Arial";ctx.fillStyle=c.subtitleColor||"#fff";ctx.fillText(sub,0,Math.round(h*.055),w*.88);}ctx.restore();
+ }
+ if(c.sticker){ctx.font=Math.round(w*.09)+"px Arial";ctx.textAlign="center";ctx.fillText(c.sticker,w*.82,h*.17);}
  ctx.restore();ctx.restore();
  if(index<state.clips.length-1&&transition==="fade"&&local>d-.42){const next=imageSource(state.clips[index+1]);if(next&&(state.clips[index+1].kind!=="video"||next.readyState>=2)){ctx.save();ctx.globalAlpha=Math.min(1,(local-(d-.42))/.42);const iw=state.clips[index+1].kind==="video"?next.videoWidth:next.naturalWidth,ih=state.clips[index+1].kind==="video"?next.videoHeight:next.naturalHeight,sc=Math.max(w/iw,h/ih),dw=iw*sc,dh=ih*sc;ctx.drawImage(next,(w-dw)/2,(h-dh)/2,dw,dh);ctx.restore();}}
 }
@@ -107,7 +111,7 @@ function renderTextControls(){
  }
  inspector.append(field("Texte principal",input("text",c.text||"",v=>c.text=v,{maxlength:"100"})));
  inspector.append(field("Sous-texte",input("text",c.subtitle||"",v=>c.subtitle=v,{maxlength:"140"})));
- inspector.append(field("Position",select([["top","En haut"],["center","Au centre"],["bottom","En bas"]],c.textPosition||"bottom",v=>c.textPosition=v)));
+ inspector.append(field("Position",select([["top","En haut"],["center","Au centre"],["bottom","En bas"]],c.textPosition||"bottom",v=>c.textPosition=v)));inspector.append(field("Position horizontale du texte",input("range",c.textX??50,v=>c.textX=v,{min:"5",max:"95"})));inspector.append(field("Position verticale du texte",input("range",c.textY??(c.textPosition==="top"?15:c.textPosition==="center"?50:82),v=>c.textY=v,{min:"5",max:"95"})));inspector.append(field("Animation du texte",select([["none","Aucune"],["fade","Fondu"],["pop","Apparition pop"],["bounce","Rebond"],["slide","Glissement"]],c.textAnimation||"pop",v=>c.textAnimation=v)));
  inspector.append(field("Alignement",select([["left","À gauche"],["center","Centré"],["right","À droite"]],c.textAlign||"center",v=>c.textAlign=v)));
  inspector.append(field("Police",select([["Arial","Moderne"],["Georgia","Élégante"],["Impact","Impact"],["Trebuchet MS","Arrondie"],["Courier New","Machine à écrire"]],c.fontFamily||"Arial",v=>c.fontFamily=v)));
  inspector.append(field("Taille du texte",input("range",c.fontSize||5,v=>c.fontSize=v,{min:"2",max:"12"})));
@@ -124,7 +128,7 @@ function applyTemplate(t){
  pause();state.template=t;state.sfx=t.sfx||"none";$("stageHint").textContent=t.name+" · "+t.ratio;dims();
  if(state.clips.length){
   const groupId=t.layout?("group-"+Date.now()):null,limit=t.layout==="trio"?3:t.layout==="duo"?2:t.layout==="family"?4:0;
-  state.clips.forEach((clip,i)=>{clip.duration=t.duration;clip.filter=t.filter;clip.speed=t.speed;clip.fit="cover";clip.effect=t.effect;clip.text=t.texts[i%t.texts.length]||t.title;clip.textPosition="bottom";clip.textColor=t.colors?.[0]||"#fff";clip.group=groupId&&i<limit?groupId:null;clip.layout=clip.group?t.layout:null;if(clip.kind==="video"){clip.video.playbackRate=clip.speed;if(clip.sourceDuration)clip.duration=Math.max(.35,clip.sourceDuration/clip.speed);}});
+  state.clips.forEach((clip,i)=>{clip.duration=t.duration;clip.filter=t.filter;clip.speed=t.speed;clip.fit="cover";clip.effect=t.effect;clip.text=t.texts[i%t.texts.length]||t.title;clip.textPosition="bottom";clip.textColor=t.colors?.[0]||"#fff";clip.textAnimation=t.textAnim||"pop";clip.group=groupId&&i<limit?groupId:null;clip.layout=clip.group?t.layout:null;if(clip.kind==="video"){clip.video.playbackRate=clip.speed;if(clip.sourceDuration)clip.duration=Math.max(.35,clip.sourceDuration/clip.speed);}});
  }else{state.sceneTexts=t.texts.slice();}
  renderTimeline();renderInspector("audio");drawFrame(0);
  if(t.music)searchMusic(t.music);

@@ -3,7 +3,7 @@
   if (window.__jvBackButtonReady) return;
   window.__jvBackButtonReady = true;
 
-  const isHome = /(?:^|\\/)index\\.html$/.test(location.pathname) || location.pathname === "/";
+  const isHome = /(?:^|\/)index\.html$/.test(location.pathname) || location.pathname === "/";
   if (isHome) return;
 
   const button = document.createElement("button");

@@ -2,6 +2,18 @@
 document.addEventListener("DOMContentLoaded", function () {
   const sidebar = document.querySelector(".sidebar");
   const links = Array.from(document.querySelectorAll(".sidebar .side-link"));
+  // Les entrées historiques sont des div : les rendre utilisables au clavier
+  // sans changer leur apparence ni remplacer les gestionnaires de navigation.
+  links.forEach(link => {
+    if (!link.hasAttribute("role")) link.setAttribute("role", "button");
+    if (!link.hasAttribute("tabindex")) link.setAttribute("tabindex", "0");
+  });
+  sidebar.addEventListener("keydown", event => {
+    const link = event.target.closest(".side-link[role='button']");
+    if (!link || (event.key !== "Enter" && event.key !== " ")) return;
+    event.preventDefault();
+    link.click();
+  });
   const workspace = document.querySelector(".workspace");
   const upload = document.querySelector(".upload-zone");
   const editor = document.querySelector(".editor-grid");

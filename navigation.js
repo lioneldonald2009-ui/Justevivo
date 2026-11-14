@@ -230,6 +230,7 @@ document.addEventListener("DOMContentLoaded", function () {
     if (page === "dashboard") { showDashboard(); return; }
     if (page === "pricing") { showSubscription(); return; }
     setActiveLink(link);
+    if (link.dataset.jvFeature === "dubbing") { openDubbing(); return; }
     if (page === "projects") {
       showStudio();
       const tab = Array.from(document.querySelectorAll(".studio-tab")).find(button => button.textContent.trim() === "Mes projets");

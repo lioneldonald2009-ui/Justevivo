@@ -369,9 +369,12 @@
       const replacePicker = document.createElement('input');
       replacePicker.type = 'file';
       replacePicker.accept = input.accept;
+      replacePicker.hidden = true;
+      bin.appendChild(replacePicker);
+      replacePicker.addEventListener('cancel', () => replacePicker.remove(), { once: true });
       replacePicker.addEventListener('change', async () => {
         const file = replacePicker.files && replacePicker.files[0];
-        if (!file || !supported(file)) return;
+        if (!file || !supported(file)) { replacePicker.remove(); return; }
         URL.revokeObjectURL(item.url);
         item.file = file;
         item.name = file.name;
@@ -384,6 +387,7 @@
         await persist(item);
         render();
         if (activeId === id) selectItem(id);
+        replacePicker.remove();
       }, { once: true });
       replacePicker.click();
     }

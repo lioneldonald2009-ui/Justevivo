@@ -86,7 +86,7 @@
       if (map[key]) { event.preventDefault(); map[key](); }
     });
 
-    const acceptsVideo = file => file && (file.type.startsWith('video/') || /\.(mp4|mov|webm|m4v|ogg)$/i.test(file.name || ''));
+    const acceptsMedia = file => file && (file.type.startsWith('video/') || file.type.startsWith('image/') || /\.(mp4|mov|webm|m4v|ogg|png|jpe?g|webp|gif|avif)$/i.test(file.name || ''));
     ['dragenter', 'dragover'].forEach(name => frame.addEventListener(name, event => {
       event.preventDefault(); frame.classList.add('jv-drop-active');
     }));
@@ -94,11 +94,11 @@
       event.preventDefault(); frame.classList.remove('jv-drop-active');
     }));
     frame.addEventListener('drop', event => {
-      const file = Array.from(event.dataTransfer?.files || []).find(acceptsVideo);
-      if (!file) return;
+      const files = Array.from(event.dataTransfer?.files || []).filter(acceptsMedia);
+      if (!files.length) return;
       try {
         const transfer = new DataTransfer();
-        transfer.items.add(file);
+        files.forEach(file => transfer.items.add(file));
         input.files = transfer.files;
         input.dispatchEvent(new Event('change', { bubbles: true }));
       } catch (_) {
@@ -106,9 +106,364 @@
         if (note) note.textContent = 'Utilisez la zone « Déposez votre vidéo ici » pour importer ce fichier.';
       }
     });
-    frame.setAttribute('aria-label', 'Aperçu vidéo. Déposez un fichier vidéo ici pour l’importer.');
+    frame.setAttribute('aria-label', 'Aperçu vidéo ou photo. Déposez un ou plusieurs médias ici pour les importer.');
+    initMediaBin(input, panel);
     updateTime();
   };
+
+  // Chutier multi-médias local : les fichiers restent sur l'appareil (IndexedDB).
+  // La sélection d'une vidéo réutilise le flux de changement historique de app.js.
+  function initMediaBin(input, previewPanel) {
+    if (previewPanel.querySelector('#jvMediaBin')) return;
+    const DB_NAME = 'justevivo-media-bin-v1';
+    const STORE = 'media';
+    const MAX_ITEMS = 40;
+    let items = [];
+    let activeId = '';
+    let dispatchingSelection = false;
+    let dbPromise = null;
+
+    const isVideo = file => file && (file.type.startsWith('video/') || /\.(mp4|mov|webm|m4v|ogg)$/i.test(file.name || ''));
+    const isImage = file => file && (file.type.startsWith('image/') || /\.(png|jpe?g|webp|gif|avif)$/i.test(file.name || ''));
+    const supported = file => isVideo(file) || isImage(file);
+    const makeId = () => 'm_' + Date.now().toString(36) + '_' + Math.random().toString(36).slice(2, 8);
+    const safeName = value => String(value || 'Média').replace(/[<>]/g, '').slice(0, 90);
+
+    const bin = document.createElement('section');
+    bin.id = 'jvMediaBin';
+    bin.className = 'jv-media-bin';
+    bin.setAttribute('aria-label', 'Chutier des médias importés');
+    bin.innerHTML = '<div class="jv-media-bin-head"><div><strong>Chutier de médias</strong><span data-jv-bin-count>0 média</span></div><div class="jv-media-bin-actions"><button type="button" data-jv-add>＋ Ajouter</button><button type="button" data-jv-clear>Vider</button></div></div><div class="jv-media-bin-list" data-jv-bin-list></div><p class="jv-media-bin-note" data-jv-bin-note>Importez plusieurs vidéos et photos. Les fichiers restent enregistrés sur cet appareil.</p>';
+    const note = previewPanel.querySelector('#fileName');
+    if (note) note.insertAdjacentElement('afterend', bin);
+    else previewPanel.appendChild(bin);
+    const list = bin.querySelector('[data-jv-bin-list]');
+    const count = bin.querySelector('[data-jv-bin-count]');
+    const status = bin.querySelector('[data-jv-bin-note]');
+
+    const picker = document.createElement('input');
+    picker.type = 'file';
+    picker.accept = input.accept || 'video/*,image/*';
+    picker.multiple = true;
+    picker.hidden = true;
+    bin.appendChild(picker);
+    bin.querySelector('[data-jv-add]').addEventListener('click', () => picker.click());
+    bin.querySelector('[data-jv-clear]').addEventListener('click', clearAll);
+    picker.addEventListener('change', () => {
+      const files = Array.from(picker.files || []);
+      if (files.length) addFiles(files);
+      picker.value = '';
+    });
+
+    function openDB() {
+      if (!('indexedDB' in window)) return Promise.reject(new Error('IndexedDB indisponible'));
+      if (dbPromise) return dbPromise;
+      dbPromise = new Promise((resolve, reject) => {
+        const request = indexedDB.open(DB_NAME, 1);
+        request.onupgradeneeded = () => {
+          const db = request.result;
+          if (!db.objectStoreNames.contains(STORE)) db.createObjectStore(STORE, { keyPath: 'id' });
+        };
+        request.onsuccess = () => resolve(request.result);
+        request.onerror = () => reject(request.error || new Error('Ouverture du chutier impossible'));
+      });
+      return dbPromise;
+    }
+
+    async function dbRun(mode, action) {
+      const db = await openDB();
+      return new Promise((resolve, reject) => {
+        const tx = db.transaction(STORE, mode);
+        const store = tx.objectStore(STORE);
+        let request;
+        try { request = action(store); } catch (error) { reject(error); return; }
+        tx.oncomplete = () => resolve(request ? request.result : true);
+        tx.onerror = tx.onabort = () => reject(tx.error || new Error('Écriture du chutier impossible'));
+      });
+    }
+
+    async function persist(item) {
+      try {
+        await dbRun('readwrite', store => store.put({
+          id: item.id, file: item.file, name: item.name, type: item.type,
+          size: item.size, lastModified: item.lastModified, order: item.order
+        }));
+      } catch (error) {
+        status.textContent = 'Le stockage local est indisponible : les médias resteront dans cette session uniquement.';
+        console.warn('JUSTEVIVO media bin persistence:', error);
+      }
+    }
+
+    async function removePersisted(id) {
+      try { await dbRun('readwrite', store => store.delete(id)); } catch (_) {}
+    }
+
+    async function createThumbnail(item) {
+      if (item.type === 'image') { item.thumbUrl = item.url; return; }
+      const video = document.createElement('video');
+      video.muted = true;
+      video.playsInline = true;
+      video.preload = 'metadata';
+      video.src = item.url;
+      try {
+        await new Promise((resolve, reject) => {
+          const timer = setTimeout(() => reject(new Error('Miniature vidéo expirée')), 7000);
+          video.addEventListener('loadedmetadata', () => { clearTimeout(timer); resolve(); }, { once: true });
+          video.addEventListener('error', () => { clearTimeout(timer); reject(new Error('Vidéo illisible')); }, { once: true });
+        });
+        if (video.duration > 0.2) {
+          video.currentTime = Math.min(0.25, video.duration / 3);
+          await new Promise(resolve => {
+            const timer = setTimeout(resolve, 1800);
+            video.addEventListener('seeked', () => { clearTimeout(timer); resolve(); }, { once: true });
+          });
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = 160;
+        canvas.height = 100;
+        const ctx = canvas.getContext('2d');
+        if (ctx && video.videoWidth) {
+          const scale = Math.max(canvas.width / video.videoWidth, canvas.height / video.videoHeight);
+          const w = video.videoWidth * scale, h = video.videoHeight * scale;
+          ctx.drawImage(video, (canvas.width - w) / 2, (canvas.height - h) / 2, w, h);
+          item.thumbUrl = canvas.toDataURL('image/jpeg', 0.72);
+        }
+      } catch (_) {
+        item.thumbUrl = '';
+      } finally {
+        video.pause();
+        video.removeAttribute('src');
+        video.load();
+      }
+    }
+
+    function render() {
+      list.replaceChildren();
+      count.textContent = items.length + (items.length > 1 ? ' médias' : ' média');
+      bin.classList.toggle('is-empty', items.length === 0);
+      items.forEach((item, index) => {
+        const card = document.createElement('article');
+        card.className = 'jv-media-card' + (item.id === activeId ? ' is-active' : '');
+        const select = document.createElement('button');
+        select.type = 'button';
+        select.className = 'jv-media-select';
+        select.setAttribute('aria-pressed', String(item.id === activeId));
+        select.setAttribute('aria-label', 'Sélectionner ' + safeName(item.name));
+        const thumb = document.createElement('span');
+        thumb.className = 'jv-media-thumb';
+        if (item.thumbUrl) {
+          const image = document.createElement('img');
+          image.src = item.thumbUrl;
+          image.alt = '';
+          image.loading = 'lazy';
+          thumb.appendChild(image);
+        } else {
+          thumb.textContent = item.type === 'video' ? '▶' : '▧';
+        }
+        const meta = document.createElement('span');
+        meta.className = 'jv-media-meta';
+        const name = document.createElement('strong');
+        name.textContent = safeName(item.name);
+        const detail = document.createElement('small');
+        detail.textContent = (item.type === 'video' ? 'VIDÉO' : 'PHOTO') + ' · ' + formatSize(item.size);
+        meta.append(name, detail);
+        select.append(thumb, meta);
+        select.addEventListener('click', () => selectItem(item.id));
+        const actions = document.createElement('div');
+        actions.className = 'jv-media-card-actions';
+        const up = actionButton('↑', 'Monter', () => moveItem(index, -1));
+        const down = actionButton('↓', 'Descendre', () => moveItem(index, 1));
+        const replace = actionButton('↻', 'Remplacer ' + safeName(item.name), () => replaceItem(item.id));
+        const remove = actionButton('×', 'Supprimer ' + safeName(item.name), () => removeItem(item.id));
+        up.disabled = index === 0;
+        down.disabled = index === items.length - 1;
+        actions.append(up, down, replace, remove);
+        card.append(select, actions);
+        list.appendChild(card);
+      });
+    }
+
+    function actionButton(label, title, callback) {
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'jv-media-action';
+      button.textContent = label;
+      button.title = title;
+      button.setAttribute('aria-label', title);
+      button.addEventListener('click', callback);
+      return button;
+    }
+
+    function formatSize(bytes) {
+      const value = Number(bytes) || 0;
+      return value < 1024 * 1024 ? Math.max(1, Math.round(value / 1024)) + ' Ko' : (value / (1024 * 1024)).toFixed(1) + ' Mo';
+    }
+
+    function setInputFile(file) {
+      try {
+        const transfer = new DataTransfer();
+        transfer.items.add(file);
+        dispatchingSelection = true;
+        input.files = transfer.files;
+        input.dispatchEvent(new Event('change', { bubbles: true }));
+        dispatchingSelection = false;
+        return true;
+      } catch (error) {
+        dispatchingSelection = false;
+        return false;
+      }
+    }
+
+    function selectItem(id) {
+      const item = items.find(entry => entry.id === id);
+      if (!item) return;
+      activeId = id;
+      try { localStorage.setItem('justevivo_media_bin_active_v1', id); } catch (_) {}
+      if (item.type === 'video') {
+        if (!setInputFile(item.file) && typeof window.attachProjectVideo === 'function') {
+          window.attachProjectVideo(item.file);
+        }
+        status.textContent = 'Vidéo active : ' + safeName(item.name) + '. Les outils vidéo sont disponibles.';
+      } else {
+        input.value = '';
+        if (typeof window.attachProjectPhoto === 'function') window.attachProjectPhoto(item.file, item.url);
+        status.textContent = 'Photo active : ' + safeName(item.name) + '. La prévisualisation photo est disponible.';
+      }
+      render();
+    }
+
+    async function addFiles(files) {
+      const valid = files.filter(supported);
+      if (!valid.length) {
+        status.textContent = 'Formats acceptés : vidéos MP4, MOV, WebM et photos JPG, PNG, WebP, GIF, AVIF.';
+        return;
+      }
+      const added = [];
+      for (const file of valid) {
+        if (items.length >= MAX_ITEMS) break;
+        const duplicate = items.some(item => item.name === file.name && item.size === file.size && item.lastModified === file.lastModified);
+        if (duplicate) continue;
+        const item = {
+          id: makeId(), file, name: file.name, type: isVideo(file) ? 'video' : 'image',
+          size: file.size, lastModified: file.lastModified || 0,
+          order: items.length, url: URL.createObjectURL(file), thumbUrl: ''
+        };
+        items.push(item);
+        added.push(item);
+        await createThumbnail(item);
+        await persist(item);
+      }
+      items.forEach((item, index) => { item.order = index; });
+      render();
+      if (added.length) {
+        status.textContent = added.length + ' média(s) ajouté(s) au chutier.';
+        selectItem(added[0].id);
+      } else if (valid.length) {
+        status.textContent = items.length >= MAX_ITEMS ? 'Limite de ' + MAX_ITEMS + ' médias atteinte.' : 'Ces fichiers sont déjà dans le chutier.';
+      }
+    }
+
+    async function replaceItem(id) {
+      const item = items.find(entry => entry.id === id);
+      if (!item) return;
+      const replacePicker = document.createElement('input');
+      replacePicker.type = 'file';
+      replacePicker.accept = input.accept;
+      replacePicker.addEventListener('change', async () => {
+        const file = replacePicker.files && replacePicker.files[0];
+        if (!file || !supported(file)) return;
+        URL.revokeObjectURL(item.url);
+        item.file = file;
+        item.name = file.name;
+        item.type = isVideo(file) ? 'video' : 'image';
+        item.size = file.size;
+        item.lastModified = file.lastModified || 0;
+        item.url = URL.createObjectURL(file);
+        item.thumbUrl = '';
+        await createThumbnail(item);
+        await persist(item);
+        render();
+        if (activeId === id) selectItem(id);
+      }, { once: true });
+      replacePicker.click();
+    }
+
+    async function moveItem(index, delta) {
+      const target = index + delta;
+      if (target < 0 || target >= items.length) return;
+      const [item] = items.splice(index, 1);
+      items.splice(target, 0, item);
+      items.forEach((entry, order) => { entry.order = order; persist(entry); });
+      render();
+    }
+
+    async function removeItem(id) {
+      const index = items.findIndex(entry => entry.id === id);
+      if (index < 0) return;
+      const [removed] = items.splice(index, 1);
+      URL.revokeObjectURL(removed.url);
+      await removePersisted(id);
+      if (activeId === id) {
+        activeId = '';
+        if (items.length) selectItem(items[Math.min(index, items.length - 1)].id);
+        else if (typeof window.detachProjectMedia === 'function') window.detachProjectMedia();
+      }
+      render();
+    }
+
+    async function clearAll() {
+      if (!items.length) return;
+      if (!window.confirm('Vider le chutier et retirer tous les médias importés ?')) return;
+      items.forEach(item => URL.revokeObjectURL(item.url));
+      items = [];
+      activeId = '';
+      try { localStorage.removeItem('justevivo_media_bin_active_v1'); } catch (_) {}
+      try { await dbRun('readwrite', store => store.clear()); } catch (_) {}
+      if (typeof window.detachProjectMedia === 'function') window.detachProjectMedia();
+      input.value = '';
+      render();
+      status.textContent = 'Chutier vidé. Les ressources temporaires ont été libérées.';
+    }
+
+    input.addEventListener('change', () => {
+      if (dispatchingSelection) return;
+      const files = Array.from(input.files || []);
+      if (files.length) addFiles(files);
+    });
+
+    async function restore() {
+      try {
+        const records = await dbRun('readonly', store => store.getAll());
+        records.sort((a, b) => (a.order || 0) - (b.order || 0));
+        for (const record of records.slice(0, MAX_ITEMS)) {
+          const file = record.file instanceof File ? record.file : new File([record.file], record.name, { type: record.type, lastModified: record.lastModified || Date.now() });
+          const item = {
+            id: record.id, file, name: record.name, type: record.type,
+            size: record.size, lastModified: record.lastModified || 0,
+            order: items.length, url: URL.createObjectURL(file), thumbUrl: ''
+          };
+          items.push(item);
+          await createThumbnail(item);
+        }
+        render();
+        let remembered = '';
+        try { remembered = localStorage.getItem('justevivo_media_bin_active_v1') || ''; } catch (_) {}
+        if (items.length) selectItem(items.some(item => item.id === remembered) ? remembered : items[0].id);
+      } catch (error) {
+        status.textContent = 'Le chutier local sera disponible après le premier import.';
+        console.warn('JUSTEVIVO media bin restore:', error);
+      }
+    }
+
+    window.JV_MEDIA_BIN = {
+      getItems: () => items.map(item => ({ id: item.id, name: item.name, type: item.type, size: item.size, order: item.order })),
+      getActive: () => items.find(item => item.id === activeId) || null,
+      select: selectItem,
+      clearAll
+    };
+    restore();
+  }
+
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init, { once: true });
   else init();
 })();

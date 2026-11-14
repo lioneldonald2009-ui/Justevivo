@@ -23,13 +23,44 @@
       #jv-photo-studio .jvp-photo{display:flex;gap:9px;align-items:center;padding:8px;border:1px solid var(--border,#e5e7eb);border-radius:10px;margin-top:8px}
       #jv-photo-studio .jvp-photo img,#jv-photo-studio .jvp-photo video{width:54px;height:54px;object-fit:cover;border-radius:7px}#jv-photo-studio .jvp-photo span{font-size:12px;flex:1;overflow-wrap:anywhere}
       #jv-photo-studio .jvp-status{font-size:13px;min-height:22px;margin-top:10px}
+      #jv-photo-studio .jvp-template-library{background:var(--card,#fff);border:1px solid var(--border,#e5e7eb);border-radius:18px;padding:16px;margin-bottom:16px}
+      #jv-photo-studio .jvp-template-head{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+      #jv-photo-studio .jvp-template-head h3{margin:2px 0 4px}
+      #jv-photo-studio .jvp-template-head input{max-width:290px}
+      #jv-photo-studio .jvp-template-categories{display:flex;gap:7px;overflow-x:auto;padding:12px 0;scrollbar-width:thin}
+      #jv-photo-studio .jvp-template-categories button{white-space:nowrap;border-radius:999px;padding:7px 12px;font-size:12px}
+      #jv-photo-studio .jvp-template-categories button.active{background:#6555e8;color:white;border-color:#6555e8}
+      #jv-photo-studio .jvp-template-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+      #jv-photo-studio .jvp-template-card{border:1px solid var(--border,#e5e7eb);border-radius:13px;overflow:hidden;min-width:0;background:var(--surface,#fff)}
+      #jv-photo-studio .jvp-template-cover{height:118px;position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center;color:white}
+      #jv-photo-studio .jvp-template-cover:before,#jv-photo-studio .jvp-template-cover:after{content:"";position:absolute;border:1px solid rgba(255,255,255,.35);border-radius:50%;width:125px;height:125px;animation:jvp-float 5s ease-in-out infinite}
+      #jv-photo-studio .jvp-template-cover:after{width:75px;height:75px;animation-delay:-2s}
+      #jv-photo-studio .jvp-template-emoji{font-size:42px;z-index:1;filter:drop-shadow(0 5px 8px rgba(0,0,0,.2));animation:jvp-bob 2.5s ease-in-out infinite}
+      #jv-photo-studio .jvp-template-duration{position:absolute;right:8px;bottom:7px;background:rgba(0,0,0,.42);padding:3px 7px;border-radius:6px;font-size:10px;z-index:2}
+      #jv-photo-studio .jvp-template-info{padding:10px}
+      #jv-photo-studio .jvp-template-info strong{font-size:12px;display:block}
+      #jv-photo-studio .jvp-template-info p{font-size:10px;line-height:1.35;margin:4px 0 9px;min-height:27px}
+      #jv-photo-studio .jvp-template-info button{width:100%;padding:8px 6px;font-size:11px;background:#6555e8;color:#fff;border-color:#6555e8}
+      #jv-photo-studio .jvp-template-card.active{border-color:#6555e8;box-shadow:0 0 0 2px rgba(101,85,232,.15)}
+      #jv-photo-studio .jvp-template-empty{padding:18px;text-align:center;color:var(--muted,#697386);grid-column:1/-1}
+      #jv-photo-studio .jvp-template-status{font-size:12px;color:var(--muted,#697386);margin-top:10px}
+      @keyframes jvp-float{0%,100%{transform:translate(-12px,8px) scale(.92)}50%{transform:translate(14px,-9px) scale(1.08)}}
+      @keyframes jvp-bob{0%,100%{transform:translateY(2px) scale(.98)}50%{transform:translateY(-7px) scale(1.08)}}
+      @media(max-width:900px){#jv-photo-studio .jvp-template-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+      @media(max-width:620px){#jv-photo-studio .jvp-template-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#jv-photo-studio .jvp-template-cover{height:100px}#jv-photo-studio .jvp-template-head input{max-width:none}}
       @media(max-width:760px){#jv-photo-studio .jvp-grid{grid-template-columns:1fr}#jv-photo-studio{padding:12px}}
       </style>
       <div style="margin-bottom:16px"><span style="font-size:11px;letter-spacing:.12em;color:#7667e8;font-weight:800">JUSTEVIVO CREATIVE STUDIO</span><h2>Montage photo & effets</h2><p>Transformez vos photos en une vidéo animée : ordre des images, transitions, filtres et texte personnalisé.</p></div>
+      <section class="jvp-template-library">
+        <div class="jvp-template-head"><div><span style="font-size:10px;letter-spacing:.1em;color:#7667e8;font-weight:800">INSPIRATION & CRÉATION RAPIDE</span><h3>Modèles vidéo prêts à utiliser</h3><p>Choisissez un modèle animé, ajoutez vos médias et laissez JUSTEVIVO composer votre vidéo.</p></div><input id="jvp-template-search" type="search" placeholder="Rechercher : anniversaire, voyage…"></div>
+        <div id="jvp-template-categories" class="jvp-template-categories" aria-label="Catégories de modèles"></div>
+        <div id="jvp-template-grid" class="jvp-template-grid"></div>
+        <div id="jvp-template-status" class="jvp-template-status" aria-live="polite">Sélectionnez « Utiliser ce modèle » pour préparer votre montage.</div>
+      </section>
       <div class="jvp-grid">
         <section class="jvp-card"><canvas id="jvp-canvas" width="1280" height="720"></canvas><div class="jvp-row" style="margin-top:12px"><button id="jvp-preview">▶ Prévisualiser</button><button id="jvp-stop">Ⅱ Arrêter</button><button id="jvp-export" class="primary">↓ Exporter la vidéo</button></div><div id="jvp-status" class="jvp-status" role="status" aria-live="polite">Ajoutez au moins deux photos pour commencer.</div><p>Export vidéo WebM. La disponibilité dépend du navigateur et de l'appareil. Le fichier original de vos photos reste intact.</p></section>
         <section class="jvp-card"><h3>1. Vos photos</h3><label>Importer photos et vidéos (sélection multiple)</label><input id="jvp-files" type="file" accept="image/*,video/*" multiple><div id="jvp-list"></div>
-          <h3 style="margin-top:20px">2. Modèles prêts à utiliser</h3><div class="jvp-row" id="jvp-templates" style="margin:8px 0"><button type="button" data-template="cinema">🎬 Cinématique</button><button type="button" data-template="reels">📱 Reels dynamique</button><button type="button" data-template="product">🛍️ Produit</button><button type="button" data-template="memories">💛 Souvenirs</button><button type="button" data-template="minimal">✦ Minimal</button><button type="button" data-template="promo">🔥 Promotion</button></div><h3 style="margin-top:20px">3. Style du montage</h3>
+          <h3 style="margin-top:20px">Personnaliser le modèle choisi</h3>
           <label>Format</label><select id="jvp-ratio"><option value="16:9">Paysage · 16:9</option><option value="9:16">Vertical · 9:16</option><option value="1:1">Carré · 1:1</option></select>
           <label>Durée par photo</label><select id="jvp-duration"><option value="2">2 secondes</option><option value="3" selected>3 secondes</option><option value="4">4 secondes</option><option value="5">5 secondes</option><option value="6">6 secondes</option></select>
           <label>Transition</label><select id="jvp-transition"><option value="fade">Fondu enchaîné</option><option value="slide">Glissement</option><option value="zoom">Zoom progressif</option><option value="cut">Coupe directe</option></select>
@@ -49,7 +80,7 @@
       </div>`;
     workspace.appendChild(page);
     const $=id=>page.querySelector("#"+id),canvas=$("jvp-canvas"),ctx=canvas.getContext("2d");
-    let photos=[],raf=0,recorder=null,parts=[],musicUrl=null,audio=null,audioContext=null,selectedTrack=null,musicCredit="",activeVideoIndex=-1;
+    let photos=[],raf=0,recorder=null,parts=[],musicUrl=null,audio=null,audioContext=null,selectedTrack=null,musicCredit="",activeVideoIndex=-1,activeTemplate=null;
     const status=t=>$("jvp-status").textContent=t;
     const filters={none:"none",warm:"sepia(.25) saturate(1.2)",mono:"grayscale(1)",vivid:"saturate(1.5) contrast(1.08)",soft:"brightness(1.08) saturate(.82)",cinema:"contrast(1.15) saturate(.82) sepia(.12)",vintage:"sepia(.38) contrast(.94) saturate(.8)",cool:"hue-rotate(12deg) saturate(.9) contrast(1.04)"};
     const dims=()=>{const v=$("jvp-ratio").value;canvas.width=v==="9:16"?720:v==="1:1"?900:1280;canvas.height=v==="9:16"?1280:v==="1:1"?900:720;};
@@ -65,7 +96,16 @@
       if(transition==="fade"&&progress>.78&&index<photos.length-1){drawOne(p,1,zoom);drawOne(photos[index+1],(progress-.78)/.22,1);}
       else if(transition==="slide"&&progress>.78&&index<photos.length-1){drawOne(p,1,1,-w*((progress-.78)/.22));drawOne(photos[index+1],1,1,w*(1-(progress-.78)/.22));}
       else drawOne(p,1,zoom);
-      const txt=$("jvp-text").value.trim();if(txt){const size=Math.round(w*.045);ctx.save();ctx.font="700 "+size+"px Arial";ctx.textAlign="center";ctx.textBaseline="middle";const y=$("jvp-text-position").value==="top"?h*.13:$("jvp-text-position").value==="center"?h*.5:h*.86;ctx.shadowColor="rgba(0,0,0,.8)";ctx.shadowBlur=12;ctx.fillStyle=$("jvp-text-color").value;ctx.fillText(txt,w*.5,y,w*.88);ctx.restore();}
+      const template=activeTemplate||{};
+      if(template.decoration==="confetti"||template.decoration==="sparkles"||template.decoration==="hearts"||template.decoration==="balloons"){
+        ctx.save();ctx.textAlign="center";ctx.textBaseline="middle";
+        for(let i=0;i<26;i++){const seed=(i*37%101)/101,x=(seed*.92+.04)*w,y=((progress*1.25+seed*1.7)%1)*h;
+          if(template.decoration==="confetti"){ctx.fillStyle=(template.palette||["#ffd166","#ef476f","#06d6a0","#fff"])[i%((template.palette||["#ffd166","#ef476f","#06d6a0","#fff"]).length)];ctx.save();ctx.translate(x,y);ctx.rotate((i+progress*8)*.6);ctx.fillRect(-4,-8,8,16);ctx.restore();}
+          else {ctx.font=Math.max(16,Math.round(w*.035))+"px Arial";ctx.fillStyle=template.accent||"#fff";ctx.globalAlpha=.35+.45*Math.abs(Math.sin(progress*6+i));ctx.fillText(template.decoration==="hearts"?"♥":template.decoration==="balloons"?"🎈":"✦",x,y);}
+        }ctx.restore();
+      }
+      const txt=$("jvp-text").value.trim();if(txt){const size=Math.round(w*.045);const anim=template.textAnimation||"fade";let scale=1,alpha=1,offsetY=0;if(anim==="pop")scale=.72+.28*Math.min(1,progress*5);if(anim==="bounce"){scale=.9+.1*Math.abs(Math.sin(progress* Math.PI*3));offsetY=-Math.abs(Math.sin(progress*Math.PI*3))*h*.018;}if(anim==="fade")alpha=Math.min(1,progress*4);if(anim==="slide")offsetY=(1-Math.min(1,progress*4))*h*.12;
+        ctx.save();ctx.translate(w*.5,h*.5+offsetY);ctx.scale(scale,scale);ctx.globalAlpha=alpha;ctx.font=(template.textWeight||"700")+" "+size+"px "+(template.font||"Arial");ctx.textAlign="center";ctx.textBaseline="middle";const y=$("jvp-text-position").value==="top"?-h*.37:$("jvp-text-position").value==="center"?0:h*.36;ctx.shadowColor="rgba(0,0,0,.8)";ctx.shadowBlur=12;ctx.fillStyle=template.accent||$("jvp-text-color").value;ctx.fillText(txt,0,y,w*.88);ctx.restore();}
       if(musicCredit){ctx.save();ctx.font=Math.max(12,Math.round(w*.012))+"px Arial";ctx.textAlign="center";ctx.textBaseline="bottom";ctx.fillStyle="rgba(255,255,255,.92)";ctx.shadowColor="#000";ctx.shadowBlur=5;ctx.fillText("Musique : "+musicCredit,w*.5,h-12,w*.94);ctx.restore();}
     };
     const render=async()=>{
@@ -132,8 +172,59 @@
       parts=[];recorder=new MediaRecorder(stream,{mimeType:mime,videoBitsPerSecond:5000000});recorder.ondataavailable=e=>{if(e.data.size)parts.push(e.data);};recorder.onstop=()=>{const blob=new Blob(parts,{type:mime}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download="justevivo-montage-photo.webm";a.click();setTimeout(()=>URL.revokeObjectURL(url),60000);photos.forEach(p=>{if(p.kind==="video")p.video.pause();});if(audio){audio.pause();audio.src="";audio=null;}if(audioContext){audioContext.close().catch(()=>{});audioContext=null;}status("Montage exporté. Vous pouvez importer le fichier WebM dans l’éditeur principal.");};
       const start=performance.now();let frame=0;activeVideoIndex=-1;const tick=now=>{const elapsed=now-start;if(elapsed>=total){recorder.stop();return;}let local=elapsed,index=0;while(index<durations.length-1&&local>=durations[index]){local-=durations[index];index++;}const item=photos[index];if(item.kind==="video"){if(activeVideoIndex!==index){photos.forEach((p,k)=>{if(p.kind==="video"){if(k===index){p.video.currentTime=p.trimStart||0;p.video.play().catch(()=>{});}else p.video.pause();}});activeVideoIndex=index;}}else{photos.forEach(p=>{if(p.kind==="video")p.video.pause();});activeVideoIndex=-1;}draw(index,local/durations[index],$("jvp-transition").value);frame=requestAnimationFrame(tick);};draw(0);recorder.start(250);status("Export en cours… gardez cette page ouverte jusqu’au téléchargement.");frame=requestAnimationFrame(tick);
     };
-    const templatePresets={cinema:["16:9","4","fade","cinema","kenburns"],reels:["9:16","2","zoom","vivid","zoom"],product:["1:1","3","cut","soft","kenburns"],memories:["16:9","5","fade","warm","pulse"],minimal:["16:9","3","cut","none","none"],promo:["9:16","2","slide","vivid","zoom"]};
-    $("jvp-templates").addEventListener("click",event=>{const button=event.target.closest("[data-template]");if(!button)return;const p=templatePresets[button.dataset.template];if(!p)return;$("jvp-ratio").value=p[0];$("jvp-duration").value=p[1];$("jvp-transition").value=p[2];$("jvp-filter").value=p[3];$("jvp-effect").value=p[4];photos.forEach(item=>{if(item.kind==="image")item.duration=Number(p[1]);});$("jvp-templates").querySelectorAll("button").forEach(b=>b.style.outline=b===button?"2px solid #6555e8":"");dims();if(photos.length)draw(Math.max(0,selectedIndex));status("Modèle "+button.textContent.trim()+" appliqué. Personnalisez librement.");});
+    const templateCatalog=[
+      {id:"birthday-party",name:"Joyeux anniversaire",category:"Anniversaire",emoji:"🎂",desc:"Confettis, texte animé et ambiance festive",duration:"3",ratio:"9:16",transition:"zoom",filter:"vivid",effect:"pulse",intensity:"9",title:"Joyeux anniversaire !",position:"center",decoration:"confetti",textAnimation:"bounce",accent:"#ffe08a",palette:["#ff5d8f","#ffd166","#06d6a0","#ffffff"],cover:"linear-gradient(135deg,#5b247a,#e64c7b,#ffb36b)"},
+      {id:"birthday-elegant",name:"Anniversaire élégant",category:"Anniversaire",emoji:"🥂",desc:"Or, lumière douce et typographie raffinée",duration:"4",ratio:"9:16",transition:"fade",filter:"warm",effect:"kenburns",intensity:"5",title:"Une journée inoubliable",position:"center",decoration:"sparkles",textAnimation:"fade",font:"Georgia",accent:"#ffe2a8",cover:"linear-gradient(135deg,#1d2337,#82633d,#e8c98c)"},
+      {id:"birthday-kids",name:"Anniversaire enfant",category:"Anniversaire",emoji:"🎈",desc:"Ballons, couleurs joyeuses et animation rebond",duration:"2",ratio:"9:16",transition:"slide",filter:"vivid",effect:"zoom",intensity:"10",title:"C'est ta journée !",position:"center",decoration:"balloons",textAnimation:"bounce",accent:"#fff4a8",cover:"linear-gradient(135deg,#00a6a6,#65c7f7,#f6a6d7)"},
+      {id:"wedding",name:"Notre mariage",category:"Mariage",emoji:"💍",desc:"Romantique, doux et cinématique",duration:"5",ratio:"16:9",transition:"fade",filter:"soft",effect:"kenburns",intensity:"4",title:"Notre belle histoire",position:"bottom",decoration:"sparkles",textAnimation:"fade",font:"Georgia",accent:"#fff0d6",cover:"linear-gradient(135deg,#594b50,#b69b91,#e9d8c5)"},
+      {id:"love-story",name:"Love story",category:"Amour",emoji:"❤️",desc:"Cœurs animés et souvenirs à deux",duration:"3",ratio:"9:16",transition:"fade",filter:"warm",effect:"pulse",intensity:"6",title:"Toi & moi",position:"center",decoration:"hearts",textAnimation:"pop",font:"Georgia",accent:"#ffd5df",cover:"linear-gradient(135deg,#5e1835,#b52c62,#f58ba8)"},
+      {id:"valentine",name:"Saint-Valentin",category:"Amour",emoji:"💌",desc:"Un message d'amour en vidéo",duration:"3",ratio:"9:16",transition:"zoom",filter:"vivid",effect:"kenburns",intensity:"5",title:"Joyeuse Saint-Valentin",position:"bottom",decoration:"hearts",textAnimation:"slide",accent:"#ffe3eb",cover:"linear-gradient(135deg,#7b102e,#d8345f,#f7a6b8)"},
+      {id:"travel-vlog",name:"Travel vlog",category:"Voyage",emoji:"🌍",desc:"Rythme dynamique pour vos escapades",duration:"2",ratio:"9:16",transition:"slide",filter:"vivid",effect:"zoom",intensity:"8",title:"New adventures",position:"bottom",decoration:"sparkles",textAnimation:"slide",accent:"#ffffff",cover:"linear-gradient(135deg,#006d77,#83c5be,#ffddd2)"},
+      {id:"summer-holiday",name:"Vacances d'été",category:"Voyage",emoji:"🏝️",desc:"Couleurs solaires et souvenirs lumineux",duration:"3",ratio:"16:9",transition:"fade",filter:"warm",effect:"kenburns",intensity:"5",title:"Summer memories",position:"bottom",decoration:"sparkles",textAnimation:"pop",accent:"#fff2c6",cover:"linear-gradient(135deg,#0077b6,#00b4d8,#ffd166)"},
+      {id:"family-memories",name:"Souvenirs en famille",category:"Souvenirs",emoji:"👨‍👩‍👧‍👦",desc:"Un album vidéo tendre et chaleureux",duration:"5",ratio:"16:9",transition:"fade",filter:"warm",effect:"kenburns",intensity:"4",title:"Nos plus beaux moments",position:"bottom",decoration:"sparkles",textAnimation:"fade",font:"Georgia",accent:"#fff0d4",cover:"linear-gradient(135deg,#5b6b45,#a7b77b,#e4cda7)"},
+      {id:"best-friends",name:"Meilleurs amis",category:"Souvenirs",emoji:"🫶",desc:"Montage fun pour vos meilleurs moments",duration:"2",ratio:"9:16",transition:"zoom",filter:"vivid",effect:"pulse",intensity:"8",title:"Les meilleurs souvenirs",position:"center",decoration:"confetti",textAnimation:"bounce",accent:"#fff4a8",cover:"linear-gradient(135deg,#4c3c91,#9179e6,#f58fb5)"},
+      {id:"product-showcase",name:"Présentation produit",category:"Business",emoji:"🛍️",desc:"Mettez un produit en valeur en quelques secondes",duration:"3",ratio:"1:1",transition:"cut",filter:"soft",effect:"kenburns",intensity:"3",title:"Découvrez notre nouveauté",position:"bottom",decoration:"sparkles",textAnimation:"pop",accent:"#ffffff",cover:"linear-gradient(135deg,#1e3a5f,#4776a8,#9fc5e8)"},
+      {id:"flash-sale",name:"Promotion flash",category:"Business",emoji:"🔥",desc:"Annonce commerciale verticale et percutante",duration:"2",ratio:"9:16",transition:"slide",filter:"vivid",effect:"zoom",intensity:"10",title:"OFFRE EXCLUSIVE",position:"center",decoration:"confetti",textAnimation:"bounce",accent:"#fff2a8",cover:"linear-gradient(135deg,#7f1d1d,#ea580c,#facc15)"},
+      {id:"brand-story",name:"Présentation de marque",category:"Business",emoji:"✨",desc:"Une identité visuelle propre et premium",duration:"4",ratio:"16:9",transition:"fade",filter:"cinema",effect:"kenburns",intensity:"4",title:"Notre histoire",position:"center",decoration:"sparkles",textAnimation:"fade",font:"Georgia",accent:"#f7e7c6",cover:"linear-gradient(135deg,#172554,#475569,#c4b5a5)"},
+      {id:"graduation",name:"Félicitations diplômé",category:"Événements",emoji:"🎓",desc:"Célébrez une réussite avec une animation festive",duration:"3",ratio:"9:16",transition:"zoom",filter:"warm",effect:"pulse",intensity:"7",title:"Félicitations !",position:"center",decoration:"confetti",textAnimation:"bounce",accent:"#ffe8a3",cover:"linear-gradient(135deg,#111827,#4338ca,#d4a84f)"},
+      {id:"baby-welcome",name:"Bienvenue bébé",category:"Événements",emoji:"🍼",desc:"Un montage tendre pour une naissance",duration:"4",ratio:"9:16",transition:"fade",filter:"soft",effect:"kenburns",intensity:"3",title:"Bienvenue parmi nous",position:"bottom",decoration:"sparkles",textAnimation:"fade",font:"Georgia",accent:"#fff4e6",cover:"linear-gradient(135deg,#9bbbd4,#e9c9d5,#f5e6c8)"},
+      {id:"party-invitation",name:"Invitation à une fête",category:"Événements",emoji:"🎉",desc:"Créez une invitation vidéo animée",duration:"2",ratio:"9:16",transition:"zoom",filter:"vivid",effect:"pulse",intensity:"7",title:"Tu es invité(e) !",position:"center",decoration:"confetti",textAnimation:"pop",accent:"#fff1a8",cover:"linear-gradient(135deg,#312e81,#7c3aed,#ec4899)"},
+      {id:"new-year",name:"Bonne année",category:"Fêtes",emoji:"🎆",desc:"Feux d'artifice et vœux animés",duration:"3",ratio:"9:16",transition:"fade",filter:"cinema",effect:"zoom",intensity:"6",title:"Bonne année !",position:"center",decoration:"sparkles",textAnimation:"pop",accent:"#ffe7a3",cover:"linear-gradient(135deg,#071a52,#1e3a8a,#b7791f)"},
+      {id:"christmas",name:"Joyeux Noël",category:"Fêtes",emoji:"🎄",desc:"Une carte vidéo festive et chaleureuse",duration:"4",ratio:"16:9",transition:"fade",filter:"warm",effect:"kenburns",intensity:"4",title:"Joyeux Noël",position:"center",decoration:"sparkles",textAnimation:"fade",font:"Georgia",accent:"#fff0d0",cover:"linear-gradient(135deg,#064e3b,#166534,#991b1b)"},
+      {id:"fitness-motivation",name:"Motivation sportive",category:"Lifestyle",emoji:"💪",desc:"Un montage énergique pour vos performances",duration:"2",ratio:"9:16",transition:"cut",filter:"vivid",effect:"zoom",intensity:"10",title:"Dépasse tes limites",position:"center",decoration:"sparkles",textAnimation:"bounce",accent:"#ffffff",cover:"linear-gradient(135deg,#111827,#334155,#f97316)"},
+      {id:"cinematic-recap",name:"Récap cinématique",category:"Lifestyle",emoji:"🎬",desc:"Un résumé vidéo au style film",duration:"4",ratio:"16:9",transition:"fade",filter:"cinema",effect:"kenburns",intensity:"5",title:"Les moments forts",position:"bottom",decoration:"sparkles",textAnimation:"fade",font:"Georgia",accent:"#fff2dd",cover:"linear-gradient(135deg,#111827,#374151,#a16207)"}
+    ];
+    const categories=["Tous",...new Set(templateCatalog.map(t=>t.category))];let activeCategory="Tous";
+    const categoryBox=$("jvp-template-categories"),templateGrid=$("jvp-template-grid");
+    function applyTemplate(t){
+      activeTemplate=t;$("jvp-ratio").value=t.ratio;$("jvp-duration").value=t.duration;$("jvp-transition").value=t.transition;$("jvp-filter").value=t.filter;$("jvp-effect").value=t.effect;$("jvp-intensity").value=t.intensity;$("jvp-text-position").value=t.position;$("jvp-text-color").value=t.accent;
+      if(!$("jvp-text").value.trim())$("jvp-text").value=t.title;
+      photos.forEach(item=>{if(item.kind==="image")item.duration=Number(t.duration);});
+      templateGrid.querySelectorAll(".jvp-template-card").forEach(card=>card.classList.toggle("active",card.dataset.id===t.id));
+      dims();if(photos.length)draw(0);
+      $("jvp-template-status").textContent="Modèle « "+t.name+" » sélectionné. Ajoutez vos photos/vidéos ou prévisualisez votre création.";
+      status("Modèle « "+t.name+" » appliqué. Vous pouvez modifier le texte, la musique et les effets.");
+    }
+    function renderTemplateCards(){
+      const query=$("jvp-template-search").value.trim().toLocaleLowerCase();
+      const items=templateCatalog.filter(t=>(activeCategory==="Tous"||t.category===activeCategory)&&(!query||(t.name+" "+t.category+" "+t.desc).toLocaleLowerCase().includes(query)));
+      templateGrid.replaceChildren();
+      if(!items.length){const empty=document.createElement("div");empty.className="jvp-template-empty";empty.textContent="Aucun modèle trouvé. Essayez un autre mot-clé.";templateGrid.append(empty);return;}
+      items.forEach(t=>{
+        const card=document.createElement("article");card.className="jvp-template-card"+(activeTemplate?.id===t.id?" active":"");card.dataset.id=t.id;
+        const cover=document.createElement("div");cover.className="jvp-template-cover";cover.style.background=t.cover;
+        const emoji=document.createElement("span");emoji.className="jvp-template-emoji";emoji.textContent=t.emoji;
+        const duration=document.createElement("span");duration.className="jvp-template-duration";duration.textContent=t.duration+" s / média";
+        cover.append(emoji,duration);
+        const info=document.createElement("div");info.className="jvp-template-info";
+        const name=document.createElement("strong");name.textContent=t.name;
+        const desc=document.createElement("p");desc.textContent=t.desc;
+        const use=document.createElement("button");use.type="button";use.textContent="Utiliser ce modèle";use.addEventListener("click",()=>applyTemplate(t));
+        info.append(name,desc,use);card.append(cover,info);templateGrid.append(card);
+      });
+    }
+    categories.forEach(category=>{const button=document.createElement("button");button.type="button";button.textContent=category;button.className=category==="Tous"?"active":"";button.addEventListener("click",()=>{activeCategory=category;categoryBox.querySelectorAll("button").forEach(b=>b.classList.toggle("active",b===button));renderTemplateCards();});categoryBox.append(button);});
+    $("jvp-template-search").addEventListener("input",renderTemplateCards);renderTemplateCards();
     nav.addEventListener("click",()=>{document.querySelectorAll(".workspace-page").forEach(p=>p.hidden=true);const parts=[workspace.querySelector(".workspace-head"),workspace.querySelector(".upload-zone"),workspace.querySelector(".editor-grid"),workspace.querySelector(".demo-warning")].filter(Boolean);parts.forEach(p=>p.hidden=true);page.hidden=false;sidebar.querySelectorAll(".side-link").forEach(x=>x.classList.toggle("active",x===nav));const back=document.getElementById("jv-workspace-back");if(back)back.style.display="inline-flex";page.scrollIntoView({behavior:"smooth",block:"start"});});
   };
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();

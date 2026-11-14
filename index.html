@@ -32,7 +32,7 @@
   <link rel="stylesheet" href="premium-experience.css?v=3">
   <link rel="stylesheet" href="editor-enhancements.css?v=2">
   <link rel="stylesheet" href="mobile-app.css?v=2">
-  <link rel="stylesheet" href="studio-viewport.css?v=2">
+  <link rel="stylesheet" href="studio-viewport.css?v=3">
 </head>
 
 <body>
@@ -194,7 +194,7 @@
             <strong>Déposez votre vidéo ici</strong>
             <span>ou cliquez pour choisir un fichier</span>
             <small>MP4, WebM ou MOV</small>
-            <input id="videoInput" type="file" accept="video/*">
+            <input id="videoInput" type="file" accept="video/*,image/*,.mp4,.mov,.webm,.m4v,.png,.jpg,.jpeg,.webp,.gif,.avif" multiple>
           </label>
 
           <div class="editor-grid">
@@ -202,6 +202,7 @@
               <div class="panel-label">APERÇU VIDÉO</div>
               <div class="preview-frame" id="previewFrame">
                 <video id="videoPreview" controls hidden></video>
+                <img id="imagePreview" alt="Aperçu de la photo sélectionnée" hidden>
                 <div id="placeholderPreview">
                   <div class="preview-play">▶</div>
                   <div class="preview-caption" id="captionPreview">
@@ -387,7 +388,7 @@
   <script src="creative-suite.js?v=13"></script>
   <script src="photo-studio.js?v=3"></script>
   <script src="smart-cut.js?v=3"></script>
-  <script src="editor-essentials.js?v=2"></script>
+  <script src="editor-essentials.js?v=3"></script>
   <script src="advanced-studio.js?v=7"></script>
   <script src="audio-studio.js?v=5"></script>
 <script src="theme.js?v=1"></script>

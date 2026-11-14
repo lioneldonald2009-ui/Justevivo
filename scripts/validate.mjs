@@ -37,7 +37,7 @@ const checks = [
   ['persistent media bin', /justevivo-media-bin-v1/.test(read('editor-essentials.js')) && /window\.JV_MEDIA_BIN/.test(read('editor-essentials.js'))],
   ['photo preview lifecycle', /function attachProjectPhoto/.test(read('app.js')) && /function detachProjectMedia/.test(read('app.js'))],
   ['authenticated MP4 finalization client', /isVideoFinalize/.test(read('app5.js')) && /\/api\/video\/finalize/.test(read('app3.js'))],
-  ['service worker cache revision', /justevivo-shell-v11/.test(read('sw.js'))],
+  ['service worker cache revision', /justevivo-shell-v12/.test(read('sw.js'))],
   ['reference vertical sidebar on tablet', /navigation latérale verticale sur tablettes/.test(read('jv-v7-unified-ui.css')) && /max-width:760px/.test(read('jv-v7-unified-ui.css')) && /grid-template-columns:188px minmax\(0,1fr\)/.test(read('jv-v7-unified-ui.css'))],
   ['visible independent sidebar scrolling', /\.studio > \.jv-sidebar[\s\S]*?overflow-y:auto!important/.test(read('studio-viewport.css'))],
   ['dubbing menu opens its dedicated tool', /data-jv-feature="dubbing"/.test(read('index.html')) && /dataset\.jvFeature === "dubbing"/.test(read('navigation.js'))],
@@ -54,7 +54,12 @@ const checks = [
   ['mobile drawer', read('mobile-drawer.js').includes('jv-mobile-menu-toggle') && read('mobile-drawer.js').includes('aria-expanded')],
   ['mobile responsive width', read('mobile-drawer-fix.css').includes('overflow-x:hidden') && read('mobile-drawer-fix.css').includes('zoom:1')],
   ['family collage templates', read('photo-studio.js').includes('layout:"trio"') && read('photo-studio.js').includes('layout:"family"') && read('photo-studio.js').includes('const drawTile=')],
-  ['name presentation template', read('photo-studio.js').includes('Portraits & Prénoms') && read('photo-studio.js').includes('lastTemplateText')]
+  ['name presentation template', read('photo-studio.js').includes('Portraits & Prénoms') && read('photo-studio.js').includes('lastTemplateText')],
+  ['standalone montage page loads its dedicated editor and styles', read('montage.html').includes('montage-editor.js') && read('montage.html').includes('montage.css')],
+  ['photo montage opens in a separate tab', read('photo-studio.js').includes('window.open("montage.html","_blank")')],
+  ['standalone editor provides timeline, templates and per-scene controls', read('montage-editor.js').includes('function renderTimeline()') && read('montage-editor.js').includes('function renderTemplatePanel()') && read('montage-editor.js').includes('Textes & titres de la scène')],
+  ['standalone editor supports audio search, sound effects and video export', read('montage-editor.js').includes('/api/music/search') && read('montage-editor.js').includes('function playSfx') && read('montage-editor.js').includes('new MediaRecorder')],
+  ['standalone editor supports quality, speed, framing and positioning controls', read('montage-editor.js').includes('Qualité de sortie') && read('montage-editor.js').includes('Position horizontale') && read('montage-editor.js').includes('Vitesse')]
 ];
 for (const [label, ok] of checks) {
   console.log((ok ? 'PASS ' : 'FAIL ') + label);

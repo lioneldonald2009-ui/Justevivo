@@ -248,7 +248,7 @@
     }
     categories.forEach(category=>{const button=document.createElement("button");button.type="button";button.textContent=category;button.className=category==="Tous"?"active":"";button.addEventListener("click",()=>{activeCategory=category;categoryBox.querySelectorAll("button").forEach(b=>b.classList.toggle("active",b===button));renderTemplateCards();});categoryBox.append(button);});
     $("jvp-template-search").addEventListener("input",renderTemplateCards);renderTemplateCards();
-    nav.addEventListener("click",()=>{document.querySelectorAll(".workspace-page").forEach(p=>p.hidden=true);const parts=[workspace.querySelector(".workspace-head"),workspace.querySelector(".upload-zone"),workspace.querySelector(".editor-grid"),workspace.querySelector(".demo-warning")].filter(Boolean);parts.forEach(p=>p.hidden=true);page.hidden=false;sidebar.querySelectorAll(".side-link").forEach(x=>x.classList.toggle("active",x===nav));const back=document.getElementById("jv-workspace-back");if(back)back.style.display="inline-flex";page.scrollIntoView({behavior:"smooth",block:"start"});});
+    nav.addEventListener("click",()=>{const opened=window.open("montage.html","_blank");if(opened)opened.opener=null;else window.location.href="montage.html";});
   };
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
 })();

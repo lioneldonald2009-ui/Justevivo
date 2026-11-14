@@ -278,7 +278,7 @@
 .jv-media-bin-actions { display:flex; align-items:center; gap:5px; flex:none; }
 .jv-media-bin-actions button {
   min-height:28px; padding:5px 9px; border:1px solid #e0e5ef; border-radius:8px;
-  background:#fff; color:#53617a; font:700 9px/1.1 inherit; cursor:pointer;
+  background:#fff; color:#53617a; font-family:inherit; font-size:9px; font-weight:700; line-height:1.1; cursor:pointer;
 }
 .jv-media-bin-actions [data-jv-add] { background:#7657f5; border-color:#7657f5; color:#fff; }
 .jv-media-bin-actions button:hover { filter:brightness(.97); }
@@ -309,7 +309,7 @@
 .jv-media-action {
   flex:1 1 0; min-width:0; min-height:23px; padding:3px;
   border:1px solid #e1e5ee; border-radius:6px; background:#fff;
-  color:#66738b; font:700 10px/1 inherit; cursor:pointer;
+  color:#66738b; font-family:inherit; font-size:10px; font-weight:700; line-height:1; cursor:pointer;
 }
 .jv-media-action:disabled { opacity:.35; cursor:not-allowed; }
 .jv-media-action:hover:not(:disabled) { color:#6848e8; border-color:#c9bfff; }

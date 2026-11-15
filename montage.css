@@ -17,3 +17,11 @@
 @media(max-width:760px){.timeline-subtitles{min-height:24px;padding:3px 6px}.timeline-subtitles>strong{flex-basis:82px;font-size:9px}.subtitle-chip{font-size:9px;padding:3px 6px}}
 
 @media(max-width:760px){.timeline-panel{min-height:132px;max-height:132px}.timeline-track{min-height:52px}}
+
+/* Audio multipiste : cartes indépendantes et commandes tactiles */
+.audio-track-card{min-width:220px;border:1px solid #3b4960;border-radius:8px;padding:8px;background:#151d2b;color:#dce5f4}
+.audio-track-card .track-controls{display:flex;gap:6px;flex-wrap:wrap}
+.timeline-audio{min-height:30px;overflow-x:auto;white-space:nowrap}
+.music-card input[type=range]{accent-color:#a78bfa;width:100%}
+.music-card input[type=number]{width:100%;background:#0c111a;border:1px solid #30394b;border-radius:6px;padding:6px;color:#fff}
+.music-card button{margin:5px 5px 0 0}

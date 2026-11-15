@@ -1137,7 +1137,7 @@
     sm.body.appendChild(out);
   }
 
-  // ===== Paiement des formules (FedaPay) =====
+  // ===== Paiement des formules (Dodo Payments) =====
   (async function showPayNote() {
     try {
       const res = await window.fetch(API_URL + '/api/config');

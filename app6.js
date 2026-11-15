@@ -1145,10 +1145,9 @@
       const note = document.querySelector('.plans-note');
       if (note) {
         note.textContent =
-          'Paiement sécurisé par FedaPay, en francs CFA, pour 30 jours : ' +
-          'Starter 6 000 F, Pro 9 000 F, Business 15 000 F. ' +
-          'Moyens de paiement proposés selon votre pays (Mobile Money, cartes). ' +
-          'Pas de renouvellement automatique.';
+          'Paiement sécurisé par Dodo Payments. ' +
+          'La devise et les moyens de paiement disponibles sont affichés sur la page de paiement selon votre pays. ' +
+          'Votre formule est activée après confirmation du paiement.';
       }
     } catch (e) { /* tant pis */ }
   })();
@@ -1187,13 +1186,13 @@
         d = await res.json();
       } catch (e) { /* réponse vide */ }
 
-      if (!res.ok || !d.url) {
+      if (!res.ok || !d.checkoutUrl) {
         showToast(d.error || 'Paiement impossible pour le moment. Réessayez.');
         return;
       }
 
       showToast('Redirection vers la page de paiement...');
-      window.location.href = d.url;
+      window.location.href = d.checkoutUrl;
     } catch (e) {
       showToast('Paiement impossible : ' + (e.message || 'erreur'));
     } finally {
@@ -1235,7 +1234,7 @@
     showToast('Paiement en attente de confirmation. Rechargez la page dans quelques minutes.');
   }
 
-  if (/[?&]pay=return/.test(window.location.search)) {
+  if (/[?&]payment=dodo-return(?:&|$)/.test(window.location.search)) {
     try {
       history.replaceState(null, '', window.location.pathname);
     } catch (e) { /* rien */ }

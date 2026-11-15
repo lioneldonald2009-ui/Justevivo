@@ -10,7 +10,7 @@
 <header class="topbar">
   <a class="brand" href="index.html" aria-label="Retour à JUSTEVIVO"><span class="brand-mark">J</span><span>JUSTE<b>VIVO</b></span></a>
   <div class="project-name"><span class="live-dot"></span><span id="projectName">Nouveau montage</span><button id="renameProject" title="Renommer">✎</button></div>
-  <div class="top-actions"><button class="quiet" id="saveProject">Enregistrer</button><button class="export" id="exportProject">Exporter</button></div>
+  <div class="top-actions"><button class="theme-switch" id="montageTheme" type="button" aria-label="Changer le thème">☀️ Clair</button><button class="quiet" id="saveProject">Enregistrer</button><button class="export" id="exportProject">Exporter</button></div>
 </header>
 <main class="app-shell">
   <aside class="left-tools" aria-label="Outils de montage">
@@ -40,5 +40,5 @@
 <input id="mediaInput" type="file" accept="image/*,video/*" multiple hidden>
 <input id="audioInput" type="file" accept="audio/*" hidden>
 <div id="toast" role="status" aria-live="polite"></div>
-<script src="montage-editor.js?v=4"></script>
+<script src="montage-editor.js?v=4"></script><script src="montage-theme.js?v=1"></script>
 </body></html>

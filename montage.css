@@ -25,3 +25,39 @@
 .music-card input[type=range]{accent-color:#a78bfa;width:100%}
 .music-card input[type=number]{width:100%;background:#0c111a;border:1px solid #30394b;border-radius:6px;padding:6px;color:#fff}
 .music-card button{margin:5px 5px 0 0}
+
+/* Thème clair/sombre du studio de montage — contraste renforcé */
+:root{color-scheme:dark}
+body.light{color-scheme:light;--bg:#f3f5fb;--panel:#fff;--panel2:#edf1f8;--line:#d8deea;--muted:#59657a;--text:#172033}
+body.light .topbar,body.light .left-tools{background:#fff;border-color:var(--line)}
+body.light .brand,body.light .project-name,body.light .project-name button{color:#172033}
+body.light .top-actions button,body.light .stage-actions button,body.light .timeline-heading button,body.light .transport button{background:#fff;color:#172033;border-color:#cbd3e1}
+body.light .tool{color:#4d5a70}
+body.light .tool.active,body.light .tool:hover{background:#eeeaff;border-color:#b9a9ff;color:#4c35b8}
+body.light .center-stage{background:#f3f5fb}
+body.light .stage-hint,body.light .transport{color:#4e5b70}
+body.light .preview-wrap{background:radial-gradient(ellipse at center,#e2e7f1,#cfd6e4 70%);border-color:#d1d8e6}
+body.light .empty-preview{color:#172033}
+body.light .empty-preview p{color:#526078}
+body.light .timeline-panel,body.light .inspector{background:#fff;border-color:#d8deea;color:#172033}
+body.light .inspector-tabs{background:#f6f7fb;border-color:#d8deea}
+body.light .inspector-tabs button{color:#526078}
+body.light .inspector-tabs button.active{color:#5438c2;border-bottom-color:#7255e8}
+body.light .section-title{color:#202b40}
+body.light .field label{color:#344158}
+body.light .field input,body.light .field select,body.light .field textarea,body.light .scene-field input,body.light .music-card input[type=number]{background:#fff;color:#172033;border-color:#cbd3e1}
+body.light .timeline-subtitles{background:#f0ebff;color:#4b348f;border-color:#c9b9f5}
+body.light .timeline-subtitles>strong{color:#4b348f}
+body.light .track-empty,body.light .timeline-heading small{color:#5b667b}
+body.light .subtitle-chip{background:#6d50d7;color:#fff}
+body.light .keyframe-row,body.light .scene-field,body.light .music-card,body.light .template-card{background:#f8f9fd;color:#172033;border-color:#d8deea}
+body.light .keyframe-row{color:#26334a}
+body.light .template-toolbar button{background:#fff;color:#344158;border-color:#d8deea}
+body.light .template-toolbar button.active{background:#eeeaff;color:#4b35a7;border-color:#b8a8f3}
+body.light .template-card-body small,body.light .music-card small,body.light .quality-note{color:#56637a}
+body.light .timeline-empty{color:#59657a;border-color:#cbd3e1}
+body.light .audio-track-card{background:#f1f7f6;color:#1e4541;border-color:#b8d8d3}
+body.light #toast{background:#fff;color:#172033;border-color:#c9b9f5;box-shadow:0 8px 28px #17203322}
+.theme-switch{border:1px solid var(--line)!important;border-radius:9px;background:#171d2a;color:var(--text);padding:9px 11px;font-size:12px;font-weight:800}
+body.light .theme-switch{background:#fff;color:#172033;border-color:#cbd3e1}
+button:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid #8b72f4;outline-offset:2px}

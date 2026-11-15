@@ -524,6 +524,8 @@
 
     const f = readForm();
     if (!f) return;
+    const captcha = getCaptchaToken();
+    if (cfg.captchaSiteKey && !captcha) return;
 
     busy(true);
     msg.textContent = 'Connexion en cours...';
@@ -537,6 +539,7 @@
     } catch (e) {
       msg.textContent = e.message;
     } finally {
+      resetCaptcha();
       busy(false);
     }
   });
@@ -549,6 +552,8 @@
 
     const f = readForm();
     if (!f) return;
+    const captcha = getCaptchaToken();
+    if (cfg.captchaSiteKey && !captcha) return;
 
     busy(true);
     msg.textContent = 'Création du compte...';
@@ -562,7 +567,8 @@
         : window.location.origin + window.location.pathname + window.location.search;
       const d = await authCall('signup?redirect_to=' + encodeURIComponent(redirect), {
         email: f.email,
-        password: f.pass
+        password: f.pass,
+        ...(captcha ? { captcha_token: captcha } : {})
       });
 
       if (d.access_token && d.user && d.user.email_confirmed_at) {

@@ -51,12 +51,18 @@ jobs:
           npx cap add android
           npx cap sync android
 
+      - name: Resolve app version
+        id: version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/* ]]; then VERSION_NAME="${GITHUB_REF_NAME#v}"; else VERSION_NAME="$(node -p "require('./package.json').version")"; fi
+          echo "version=$VERSION_NAME" >> "$GITHUB_OUTPUT"
+
       - name: Set Android version code and name
         env:
-          VERSION_NAME: ${{ github.ref_name }}
+          VERSION_NAME: ${{ steps.version.outputs.version }}
           VERSION_CODE: ${{ github.run_number }}
         run: |
-          VERSION_NAME="${VERSION_NAME#v}" python3 - <<'PY'
+          python3 - <<'PY'
           import os, re
           path = "android/app/build.gradle"
           text = open(path, encoding="utf-8").read()
@@ -97,8 +103,8 @@ jobs:
       - name: Publish signed APK release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: JUSTEVIVO AI ${{ github.ref_name }}
+          tag_name: v${{ steps.version.outputs.version }}
+          name: JUSTEVIVO AI v${{ steps.version.outputs.version }}
           files: JUSTEVIVO-AI-Android.apk
           make_latest: true
           generate_release_notes: true

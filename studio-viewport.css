@@ -356,3 +356,49 @@
 }
 .jv-workspace-back:hover { background:#f3edff !important; transform:translateX(-2px); }
 .jv-workspace-back-label { font-size:12px; font-weight:700; white-space:nowrap; }
+
+
+/* Correctif desktop : laisser défiler le site vitrine et garder le studio dans le flux normal. */
+@media (min-width: 761px) {
+  html, body {
+    height: auto !important;
+    min-height: 100% !important;
+    overflow-x: hidden !important;
+    overflow-y: scroll !important;
+    scrollbar-gutter: stable;
+  }
+  body { overflow-y: scroll !important; }
+  .studio-section {
+    position: relative !important;
+    inset: auto !important;
+    height: auto !important;
+    min-height: calc(100vh - 76px) !important;
+    overflow: visible !important;
+    z-index: auto !important;
+  }
+  .studio-section > .section-heading { display: flex !important; }
+  .studio {
+    height: auto !important;
+    min-height: 640px !important;
+    overflow: visible !important;
+  }
+  .studio > .jv-sidebar {
+    height: auto !important;
+    min-height: 640px !important;
+    max-height: none !important;
+    overflow-y: visible !important;
+  }
+  .studio > .workspace {
+    height: auto !important;
+    min-height: 640px !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  html::-webkit-scrollbar, body::-webkit-scrollbar { width: 12px; }
+  html::-webkit-scrollbar-track, body::-webkit-scrollbar-track { background: #0b1020; }
+  html::-webkit-scrollbar-thumb, body::-webkit-scrollbar-thumb {
+    background: #7866b8;
+    border: 3px solid #0b1020;
+    border-radius: 12px;
+  }
+}

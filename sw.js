@@ -1,4 +1,4 @@
-const CACHE_NAME = "justevivo-shell-v13";
+const CACHE_NAME = "justevivo-shell-v14";
 const APP_SHELL = ["/", "/index.html", "/offline.html", "/icons/icon-192.png", "/icons/icon-512.png", "/icons/apple-touch-icon.png"];
 
 self.addEventListener("install", event => {

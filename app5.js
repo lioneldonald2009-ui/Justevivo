@@ -412,7 +412,7 @@
   closeBtn.className = 'button ghost full';
   closeBtn.textContent = 'Fermer';
 
-  [title, msg, emailInput, passWrap, signInBtn, signUpBtn, forgotPasswordBtn,
+  [title, msg, emailInput, passWrap, captchaWrap, signInBtn, signUpBtn, forgotPasswordBtn,
    recoveryFields, updatePasswordBtn, closeBtn].forEach(e => card.appendChild(e));
 
 
@@ -452,6 +452,7 @@
     Object.assign(card.style, { marginTop: '0', maxWidth: '460px', padding: '24px' });
     modal.style.display = 'flex';
     document.body.style.overflow = 'hidden';
+    renderCaptcha();
     setTimeout(() => emailInput.focus(), 60);
   }
 

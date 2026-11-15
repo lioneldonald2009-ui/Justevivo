@@ -91,7 +91,7 @@
       if (!response.ok) return;
       const manifest = await response.json();
       if (!manifest || !manifest.minimumVersion) return;
-      if (compareVersions(BUILD_VERSION, manifest.minimumVersion) < 0) {
+      if (compareVersions(BUILD_VERSION, manifest.minimumVersion) < 0 && (!isNative || manifest.androidApkUrl)) {
         showRequiredUpdate(manifest);
       }
     } catch (error) {

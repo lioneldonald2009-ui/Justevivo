@@ -56,7 +56,7 @@ const checks = [
   ['family collage templates', read('photo-studio.js').includes('layout:"trio"') && read('photo-studio.js').includes('layout:"family"') && read('photo-studio.js').includes('const drawTile=')],
   ['name presentation template', read('photo-studio.js').includes('Portraits & Prénoms') && read('photo-studio.js').includes('lastTemplateText')],
   ['standalone montage page loads its dedicated editor and styles', read('montage.html').includes('montage-editor.js') && read('montage.html').includes('montage.css')],
-  ['photo montage opens in a separate tab', read('photo-studio.js').includes('window.open("montage.html","_blank")')],
+  ['photo studio opens the new creative hub while retaining the standalone montage editor', read('photo-studio.js').includes('window.location.href="creative-studio.html"') && read('creative-studio.html').includes('montage.html')],
   ['standalone editor provides timeline, templates and per-scene controls', read('montage-editor.js').includes('function renderTimeline()') && read('montage-editor.js').includes('function renderTemplatePanel()') && read('montage-editor.js').includes('Textes & titres de la scène')],
   ['standalone editor supports audio search, sound effects and video export', read('montage-editor.js').includes('/api/music/search') && read('montage-editor.js').includes('function playSfx') && read('montage-editor.js').includes('new MediaRecorder')],
   ['standalone editor supports quality, speed, framing and positioning controls', read('montage-editor.js').includes('Qualité de sortie') && read('montage-editor.js').includes('Position horizontale') && read('montage-editor.js').includes('Vitesse')],

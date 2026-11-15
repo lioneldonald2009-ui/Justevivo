@@ -44,13 +44,14 @@ function imageSource(c){return c.kind==="video"?c.video:c.image;}
 function keyframeValues(c,local){
  const frames=(c.keyframes||[]).slice().sort((a,b)=>a.t-b.t);
  if(!frames.length)return {zoom:Number(c.zoom)||100,x:Number(c.x)||0,y:Number(c.y)||0};
- if(local<=frames[0].t)return frames[0];
+ if(local<frames[0].t)return {zoom:Number(c.zoom)||100,x:Number(c.x)||0,y:Number(c.y)||0};
+ if(local===frames[0].t)return frames[0];
  if(local>=frames[frames.length-1].t)return frames[frames.length-1];
  const right=frames.findIndex(k=>k.t>=local),a=frames[right-1],b=frames[right],p=(local-a.t)/Math.max(.001,b.t-a.t);
  return {zoom:a.zoom+(b.zoom-a.zoom)*p,x:a.x+(b.x-a.x)*p,y:a.y+(b.y-a.y)*p};
 }
 function addSubtitle(){
- const start=Math.max(0,Number(state.elapsed)||0),entry={id:"sub-"+Date.now(),start,end:Math.min(totalDuration()||start+3,start+3),text:"Votre sous-titre",color:"#ffffff",background:"#000000"};
+ const start=Math.max(0,Number(state.elapsed)||0),entry={id:"sub-"+Date.now(),start,end:Math.max(start+.5,Math.min(totalDuration()||start+3,start+3)),text:"Votre sous-titre",color:"#ffffff",background:"#000000"};
  state.subtitles.push(entry);renderTimeline();renderTextControls();drawFrame(state.elapsed);toast("Sous-titre ajouté sur sa piste.");
 }
 function renderSubtitleTrack(){

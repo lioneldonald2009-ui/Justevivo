@@ -151,7 +151,7 @@ function applyTemplate(t){
   const groupId=t.layout?("group-"+Date.now()):null,limit=t.layout==="trio"?3:t.layout==="duo"?2:t.layout==="family"?4:0;
   state.clips.forEach((clip,i)=>{clip.duration=t.duration;clip.sourceDuration=clip.kind==="video"?(clip.sourceDuration||t.duration):t.duration;clip.filter=t.filter;clip.speed=t.speed;clip.fit="cover";clip.effect=t.effect;clip.text=t.texts[i%t.texts.length]||t.title;clip.textPosition="bottom";clip.textColor=t.colors?.[0]||"#fff";clip.textAnimation=t.textAnim||"pop";clip.group=groupId&&i<limit?groupId:null;clip.layout=clip.group?t.layout:null;if(clip.kind==="video"){clip.video.playbackRate=clip.speed;if(clip.sourceDuration)clip.duration=Math.max(.35,clip.sourceDuration/clip.speed);}});
  }else{state.sceneTexts=t.texts.slice();}
- renderTimeline();document.querySelectorAll(".tool").forEach(x=>x.classList.toggle("active",x.dataset.tool==="audio"));renderInspector("audio");drawFrame(0);
+ renderTimeline();document.querySelectorAll(".tool").forEach(x=>x.classList.toggle("active",x.dataset.tool==="audio"));renderInspectorForTool("audio");drawFrame(0);
  if(t.music)searchMusic(t.music);
  toast("Modèle « "+t.name+" » appliqué. Importez vos médias, personnalisez chaque scène et utilisez la musique suggérée.");
 }

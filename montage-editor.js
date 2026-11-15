@@ -144,7 +144,6 @@ function renderTextControls(){
  if(state.subtitles.length){state.subtitles.forEach((sub,i)=>{const card=document.createElement("div");card.className="scene-field";const title=document.createElement("strong");title.textContent="Sous-titre "+(i+1)+" · "+fmt(sub.start);const edit=document.createElement("textarea");edit.value=sub.text;edit.maxLength=240;edit.addEventListener("input",()=>{sub.text=edit.value;renderSubtitleTrack();drawFrame(state.elapsed);});const start=input("number",sub.start,v=>{sub.start=Math.max(0,v);renderSubtitleTrack();},{min:"0",step:".1"});const end=input("number",sub.end,v=>{sub.end=Math.max(sub.start+.1,v);renderSubtitleTrack();},{min:"0",step:".1"});card.append(title,field("Début (s)",start),field("Fin (s)",end),field("Texte",edit),field("Couleur",input("color",sub.color||"#ffffff",v=>sub.color=v)),field("Fond",input("color",sub.background||"#000000",v=>sub.background=v)),button("Supprimer ce sous-titre",()=>{state.subtitles.splice(i,1);renderTimeline();renderTextControls();drawFrame(state.elapsed);}));inspector.append(card);});}
  else{const note=document.createElement("p");note.className="quality-note";note.textContent="Les sous-titres sont placés sur une piste dédiée, avec un début, une fin, un texte et des couleurs indépendants.";inspector.append(note);}
  heading("Textes & titres de la scène");
- const c=state.clips[state.selected];heading("Textes & titres de la scène");
  if(!c){
   if(state.template){
    inspector.append(field("Titre du modèle",input("text",state.template.title||"",v=>{state.template.title=v;})));

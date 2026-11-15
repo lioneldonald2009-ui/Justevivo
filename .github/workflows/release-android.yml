@@ -1,0 +1,124 @@
+name: Build and publish signed JUSTEVIVO Android update
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  android-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require Android signing secrets
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          test -n "$ANDROID_KEYSTORE_BASE64" || (echo "::error::Missing ANDROID_KEYSTORE_BASE64 repository secret"; exit 1)
+          test -n "$ANDROID_KEYSTORE_PASSWORD" || (echo "::error::Missing ANDROID_KEYSTORE_PASSWORD repository secret"; exit 1)
+          test -n "$ANDROID_KEY_ALIAS" || (echo "::error::Missing ANDROID_KEY_ALIAS repository secret"; exit 1)
+          test -n "$ANDROID_KEY_PASSWORD" || (echo "::error::Missing ANDROID_KEY_PASSWORD repository secret"; exit 1)
+
+      - name: Checkout tagged source
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Install Android SDK
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --licenses || true
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" "platform-tools" "platforms;android-35" "build-tools;35.0.0"
+
+      - name: Install dependencies and generate native project
+        run: |
+          npm install
+          npm run build:web
+          npx cap add android
+          npx cap sync android
+
+      - name: Set Android version code and name
+        env:
+          VERSION_NAME: ${{ github.ref_name }}
+          VERSION_CODE: ${{ github.run_number }}
+        run: |
+          VERSION_NAME="${VERSION_NAME#v}" python3 - <<'PY'
+          import os, re
+          path = "android/app/build.gradle"
+          text = open(path, encoding="utf-8").read()
+          code = os.environ["VERSION_CODE"]
+          name = os.environ["VERSION_NAME"]
+          text, count = re.subn(r'versionCode\s+\d+', f'versionCode {code}', text, count=1)
+          if count != 1:
+              raise SystemExit("Could not set Android versionCode in generated build.gradle")
+          text, count = re.subn(r'versionName\s+"[^"]+"', f'versionName "{name}"', text, count=1)
+          if count != 1:
+              raise SystemExit("Could not set Android versionName in generated build.gradle")
+          open(path, "w", encoding="utf-8").write(text)
+          PY
+
+      - name: Build unsigned release APK
+        working-directory: android
+        run: |
+          chmod +x gradlew
+          ./gradlew assembleRelease
+
+      - name: Sign and verify APK
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          echo "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/justevivo-release.keystore"
+          "$ANDROID_HOME/build-tools/35.0.0/zipalign" -f -p 4 android/app/build/outputs/apk/release/app-release-unsigned.apk "$RUNNER_TEMP/justevivo-aligned.apk"
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" sign \
+            --ks "$RUNNER_TEMP/justevivo-release.keystore" \
+            --ks-key-alias "$ANDROID_KEY_ALIAS" \
+            --ks-pass env:ANDROID_KEYSTORE_PASSWORD \
+            --key-pass env:ANDROID_KEY_PASSWORD \
+            --out JUSTEVIVO-AI-Android.apk "$RUNNER_TEMP/justevivo-aligned.apk"
+          "$ANDROID_HOME/build-tools/35.0.0/apksigner" verify --verbose --print-certs JUSTEVIVO-AI-Android.apk
+
+      - name: Publish signed APK release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: JUSTEVIVO AI ${{ github.ref_name }}
+          files: JUSTEVIVO-AI-Android.apk
+          make_latest: true
+          generate_release_notes: true
+
+      - name: Publish Android update URL in central manifest
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          git fetch origin main
+          git checkout -B update-manifest origin/main
+          node <<'NODE'
+          const fs = require('fs');
+          const manifest = JSON.parse(fs.readFileSync('app-version.json', 'utf8'));
+          manifest.androidApkUrl = 'https://github.com/lioneldonald2009-ui/Justevivo/releases/latest/download/JUSTEVIVO-AI-Android.apk';
+          fs.writeFileSync('app-version.json', JSON.stringify(manifest, null, 2) + '\n');
+          NODE
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add app-version.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore: publish signed Android update URL [skip ci]"
+            git push origin HEAD:main
+          fi

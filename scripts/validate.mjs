@@ -62,7 +62,11 @@ const checks = [
   ['standalone editor supports quality, speed, framing and positioning controls', read('montage-editor.js').includes('Qualité de sortie') && read('montage-editor.js').includes('Position horizontale') && read('montage-editor.js').includes('Vitesse')],
   ['montage tool buttons clear and switch the inspector panel', /function renderInspectorForTool\(tool\)\{const tabMap/.test(read('montage-editor.js')) && /inspector\.replaceChildren\(\)/.test(read('montage-editor.js')) && /renderInspectorForTool\(b\.dataset\.tool\)/.test(read('montage-editor.js'))],
   ['desktop marketing page restores vertical scrolling and scrollbar', /overflow-y: scroll !important/.test(read('studio-viewport.css')) && /position: relative !important/.test(read('studio-viewport.css')) && /scrollbar-gutter: stable/.test(read('studio-viewport.css'))],
-  ['montage editor asset cache revisions are refreshed', /montage-editor\.js\?v=2/.test(read('montage.html')) && /montage\.css\?v=2/.test(read('montage.html')) && /studio-viewport\.css\?v=5/.test(read('index.html'))]
+  ['montage editor asset cache revisions are refreshed', /montage-editor\.js\?v=2/.test(read('montage.html')) && /montage\.css\?v=2/.test(read('montage.html')) && /studio-viewport\.css\?v=6/.test(read('index.html'))],
+  ['device-aware responsive mode handles mobile desktop-site browsers', read('index.html').includes('responsive-overrides.css?v=1') && read('index.html').includes('device-layout.js?v=1') && /jv-touch-mobile/.test(read('device-layout.js'))],,
+  ['mobile layout switches to a compact one-column view and drawer menu', /body\.jv-touch-mobile \.studio\{display:block/.test(read('responsive-overrides.css')) && /jv-touch-mobile/.test(read('mobile-drawer.js'))],,
+  ['desktop document scrolling is enabled with a visible scrollbar', /overflow-y:auto!important/.test(read('responsive-overrides.css')) && /::-webkit-scrollbar-thumb/.test(read('responsive-overrides.css'))],,
+  ['photo montage is positioned beside the media library', /mediaLink\.insertAdjacentElement\("afterend",nav\)/.test(read('photo-studio.js'))]
 ];
 for (const [label, ok] of checks) {
   console.log((ok ? 'PASS ' : 'FAIL ') + label);

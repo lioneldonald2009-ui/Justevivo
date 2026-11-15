@@ -1,0 +1,59 @@
+/* JUSTEVIVO responsive correction — mobile devices even when Chrome requests desktop site */
+:root{scrollbar-gutter:stable}
+html,body{min-height:100%;max-width:100%}
+@media (min-width:761px){
+  html,body{height:auto!important;min-height:100%!important;overflow-x:hidden!important;overflow-y:auto!important;scrollbar-gutter:stable}
+  body{overflow-y:auto!important}
+  body>main{display:block!important;overflow:visible!important;min-height:0!important}
+  .topbar{position:sticky!important;top:0!important;z-index:1000!important}
+  .studio-section{position:relative!important;inset:auto!important;z-index:auto!important;width:100%!important;max-width:none!important;height:auto!important;min-height:calc(100vh - 76px)!important;max-height:none!important;overflow:visible!important;display:block!important;padding:28px clamp(12px,2vw,30px)!important;margin:0!important}
+  .studio-section>.section-heading{display:flex!important}
+  .studio{height:auto!important;min-height:680px!important;max-height:none!important;overflow:visible!important;align-items:stretch!important}
+  .studio>.jv-sidebar{position:sticky!important;top:82px!important;height:calc(100vh - 100px)!important;min-height:620px!important;max-height:calc(100vh - 100px)!important;overflow-x:hidden!important;overflow-y:auto!important;align-self:start!important}
+  .studio>.workspace{height:auto!important;min-height:680px!important;max-height:none!important;overflow:visible!important}
+  html::-webkit-scrollbar,body::-webkit-scrollbar{width:13px!important}
+  html::-webkit-scrollbar-track,body::-webkit-scrollbar-track{background:#0b1020!important}
+  html::-webkit-scrollbar-thumb,body::-webkit-scrollbar-thumb{background:#7866b8!important;border:3px solid #0b1020!important;border-radius:12px!important}
+  .jv-extra-nav{order:initial!important;margin-top:2px!important}
+}
+/* Hardware-aware mobile mode: this also applies when the browser is in "Desktop site" mode. */
+body.jv-touch-mobile,body.jv-touch-mobile html{width:100%!important;max-width:100%!important;overflow-x:hidden!important}
+body.jv-touch-mobile{min-width:0!important;overflow-y:auto!important;-webkit-text-size-adjust:100%!important}
+body.jv-touch-mobile .topbar{position:sticky!important;top:0!important;z-index:1000!important;display:flex!important;flex-wrap:wrap!important;gap:8px!important;min-height:58px!important;padding:9px 12px!important}
+body.jv-touch-mobile .topbar nav{display:none!important}
+body.jv-touch-mobile .topbar .brand{font-size:17px!important}
+body.jv-touch-mobile .topbar-actions{display:flex!important;gap:6px!important;margin-left:auto!important;width:auto!important}
+body.jv-touch-mobile .topbar-actions .top-cta{font-size:11px!important;padding:9px 10px!important}
+body.jv-touch-mobile .hero{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:22px!important;width:100%!important;max-width:100%!important;padding:42px 17px 34px!important}
+body.jv-touch-mobile .hero-copy{width:100%!important;max-width:none!important}
+body.jv-touch-mobile .hero h1{font-size:clamp(34px,9vw,48px)!important;line-height:1.05!important;overflow-wrap:anywhere!important}
+body.jv-touch-mobile .hero p{font-size:15px!important;line-height:1.6!important}
+body.jv-touch-mobile .hero-art{width:100%!important;max-width:100%!important;min-width:0!important}
+body.jv-touch-mobile .video-card{width:100%!important;max-width:100%!important}
+body.jv-touch-mobile .float-tag{display:none!important}
+body.jv-touch-mobile .feature-strip{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:10px!important;padding:14px!important}
+body.jv-touch-mobile .marketing-showcase,body.jv-touch-mobile .marketing-features,body.jv-touch-mobile .marketing-usecases,body.jv-touch-mobile .marketing-faq{width:100%!important;max-width:100%!important;padding:42px 15px!important}
+body.jv-touch-mobile .showcase-grid,body.jv-touch-mobile .marketing-feature-grid,body.jv-touch-mobile .usecase-grid{display:grid!important;grid-template-columns:minmax(0,1fr)!important;gap:14px!important}
+body.jv-touch-mobile .showcase-main{grid-column:auto!important}
+body.jv-touch-mobile .showcase-visual,body.jv-touch-mobile .showcase-main .showcase-visual{min-height:205px!important}
+body.jv-touch-mobile .marketing-heading h2{font-size:clamp(26px,7vw,36px)!important;line-height:1.12!important}
+body.jv-touch-mobile .plans-section{padding:42px 15px!important}
+body.jv-touch-mobile .plans-grid{display:grid!important;grid-template-columns:minmax(0,1fr)!important;max-width:520px!important;margin-inline:auto!important}
+body.jv-touch-mobile .plan-card{width:100%!important;max-width:none!important}
+body.jv-touch-mobile .site-footer{display:flex!important;flex-direction:column!important;gap:10px!important;padding:24px 16px!important;text-align:center!important}
+body.jv-touch-mobile .site-footer nav{display:flex!important;flex-wrap:wrap!important;justify-content:center!important;gap:7px!important}
+body.jv-touch-mobile .studio-section{position:relative!important;inset:auto!important;width:100%!important;max-width:100%!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;margin:0!important;padding:0!important}
+body.jv-touch-mobile .studio-section>.section-heading{display:none!important}
+body.jv-touch-mobile .studio{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important}
+body.jv-touch-mobile .studio>.jv-sidebar,body.jv-touch-mobile .studio>.sidebar{position:fixed!important;top:0!important;bottom:0!important;left:0!important;z-index:10020!important;display:flex!important;flex-direction:column!important;align-items:stretch!important;width:min(84vw,310px)!important;height:100dvh!important;max-height:100dvh!important;min-height:0!important;overflow-x:hidden!important;overflow-y:auto!important;padding:18px 14px calc(24px + env(safe-area-inset-bottom))!important;background:linear-gradient(180deg,#101329,#090d20 72%,#17103a)!important;box-shadow:18px 0 50px #05071366!important;transform:translateX(-110%)!important;visibility:hidden!important;transition:transform .24s ease,visibility .24s ease!important}
+body.jv-touch-mobile.jv-menu-open .studio>.jv-sidebar,body.jv-touch-mobile.jv-menu-open .studio>.sidebar{transform:translateX(0)!important;visibility:visible!important}
+body.jv-touch-mobile .studio>.workspace{display:block!important;width:100%!important;max-width:100%!important;min-width:0!important;height:auto!important;max-height:none!important;min-height:0!important;overflow:visible!important;padding:14px 12px calc(28px + env(safe-area-inset-bottom))!important;border:0!important;border-radius:0!important}
+body.jv-touch-mobile .jv-mobile-menu-toggle{display:inline-flex!important;position:sticky!important;top:66px!important;z-index:10010!important;align-items:center!important;justify-content:center!important;gap:9px!important;min-height:44px!important;margin:9px 12px!important;padding:10px 15px!important;border:1px solid #d9d2f7!important;border-radius:12px!important;background:#fff!important;color:#4f2ca4!important;box-shadow:0 6px 20px #20204018!important;font:800 13px/1.1 'DM Sans',sans-serif!important}
+body.jv-touch-mobile .jv-mobile-menu-backdrop{display:block!important;position:fixed!important;inset:0!important;z-index:10015!important;background:rgba(5,8,22,.58)!important;opacity:0!important;visibility:hidden!important;transition:opacity .2s ease,visibility .2s ease!important}
+body.jv-touch-mobile.jv-menu-open .jv-mobile-menu-backdrop{opacity:1!important;visibility:visible!important}
+body.jv-touch-mobile .jv-sidebar .side-link,body.jv-touch-mobile .jv-sidebar-new{width:100%!important;min-height:42px!important;white-space:normal!important}
+body.jv-touch-mobile .workspace-page{width:100%!important;max-width:100%!important;min-width:0!important;overflow-wrap:anywhere!important}
+body.jv-touch-mobile .jv-template-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+body.jv-touch-mobile .jvp-grid{grid-template-columns:minmax(0,1fr)!important}
+body.jv-touch-mobile .jv-extra-nav{margin-top:2px!important}
+@media(prefers-reduced-motion:reduce){body.jv-touch-mobile .studio>.jv-sidebar,body.jv-touch-mobile .jv-mobile-menu-backdrop{transition:none!important}}

@@ -16,7 +16,7 @@
     backdrop.setAttribute("aria-label","Fermer le menu");
     studio.parentNode.insertBefore(toggle,studio);
     document.body.appendChild(backdrop);
-    const isMobile=()=>window.matchMedia("(max-width: 760px)").matches;
+    const isMobile=()=>document.body.classList.contains("jv-touch-mobile")||window.matchMedia("(max-width: 760px)").matches;
     const close=()=>{document.body.classList.remove("jv-menu-open");toggle.setAttribute("aria-expanded","false");};
     const open=()=>{if(!isMobile())return;document.body.classList.add("jv-menu-open");toggle.setAttribute("aria-expanded","true");};
     toggle.addEventListener("click",()=>document.body.classList.contains("jv-menu-open")?close():open());

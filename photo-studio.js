@@ -7,7 +7,7 @@
     const nav=document.createElement("button");
     nav.type="button";nav.className="side-link jv-extra-nav";nav.dataset.page="photo-studio";
     nav.innerHTML='<span aria-hidden="true">▧</span><span>Montage photo</span>';
-    sidebar.appendChild(nav);
+    const mediaLink=sidebar.querySelector('.side-link[data-page="media"]');if(mediaLink)mediaLink.insertAdjacentElement("afterend",nav);else sidebar.appendChild(nav);
     const page=document.createElement("section");page.id="jv-photo-studio";page.className="workspace-page";page.hidden=true;
     page.innerHTML=`
       <style>

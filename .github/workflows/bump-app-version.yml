@@ -1,0 +1,44 @@
+name: Bump JUSTEVIVO app version
+on:
+  push:
+    branches: [main]
+    paths-ignore:
+      - 'app-version.json'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  bump-version:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Increment patch version and update manifest
+        run: |
+          node <<'NODE'
+          const fs = require('fs');
+          const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
+          const parts = String(pkg.version || '1.0.0').split('.').map(n => parseInt(n, 10) || 0);
+          parts[2] += 1;
+          const version = parts.join('.');
+          pkg.version = version;
+          fs.writeFileSync('package.json', JSON.stringify(pkg, null, 2) + '\n');
+          const manifest = JSON.parse(fs.readFileSync('app-version.json', 'utf8'));
+          manifest.latestVersion = version;
+          manifest.minimumVersion = version;
+          manifest.releaseNotes = ['Nouvelle version de JUSTEVIVO disponible.'];
+          fs.writeFileSync('app-version.json', JSON.stringify(manifest, null, 2) + '\n');
+          const manager = fs.readFileSync('update-manager.js', 'utf8')
+            .replace(/const BUILD_VERSION = '[^']+';/, "const BUILD_VERSION = '" + version + "';");
+          fs.writeFileSync('update-manager.js', manager);
+          console.log('JUSTEVIVO version:', version);
+          NODE
+      - name: Commit version manifest
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add package.json app-version.json update-manager.js
+          git commit -m "chore: bump JUSTEVIVO version [skip ci]"
+          git push

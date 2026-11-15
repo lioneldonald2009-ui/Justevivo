@@ -336,6 +336,77 @@
   updatePasswordBtn.hidden = true;
 
 
+  // Cloudflare Turnstile : le jeton doit être transmis à Supabase pour chaque tentative d'auth.
+  let captchaToken = '';
+  let captchaWidgetId = null;
+  let captchaLoading = false;
+  const captchaWrap = mk('div', {
+    margin: '4px 0 12px', padding: '10px', border: '1px solid #34405f',
+    borderRadius: '8px', background: '#0b1122'
+  });
+  const captchaWidget = mk('div');
+  captchaWidget.id = 'jv-auth-turnstile';
+  const captchaHint = mk('div', { color: '#aeb8d0', fontSize: '11px', marginTop: '6px' });
+  captchaWrap.append(captchaWidget, captchaHint);
+  captchaWrap.hidden = true;
+
+  function resetCaptcha() {
+    captchaToken = '';
+    if (window.turnstile && captchaWidgetId !== null) {
+      try { window.turnstile.reset(captchaWidgetId); } catch (_) {}
+    }
+  }
+
+  function renderCaptcha() {
+    if (!cfg.captchaSiteKey) {
+      captchaWrap.hidden = true;
+      return;
+    }
+    captchaWrap.hidden = false;
+    if (window.turnstile) {
+      if (captchaWidgetId === null) {
+        captchaWidgetId = window.turnstile.render(captchaWidget, {
+          sitekey: cfg.captchaSiteKey,
+          theme: 'auto',
+          callback: token => {
+            captchaToken = token;
+            captchaHint.textContent = 'Contrôle de sécurité validé.';
+          },
+          'expired-callback': () => {
+            captchaToken = '';
+            captchaHint.textContent = 'Le contrôle a expiré. Validez-le à nouveau.';
+          },
+          'error-callback': () => {
+            captchaToken = '';
+            captchaHint.textContent = 'Le contrôle ne peut pas être chargé. Actualisez la page.';
+          }
+        });
+      }
+      return;
+    }
+    if (captchaLoading) return;
+    captchaLoading = true;
+    const script = document.createElement('script');
+    script.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+    script.async = true;
+    script.defer = true;
+    script.onload = () => { captchaLoading = false; renderCaptcha(); };
+    script.onerror = () => {
+      captchaLoading = false;
+      captchaHint.textContent = 'Impossible de charger le contrôle anti-robot. Vérifiez votre connexion.';
+    };
+    document.head.appendChild(script);
+  }
+
+  function getCaptchaToken() {
+    if (cfg.captchaSiteKey && !captchaToken) {
+      msg.textContent = 'Validez le contrôle anti-robot avant de continuer.';
+      renderCaptcha();
+      return null;
+    }
+    return captchaToken || undefined;
+  }
+
   const closeBtn = document.createElement('button');
   closeBtn.type = 'button';
   closeBtn.className = 'button ghost full';
@@ -457,7 +528,7 @@
     msg.textContent = 'Connexion en cours...';
 
     try {
-      const d = await authCall('token?grant_type=password', { email: f.email, password: f.pass });
+      const d = await authCall('token?grant_type=password', { email: f.email, password: f.pass, ...(captcha ? { captcha_token: captcha } : {}) });
       if (!d.user || !d.user.email_confirmed_at) {
         throw new Error('Votre adresse email n’est pas encore confirmée. Ouvrez le message envoyé par JUSTEVIVO, puis réessayez.');
       }
@@ -757,7 +828,7 @@
         const d = await res.json();
 
         if (d && d.enabled && d.url && d.anonKey) {
-          cfg = { enabled: true, ready: true, url: d.url, key: d.anonKey,  };
+          cfg = { enabled: true, ready: true, url: d.url, key: d.anonKey, captchaSiteKey: d.captchaSiteKey || '' };
         } else {
           cfg = { enabled: false, ready: true };
         }

@@ -1,0 +1,39 @@
+/* Montage Studio — distinct, readable surfaces in light mode */
+body.light{--bg:#edf1f8;--panel:#fff;--panel2:#e7edf7;--line:#cbd5e4;--muted:#4d5d75;--text:#172033}
+body.light .topbar{background:#fff;border-bottom-color:#d2dbea}
+body.light .left-tools{background:#f8faff;border-right-color:#d2dbea}
+body.light .center-stage{background:#edf1f8}
+body.light .tool.active,body.light .tool:hover{background:linear-gradient(145deg,#e9e4ff,#f4f1ff);border-color:#b8a8f2;color:#4932a8}
+body.light .stage-head .eyebrow{color:#5944c5}
+body.light .preview-wrap{background:radial-gradient(ellipse at 50% 35%,#ffffff 0,#e2e8f3 58%,#d5deec 100%);border-color:#cbd5e4}
+body.light .empty-preview{color:#172033}
+body.light .empty-preview .empty-icon{color:#654be8}
+body.light .timeline-panel{background:linear-gradient(180deg,#fff,#f6f8fc);border-color:#cbd5e4}
+body.light .timeline-track{background:#f1f4fa;border-radius:8px}
+body.light .clip-card{background:#dce5f2;border-color:#c4d0e1}
+body.light .clip-card.selected{border-color:#7558e8;box-shadow:0 0 0 2px #7558e822}
+body.light .timeline-subtitles{background:linear-gradient(90deg,#eee9ff,#f7f3ff);border-color:#c8baf4;color:#4932a8}
+body.light .timeline-subtitles>strong{color:#4932a8}
+body.light .timeline-audio{background:#e4f5ef;border-color:#a9d8c8;color:#17634f}
+body.light .inspector{background:#fff;border-left-color:#d2dbea}
+body.light .inspector-tabs{background:#f2f4fa}
+body.light .inspector-tabs button.active{background:#ebe6ff;color:#4932a8}
+body.light .section-title{color:#172033}
+body.light .field label{color:#34445d}
+body.light .field input,body.light .field select,body.light .field textarea,body.light .scene-field input,body.light .music-card input[type=number]{background:#fff;color:#172033;border-color:#c5cede}
+body.light .field input::placeholder,body.light .field textarea::placeholder{color:#68758b;opacity:1}
+body.light .inspector .action{background:#f0ebff;color:#4932a8;border-color:#c9baf4}
+body.light .inspector .action.primary,body.light .top-actions .export,body.light .primary{background:linear-gradient(135deg,#654be8,#8c45cf);color:#fff}
+body.light .template-toolbar button{background:#fff;color:#34445d}
+body.light .template-toolbar button.active{background:#e9e4ff;color:#4932a8}
+body.light .template-card{background:#fff;border-color:#d2dbea}
+body.light .template-card-body strong{color:#172033}
+body.light .template-card-body small{color:#4d5d75}
+body.light .scene-field,body.light .keyframe-row,body.light .music-card{background:#f6f8fc;border-color:#d2dbea;color:#172033}
+body.light .music-card button{background:#eee9ff;color:#4932a8;border-color:#c9baf4}
+body.light .transport{color:#34445d}
+body.light .transport input{accent-color:#654be8}
+body.light .transport select{background:#fff;color:#172033;border-color:#c5cede}
+body.light .timeline-empty{background:#f8faff;color:#4d5d75;border-color:#c5cede}
+body.light .quality-note,body.light .track-empty{color:#4d5d75}
+body.light .project-name{color:#172033}

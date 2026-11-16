@@ -44,16 +44,12 @@ jobs:
           git add package.json app-version.json update-manager.js
           git commit -m "chore: bump JUSTEVIVO version [skip ci]"
           git push
-          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null 2>&1; then
-            echo "Tag v$VERSION already exists; keeping the existing release tag."
+          git tag "v$VERSION"
+          git push origin "v$VERSION"
+          if [ -n "$ANDROID_KEYSTORE_BASE64" ] && [ -n "$ANDROID_KEYSTORE_PASSWORD" ] && [ -n "$ANDROID_KEY_ALIAS" ] && [ -n "$ANDROID_KEY_PASSWORD" ]; then
+            gh workflow run release-android.yml --ref main
           else
-            git tag "v$VERSION"
-            git push origin "v$VERSION"
-            if [ -n "$ANDROID_KEYSTORE_BASE64" ] && [ -n "$ANDROID_KEYSTORE_PASSWORD" ] && [ -n "$ANDROID_KEY_ALIAS" ] && [ -n "$ANDROID_KEY_PASSWORD" ]; then
-              gh workflow run release-android.yml --ref "v$VERSION"
-            else
-              echo "Android release not dispatched: signing secrets are not configured yet."
-            fi
+            echo "Android release not dispatched: signing secrets are not configured yet."
           fi
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

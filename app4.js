@@ -6,6 +6,10 @@
   const CHUNK_SEC = 540;                 // environ 9 minutes par morceau
   const LABEL = 'Générer les sous-titres IA';
 
+  // app4.js est aussi chargé sur la page d'accueil pour des raisons historiques.
+  // Ne démarrer le module de transcription que sur la page qui contient l'éditeur.
+  if (!videoPreview || !videoInput || !transcribeButton) return;
+
   const sleep = ms => new Promise(r => setTimeout(r, ms));
 
   // Aperçu léger : ne charge pas toute la vidéo d'avance

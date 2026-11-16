@@ -47,6 +47,7 @@
     const msg = String(d.msg || d.error_description || d.message || d.error || '');
     const low = (code + ' ' + msg).toLowerCase();
 
+    if (low.includes('captcha')) return 'La vérification anti-robot n’a pas transmis son jeton. Attendez que le contrôle soit validé, puis réessayez.';
     if (low.includes('invalid_credentials') || low.includes('invalid login')) return 'Email ou mot de passe incorrect.';
     if (low.includes('already')) return 'Un compte existe déjà avec cet email. Connectez-vous.';
     if (low.includes('weak_password') || low.includes('password should')) return 'Mot de passe trop faible : 8 caractères minimum.';
@@ -307,33 +308,6 @@
   signUpBtn.className = 'button ghost full';
   signUpBtn.textContent = 'Créer un compte gratuit';
 
-  // Aide discrète affichant les exigences du mot de passe pendant l'inscription.
-  const passwordHelpRow = mk('div', {
-    display: 'flex', justifyContent: 'flex-end', margin: '-2px 0 10px'
-  });
-  const passwordHelpBtn = document.createElement('button');
-  passwordHelpBtn.type = 'button';
-  passwordHelpBtn.textContent = 'ⓘ Exigences du mot de passe';
-  passwordHelpBtn.setAttribute('aria-expanded', 'false');
-  passwordHelpBtn.setAttribute('aria-controls', 'jv-password-requirements');
-  Object.assign(passwordHelpBtn.style, {
-    border: '0', background: 'transparent', color: '#c9b8ff', cursor: 'pointer',
-    font: 'inherit', fontSize: '11px', fontWeight: '700', padding: '4px 0'
-  });
-  const passwordHelpPanel = mk('div', {
-    display: 'none', padding: '9px 11px', margin: '0 0 10px',
-    border: '1px solid #34405f', borderRadius: '8px',
-    background: '#18213a', color: '#e4e9f5', fontSize: '12px', lineHeight: '1.5'
-  }, 'Pour créer votre compte, votre mot de passe doit contenir au minimum 8 caractères.');
-  passwordHelpPanel.id = 'jv-password-requirements';
-  passwordHelpBtn.addEventListener('click', () => {
-    const expanded = passwordHelpBtn.getAttribute('aria-expanded') === 'true';
-    passwordHelpBtn.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-    passwordHelpBtn.textContent = expanded ? 'ⓘ Exigences du mot de passe' : 'Masquer les exigences';
-    passwordHelpPanel.style.display = expanded ? 'none' : 'block';
-  });
-  passwordHelpRow.appendChild(passwordHelpBtn);
-
   const forgotPasswordBtn = document.createElement('button');
   forgotPasswordBtn.type = 'button';
   forgotPasswordBtn.className = 'button ghost full';
@@ -367,7 +341,7 @@
   closeBtn.className = 'button ghost full';
   closeBtn.textContent = 'Fermer';
 
-  [title, msg, emailInput, passWrap, passwordHelpRow, passwordHelpPanel, signInBtn, signUpBtn, forgotPasswordBtn,
+  [title, msg, emailInput, passWrap, signInBtn, signUpBtn, forgotPasswordBtn,
    recoveryFields, updatePasswordBtn, closeBtn].forEach(e => card.appendChild(e));
 
 
@@ -532,6 +506,7 @@
     } catch (e) {
       msg.textContent = e.message;
     } finally {
+      resetCaptcha();
       busy(false);
     }
   });
@@ -782,7 +757,7 @@
         const d = await res.json();
 
         if (d && d.enabled && d.url && d.anonKey) {
-          cfg = { enabled: true, ready: true, url: d.url, key: d.anonKey };
+          cfg = { enabled: true, ready: true, url: d.url, key: d.anonKey,  };
         } else {
           cfg = { enabled: false, ready: true };
         }

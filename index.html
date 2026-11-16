@@ -47,14 +47,13 @@
       <a href="#usecases">Pour qui ?</a>
       <a href="#pricing">Tarifs</a>
       <a href="#faq">FAQ</a>
-      <button type="button" class="jv-welcome-tutorial-trigger" id="jvWelcomeTutorialOpen" aria-haspopup="dialog" aria-controls="jvWelcomeTutorial">▶ Tutoriel</button>
     </nav>
     <div class="topbar-actions">
       <button class="app-install-cta" id="installAppBtn" type="button" aria-label="Installer JUSTEVIVO AI">
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v3h14v-3"/></svg>
         <span>Installer l'application</span>
       </button>
-      <a class="top-cta" href="montage.html">Mon studio <span>↗</span></a>
+      <a class="top-cta" href="#studio">Ouvrir le studio <span>↗</span></a>
     </div>
   </header>
 
@@ -65,7 +64,7 @@
         <h1>Transformez vos vidéos en contenus <span>irrésistibles.</span></h1>
         <p>JUSTEVIVO vous aide à monter plus vite : sous-titres dynamiques, coupes intelligentes et outils créatifs réunis dans un seul studio.</p>
         <div class="hero-actions">
-          <a class="button primary" href="montage.html">Essayer JUSTEVIVO <b>→</b></a>
+          <a class="button primary" href="#studio">Essayer JUSTEVIVO <b>→</b></a>
           <a class="button ghost" href="#showcase">Voir les démonstrations</a>
         </div>
         <div class="hero-proof">
@@ -145,7 +144,7 @@
       </div>
     </section>
 
-    <section class="studio-section jv-home-studio-hidden" id="studio" aria-hidden="true">
+    <section class="studio-section" id="studio">
       <div class="section-heading">
         <div>
           <div class="eyebrow">VOTRE ESPACE DE CRÉATION</div>
@@ -297,17 +296,10 @@
         <p>Commencez simplement, puis évoluez selon votre rythme de création.</p>
       </div>
 
-      <section id="jv-novdec-promo-public" style="max-width:980px;margin:24px auto;padding:24px;border:1px solid #8c6cff;border-radius:18px;background:linear-gradient(120deg,#17152c,#282044);color:#fff">
-        <div style="display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap">
-          <div><span style="font-size:11px;font-weight:800;letter-spacing:1.4px;color:#c9b8ff">OFFRE SPÉCIALE · NOVEMBRE & DÉCEMBRE 2026</span><h3 style="margin:8px 0;font-size:clamp(22px,3vw,30px)">−30 % pour les 60 premiers abonnés</h3><p style="margin:0;color:#ded9ee">Sur le premier mois uniquement. Offre valable jusqu'au 31 décembre 2026 ou jusqu'à épuisement des places.</p></div>
-          <div style="min-width:145px;text-align:center"><strong id="jv-public-promo-remaining" style="display:block;font-size:32px">— / 60</strong><span id="jv-public-promo-status" style="font-size:12px;color:#ded9ee">Chargement du compteur…</span></div>
-        </div>
-        <div style="height:9px;margin-top:16px;border-radius:99px;background:#ffffff2b;overflow:hidden"><i id="jv-public-promo-progress" style="display:block;width:0;height:100%;background:#a78bfa;border-radius:99px"></i></div>
-      </section>
       <div class="plans-grid">
         <article class="plan-card">
           <span class="plan">JUSTEVIVO STARTER</span>
-          <div class="plan-price"><del style="opacity:.55;font-size:.75em">$15</del> $10.50 <small>/ mois le 1er mois</small></div>
+          <div class="plan-price">$15 <small>/ mois</small></div>
           <div class="video-limit">25 <span>vidéos par mois</span></div>
           <p class="plan-description">Pour commencer à créer régulièrement.</p>
           <ul>
@@ -324,7 +316,7 @@
         <article class="plan-card featured-plan">
           <div class="popular-tag">LE PLUS POPULAIRE</div>
           <span class="plan">JUSTEVIVO PRO</span>
-          <div class="plan-price"><del style="opacity:.55;font-size:.75em">$20</del> $14 <small>/ mois le 1er mois</small></div>
+          <div class="plan-price">$20 <small>/ mois</small></div>
           <div class="video-limit">50 <span>vidéos par mois</span></div>
           <p class="plan-description">Pour les créateurs actifs et les réseaux sociaux.</p>
           <ul>
@@ -340,7 +332,7 @@
 
         <article class="plan-card">
           <span class="plan">JUSTEVIVO BUSINESS</span>
-          <div class="plan-price"><del style="opacity:.55;font-size:.75em">$30</del> $21 <small>/ mois le 1er mois</small></div>
+          <div class="plan-price">$30 <small>/ mois</small></div>
           <div class="video-limit">110 <span>vidéos par mois</span></div>
           <p class="plan-description">Pour les équipes et les gros volumes.</p>
           <ul>
@@ -355,9 +347,7 @@
         </article>
       </div>
 
-      <div class="plans-note jv-photo-plan-note"><strong>Montage photo inclus dans JUSTEVIVO</strong><p>Starter : outils essentiels (formats, transitions, filtres, texte et modèles de base). Pro : modèles animés, effets de mouvement et bibliothèque musicale. Business : accès complet aux outils créatifs photo et vidéo pour les usages à volume élevé.</p><small>Les quotas photo dédiés ne sont pas encore activés côté serveur : aucun nombre mensuel de montages photo n’est promis ni facturé séparément à ce stade.</small></div>
-
-    <p class="plans-note">
+      <p class="plans-note">
         Compte gratuit : 3 vidéos traitées par mois, jusqu’à 1 minute chacune et 10 opérations IA par jour.
         Les opérations IA désignent la transcription, les sous-titres et la traduction. La génération de vidéos par IA n’est proposée dans aucune formule.
       </p>
@@ -384,7 +374,6 @@
   <div class="toast" id="toast" role="status"></div>
 
   <!-- Éditeur principal : charge lui-même app2.js puis app3.js -->
-  <script src="update-manager.js?v=1.0.10"></script>
   <script src="app.js"></script>
 
   <!-- Modules complémentaires -->
@@ -393,12 +382,12 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app6.js?v=11"></script>
   <script src="app7.js"></script>
-  <script src="navigation.js?v=30"></script>
+  <script src="navigation.js?v=28"></script>
   <script src="app8.js"></script>
   <script src="app9.js"></script>
   <script src="app10.js"></script>
   <script src="creative-suite.js?v=14"></script>
-  <script src="photo-studio.js?v=9"></script>
+  <script src="photo-studio.js?v=8"></script>
   <script src="smart-cut.js?v=3"></script>
   <script src="editor-essentials.js?v=3"></script>
   <script src="advanced-studio.js?v=7"></script>
@@ -411,24 +400,5 @@
       window.addEventListener("load", () => navigator.serviceWorker.register("/sw.js").catch(error => console.warn("JUSTEVIVO offline support unavailable:", error)));
     }
   </script>
-<script>
-(function(){
-  const endpoint="https://justevivo-backend.onrender.com/api/promotions/nov-dec-2026";
-  async function refresh(){
-    const box=document.getElementById("jv-novdec-promo-public");if(!box)return;
-    try{
-      const r=await fetch(endpoint,{cache:"no-store"});if(!r.ok)throw new Error("unavailable");
-      const p=await r.json(),left=Math.max(0,Number(p.remaining)||0),claimed=Math.max(0,Number(p.claimed)||0);
-      const count=document.getElementById("jv-public-promo-remaining"),status=document.getElementById("jv-public-promo-status"),bar=document.getElementById("jv-public-promo-progress");
-      if(count)count.textContent=left+" / 60";
-      if(status)status.textContent=p.active?claimed+" abonnement(s) confirmé(s) · "+left+" place(s) restante(s)":"Offre terminée ou quota atteint";
-      if(bar)bar.style.width=Math.min(100,claimed/60*100)+"%";
-      if(!p.active){box.querySelector("h3").textContent=claimed>=60?"Les 60 places ont été attribuées":"La campagne promotionnelle est terminée";box.querySelector("p").textContent="Les tarifs standards s'appliquent désormais.";document.querySelectorAll(".plan-price").forEach((node,i)=>{node.innerHTML=["$15 <small>/ mois</small>","$20 <small>/ mois</small>","$30 <small>/ mois</small>"][i]||node.innerHTML;});}
-    }catch(_){const s=document.getElementById("jv-public-promo-status");if(s)s.textContent="Compteur momentanément indisponible";}
-  }
-  refresh();window.setInterval(refresh,60000);
-})();
-</script>
-  <script src="welcome-tutorial.js?v=1" defer></script>
 </body>
 </html>

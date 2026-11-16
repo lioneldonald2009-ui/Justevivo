@@ -118,6 +118,3 @@ html[data-theme="dark"] .faq-list p{color:#c4ccda!important}
   .plan-card{max-width:none!important}
   .how-section .steps{grid-template-columns:1fr!important}
 }
-
-/* La page d'accueil reste une vitrine : le studio s'ouvre dans son espace dédié. */
-.jv-home-studio-hidden{display:none!important}

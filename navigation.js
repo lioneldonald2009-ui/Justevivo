@@ -60,56 +60,15 @@ document.addEventListener("DOMContentLoaded", function () {
     subscriptionPage.innerHTML = `
       <div class="jv-account-heading"><div><span class="jv-account-eyebrow">JUSTEVIVO AI · OFFRES</span><h3>Formules & abonnement</h3><p>Comparez les offres et consultez les limites de votre espace.</p></div><button type="button" class="jv-profile-edit" id="jv-subscription-back">← Retour au tableau de bord</button></div>
       <div class="jv-subscription-current"><div><span class="jv-card-kicker">VOTRE FORMULE ACTUELLE</span><h4 id="jv-subscription-current-plan">Chargement de votre formule…</h4><p id="jv-subscription-current-note">Les informations de votre compte seront affichées ici.</p></div><button type="button" id="jv-subscription-refresh">Actualiser mon compte</button></div>
-      <section id="jv-novdec-promo" style="margin:18px 0;padding:22px;border:1px solid #8c6cff;border-radius:18px;background:linear-gradient(120deg,#17152c,#282044);color:#fff">
-        <span style="font-size:11px;font-weight:800;letter-spacing:1.5px;color:#c9b8ff">OFFRE SPÉCIALE NOVEMBRE & DÉCEMBRE 2026</span>
-        <div style="display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap">
-          <div><h3 style="margin:8px 0;font-size:28px">−30 % pour les 60 premiers abonnés</h3><p style="margin:0;color:#d7d2e8">Réduction sur le premier mois uniquement. Offre valable jusqu'au 31 décembre 2026 ou jusqu'à épuisement des 60 places.</p></div>
-          <div style="min-width:150px;text-align:center"><strong id="jv-promo-remaining" style="display:block;font-size:32px">— / 60</strong><span id="jv-promo-status" style="font-size:12px;color:#d7d2e8">Chargement du compteur…</span></div>
-        </div>
-        <div style="height:9px;margin-top:16px;border-radius:99px;background:#ffffff2b;overflow:hidden"><i id="jv-promo-progress" style="display:block;width:0;height:100%;background:#a78bfa;border-radius:99px"></i></div>
-      </section>
       <div class="jv-subscription-grid">
         <article><span class="jv-subscription-tag">DÉCOUVERTE</span><h4>Gratuit</h4><strong>0 FCFA <small>/ mois</small></strong><p>Pour découvrir JUSTEVIVO.</p><ul><li>3 vidéos par mois</li><li>Jusqu'à 1 minute par vidéo</li><li>Sous-titres IA essentiels</li><li>Accès au studio</li></ul><span class="jv-subscription-current-label">Essai gratuit</span></article>
-        <article><span class="jv-subscription-tag">POUR COMMENCER</span><h4>Starter</h4><strong><del style="opacity:.55;font-size:.8em">15 $</del> <span data-promo-price="starter">10,50 $</span> <small>/ mois le 1er mois</small></strong><p>Pour publier régulièrement.</p><ul><li>25 vidéos par mois</li><li>Jusqu'à 5 minutes par vidéo</li><li>Sous-titres automatiques</li><li>Styles essentiels</li><li>Export sans filigrane</li></ul><button type="button" data-subscription-plan="Starter">Choisir Starter</button></article>
-        <article class="jv-subscription-pro"><span class="jv-subscription-tag">LE PLUS POPULAIRE</span><h4>Pro</h4><strong><del style="opacity:.55;font-size:.8em">20 $</del> <span data-promo-price="pro">14 $</span> <small>/ mois le 1er mois</small></strong><p>Pour les créateurs actifs et les réseaux sociaux.</p><ul><li>50 vidéos par mois</li><li>Jusqu'à 10 minutes par vidéo</li><li>100 opérations IA par jour</li><li>Sous-titres et outils IA avancés</li><li>Modèles de texte animés</li><li>Export sans filigrane</li></ul><button type="button" data-subscription-plan="Pro">Choisir Pro</button></article>
-        <article><span class="jv-subscription-tag">POUR LES ÉQUIPES</span><h4>Business</h4><strong><del style="opacity:.55;font-size:.8em">30 $</del> <span data-promo-price="business">21 $</span> <small>/ mois le 1er mois</small></strong><p>Pour les productions soutenues.</p><ul><li>110 vidéos par mois</li><li>Jusqu'à 30 minutes par vidéo</li><li>Outils IA avancés</li><li>Personnalisation avancée</li><li>Export HD sans filigrane</li></ul><button type="button" data-subscription-plan="Business">Choisir Business</button></article>
+        <article><span class="jv-subscription-tag">POUR COMMENCER</span><h4>Starter</h4><strong>15 $ <small>/ mois</small></strong><p>Pour publier régulièrement.</p><ul><li>25 vidéos par mois</li><li>Jusqu'à 5 minutes par vidéo</li><li>Sous-titres automatiques</li><li>Styles essentiels</li><li>Export sans filigrane</li></ul><button type="button" data-subscription-plan="Starter">Choisir Starter</button></article>
+        <article class="jv-subscription-pro"><span class="jv-subscription-tag">LE PLUS POPULAIRE</span><h4>Pro</h4><strong>20 $ <small>/ mois</small></strong><p>Pour les créateurs actifs et les réseaux sociaux.</p><ul><li>50 vidéos par mois</li><li>Jusqu'à 10 minutes par vidéo</li><li>100 opérations IA par jour</li><li>Sous-titres et outils IA avancés</li><li>Modèles de texte animés</li><li>Export sans filigrane</li></ul><button type="button" data-subscription-plan="Pro">Choisir Pro</button></article>
+        <article><span class="jv-subscription-tag">POUR LES ÉQUIPES</span><h4>Business</h4><strong>30 $ <small>/ mois</small></strong><p>Pour les productions soutenues.</p><ul><li>110 vidéos par mois</li><li>Jusqu'à 30 minutes par vidéo</li><li>Outils IA avancés</li><li>Personnalisation avancée</li><li>Export HD sans filigrane</li></ul><button type="button" data-subscription-plan="Business">Choisir Business</button></article>
       </div>
       <p class="jv-subscription-notice">Paiement sécurisé par Dodo Payments · Abonnement mensuel renouvelé automatiquement. Votre formule JUSTEVIVO sera activée après confirmation sécurisée du paiement.</p>`;
     workspace.insertBefore(subscriptionPage, workspace.querySelector(".upload-zone"));
   }
-
-  // Compteur public de la campagne : le serveur ne compte que les abonnements confirmés par webhook.
-  async function refreshNovDecPromo() {
-    const box = document.getElementById("jv-novdec-promo");
-    if (!box) return;
-    try {
-      const response = await fetch(API_URL + "/api/promotions/nov-dec-2026", { cache: "no-store" });
-      if (!response.ok) throw new Error("promo status unavailable");
-      const promo = await response.json();
-      const remaining = Math.max(0, Number(promo.remaining) || 0);
-      const claimed = Math.max(0, Number(promo.claimed) || 0);
-      const count = document.getElementById("jv-promo-remaining");
-      const status = document.getElementById("jv-promo-status");
-      const progress = document.getElementById("jv-promo-progress");
-      if (count) count.textContent = remaining + " / 60";
-      if (status) status.textContent = promo.active ? claimed + " abonnement(s) confirmé(s) · " + remaining + " place(s) restante(s)" : "Offre terminée ou quota atteint";
-      if (progress) progress.style.width = Math.min(100, claimed / 60 * 100) + "%";
-      box.hidden = !promo.active && claimed === 0;
-      if (!promo.active) {
-        box.querySelector("h3").textContent = claimed >= 60 ? "Les 60 places ont été attribuées" : "La campagne promotionnelle est terminée";
-        box.querySelector("p").textContent = "Les tarifs standards s'appliquent désormais.";
-        box.querySelectorAll("[data-promo-price]").forEach(node => {
-          node.textContent = ({ starter: "15 $", pro: "20 $", business: "30 $" })[node.dataset.promoPrice];
-        });
-      }
-    } catch (_) {
-      // En cas d'indisponibilité du compteur, ne pas afficher de fausse disponibilité.
-      const status = document.getElementById("jv-promo-status");
-      if (status) status.textContent = "Compteur momentanément indisponible";
-    }
-  }
-  refreshNovDecPromo();
-  window.setInterval(refreshNovDecPromo, 60000);
 
   const editorHeading = workspace.querySelector(".workspace-head");
   const studioParts = [editorHeading, upload, editor, warning].filter(Boolean);
@@ -311,22 +270,7 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
     if (page === "upcoming") { openBroll(); return; }
-    if (page === "photo-studio") {
-      // Depuis une autre vue, recharger l'application sur la route du studio photo.
-      // Au chargement, photo-studio.js réactive ce menu avec le hash déjà présent :
-      // on affiche alors la vue sans relancer une nouvelle navigation.
-      if (window.location.hash !== "#photo-studio") {
-        window.location.assign(window.location.pathname + window.location.search + "#photo-studio");
-        return;
-      }
-      showStudio();
-      studioParts.forEach(el => { el.hidden = true; });
-      workspace.querySelectorAll(".workspace-page").forEach(view => { view.hidden = view.id !== "jv-photo-studio"; });
-      const photoView = document.getElementById("jv-photo-studio");
-      if (photoView) { photoView.hidden = false; workspaceBack.style.display = "inline-flex"; photoView.scrollIntoView({behavior:"instant",block:"start"}); }
-      else showNavigationNotice("Le studio photo n’a pas pu être chargé. Actualisez la page puis réessayez.");
-      return;
-    }
+    if (page === "photo-studio") return;
     if (page === "audio") { openAudioStudio(); return; }
     const viewByPage = {media:"media",clips:"clips",brand:"brand",timeline:"timeline",production:"production"};
     if (viewByPage[page]) { openSuiteView(viewByPage[page], page); return; }
@@ -344,7 +288,7 @@ document.addEventListener("DOMContentLoaded", function () {
   sidebar.addEventListener("click", event => {
     const link = event.target.closest(".side-link[data-page]");
     if (!link || !sidebar.contains(link)) return;
-    // Toutes les entrées de navigation sont traitées ici, y compris le studio photo.
+    if (link.dataset.page === "photo-studio") return; // Le module photo gère sa propre vue.
     event.preventDefault();
     event.stopImmediatePropagation();
     handleSidebarLink(link);

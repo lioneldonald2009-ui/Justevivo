@@ -1,0 +1,61 @@
+/* JUSTEVIVO — récupération du défilement et accès à la section Outils IA */
+html, body {
+  min-height: 100% !important;
+  overscroll-behavior-y: auto !important;
+}
+@media (min-width: 761px) {
+  html, body {
+    height: auto !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+  body {
+    position: relative !important;
+  }
+  body.jv-studio-only {
+    overflow-y: auto !important;
+  }
+  body > main {
+    overflow: visible !important;
+  }
+  .studio-section {
+    position: relative !important;
+    inset: auto !important;
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  .studio {
+    height: auto !important;
+    min-height: 640px !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  .studio > .workspace {
+    height: auto !important;
+    min-height: 640px !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  .tools-section {
+    position: relative !important;
+    display: block !important;
+    clear: both !important;
+    width: 100% !important;
+    scroll-margin-top: 82px !important;
+  }
+}
+@media (max-width: 760px) {
+  html, body {
+    height: auto !important;
+    overflow-x: hidden !important;
+    overflow-y: auto !important;
+  }
+  .tools-section {
+    position: relative !important;
+    display: block !important;
+    width: 100% !important;
+    scroll-margin-top: 70px !important;
+  }
+}

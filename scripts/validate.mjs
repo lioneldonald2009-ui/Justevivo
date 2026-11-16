@@ -59,7 +59,7 @@ const checks = [
   ['family collage templates', read('photo-studio.js').includes('layout:"trio"') && read('photo-studio.js').includes('layout:"family"') && read('photo-studio.js').includes('const drawTile=')],
   ['name presentation template', read('photo-studio.js').includes('Portraits & Prénoms') && read('photo-studio.js').includes('lastTemplateText')],
   ['standalone montage page loads its dedicated editor and styles', read('montage.html').includes('montage-editor.js') && read('montage.html').includes('montage.css')],
-  ['photo studio opens the new creative hub and its creation actions launch the standalone montage editor', read('photo-studio.js').includes('window.location.href="creative-studio.html"') && read('creative-studio.js').includes('location.href="montage.html"')],
+  ['photo studio opens its dedicated workspace while video actions launch the standalone montage editor', read('photo-studio.js').includes('window.location.hash === "#photo-studio"') && read('creative-studio.js').includes('location.assign("index.html#photo-studio")') && read('creative-studio.js').includes('location.assign("montage.html")')],
   ['standalone editor provides timeline, templates and per-scene controls', read('montage-editor.js').includes('function renderTimeline()') && read('montage-editor.js').includes('function renderTemplatePanel()') && read('montage-editor.js').includes('Textes & titres de la scène')],
   ['standalone editor supports audio search, sound effects and video export', read('montage-editor.js').includes('/api/music/search') && read('montage-editor.js').includes('function playSfx') && read('montage-editor.js').includes('new MediaRecorder')],
   ['standalone editor supports quality, speed, framing and positioning controls', read('montage-editor.js').includes('Qualité de sortie') && read('montage-editor.js').includes('Position horizontale') && read('montage-editor.js').includes('Vitesse')],
@@ -76,6 +76,9 @@ const checks = [
   ['mobile layout switches to a compact one-column view and drawer menu', /body\.jv-touch-mobile \.studio\{display:block/.test(read('responsive-overrides.css')) && /jv-touch-mobile/.test(read('mobile-drawer.js'))],
   ['desktop document scrolling is enabled with a visible scrollbar', /overflow-y:auto!important/.test(read('responsive-overrides.css')) && /::-webkit-scrollbar-thumb/.test(read('responsive-overrides.css'))],
   ['photo montage is positioned beside the media library', /mediaLink\.insertAdjacentElement\("afterend",nav\)/.test(read('photo-studio.js'))],
+  ['creative hub separates video and photo editor routes', /data-open-video/.test(read('creative-studio.html')) && /data-open-photo/.test(read('creative-studio.html')) && /location\.assign\("montage\.html"\)/.test(read('creative-studio.js')) && /location\.assign\("index\.html#photo-studio"\)/.test(read('creative-studio.js'))],
+  ['photo studio deep link opens its dedicated workspace view', /window\.location\.hash === "#photo-studio"/.test(read('photo-studio.js')) && /view\.id !== "jv-photo-studio"/.test(read('navigation.js'))],
+  ['photo studio subscription feature map is visible', /Montage photo inclus dans JUSTEVIVO/.test(read('index.html')) && /bibliothèque musicale/.test(read('index.html'))],
   ['Windows desktop packaging does not require a publishing token', /electron-builder --win nsis portable --publish never/.test(read('.github/workflows/build-windows.yml'))],
   ['iOS simulator workflow targets generated Xcode project', /xcodebuild -project ios\/App\/App\.xcodeproj/.test(read('.github/workflows/build-native.yml'))]
 ];

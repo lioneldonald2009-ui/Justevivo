@@ -248,7 +248,7 @@
     }
     categories.forEach(category=>{const button=document.createElement("button");button.type="button";button.textContent=category;button.className=category==="Tous"?"active":"";button.addEventListener("click",()=>{activeCategory=category;categoryBox.querySelectorAll("button").forEach(b=>b.classList.toggle("active",b===button));renderTemplateCards();});categoryBox.append(button);});
     $("jvp-template-search").addEventListener("input",renderTemplateCards);renderTemplateCards();
-    nav.addEventListener("click",()=>{window.location.href="creative-studio.html";});
+    if (window.location.hash === "#photo-studio") nav.click();
   };
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
 })();

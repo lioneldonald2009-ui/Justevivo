@@ -48,7 +48,16 @@ body.jv-studio-only .jv-studio-home{display:inline-flex}
 .jv-return-home{display:inline-flex;align-items:center;gap:8px;margin:0 0 14px;padding:9px 13px;border:1px solid #e3def4;border-radius:11px;background:#fff;color:#4933bd;font-weight:700;font-size:12px;cursor:pointer}
 @media(max-width:760px){body.jv-studio-only .topbar{min-height:52px;padding:7px 12px}body.jv-studio-only .brand{font-size:13px}.jv-studio-home{padding:8px 10px}}
 </style>
-</head>
+<style id="jv-light-contrast-fix">
+html[data-theme="light"] body,html[data-theme="light"] main,html[data-theme="light"] .studio-section,html[data-theme="light"] .workspace,html[data-theme="light"] .workspace-page{color:#17243b!important}
+html[data-theme="light"] .workspace-page h1,html[data-theme="light"] .workspace-page h2,html[data-theme="light"] .workspace-page h3,html[data-theme="light"] .workspace-page h4,html[data-theme="light"] .workspace-head h3,html[data-theme="light"] .jv-account-heading h3,html[data-theme="light"] .jv-section-title h3,html[data-theme="light"] .jv-card-heading h4{color:#17243b!important}
+html[data-theme="light"] .workspace-page p,html[data-theme="light"] .workspace-page small,html[data-theme="light"] .workspace-page label,html[data-theme="light"] .workspace-head p,html[data-theme="light"] .demo-warning,html[data-theme="light"] .preview-note{color:#52617a!important}
+html[data-theme="light"] .workspace-page button:not(.primary):not(.jv-create-main),html[data-theme="light"] .workspace-page .button.ghost{color:#263653!important}
+html[data-theme="light"] .workspace-page input:not([type=color]),html[data-theme="light"] .workspace-page select,html[data-theme="light"] .workspace-page textarea{color:#17243b!important;background:#fff!important}
+html[data-theme="light"] .workspace-page input::placeholder,html[data-theme="light"] .workspace-page textarea::placeholder{color:#687790!important;opacity:1!important}
+html[data-theme="light"] .side-link:not(.active){color:#52617a!important}
+html[data-theme="light"] .jv-studio-home,html[data-theme="light"] .jv-return-home{color:#4933bd!important}
+</style></head>
 
 <body>
   <header class="topbar">

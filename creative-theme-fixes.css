@@ -1,0 +1,22 @@
+/* JUSTEVIVO Creative Studio — contrast tokens for both themes */
+body.light{--bg:#f2f4fa;--panel:#ffffff;--line:#d5dbea;--text:#172033;--muted:#48566e}
+body.light .eyebrow{color:#5944c5}
+body.light .tile{box-shadow:0 8px 24px rgba(24,39,75,.06)}
+body.light .tile.purple{background:linear-gradient(145deg,#eee9ff,#fff)!important;border-color:#d8cdfb}
+body.light .tile.pink{background:linear-gradient(145deg,#fff0f5,#fff)!important;border-color:#f2d3df}
+body.light .tile.blue{background:linear-gradient(145deg,#eaf4ff,#fff)!important;border-color:#cfe0f4}
+body.light .tile.gold{background:linear-gradient(145deg,#fff5df,#fff)!important;border-color:#f0dfb7}
+body.light .tile>b{color:#5944c5}
+body.light .tile h3{color:#172033!important}
+body.light .tile p{color:#48566e!important}
+body.light .tile span,body.light .tile a{color:#4932a8;font-weight:800}
+body.light .empty,body.light .settings{background:#f8f9fd;color:#48566e;border-color:#cbd4e3}
+body.light .template{background:#fff;border-color:#d5dbea;box-shadow:0 5px 18px rgba(24,39,75,.05)}
+body.light .template strong{color:#172033}
+body.light .template p{color:#48566e}
+body.light .template button,body.light .hero-actions .primary{background:#654be8;color:#fff}
+body.light .chips button.active{background:#e9e4ff;color:#4932a8;border-color:#b9a8f4}
+body.light .note{color:#48566e}
+body.light .settings select{background:#fff;color:#172033;border-color:#c5cede}
+body.light .theme-switch{background:#fff;color:#172033;border-color:#c5cede}
+body:not(.light) .tile p,body:not(.light) .muted,body:not(.light) .note{color:#b7bdd0}

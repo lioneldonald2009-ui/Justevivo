@@ -53,7 +53,7 @@
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v3h14v-3"/></svg>
         <span>Installer l'application</span>
       </button>
-      <a class="top-cta" href="studio.html">Ouvrir le studio <span>↗</span></a>
+      <a class="top-cta" href="#studio">Ouvrir le studio <span>↗</span></a>
     </div>
   </header>
 
@@ -64,7 +64,7 @@
         <h1>Transformez vos vidéos en contenus <span>irrésistibles.</span></h1>
         <p>JUSTEVIVO vous aide à monter plus vite : sous-titres dynamiques, coupes intelligentes et outils créatifs réunis dans un seul studio.</p>
         <div class="hero-actions">
-          <a class="button primary" href="studio.html">Essayer JUSTEVIVO <b>→</b></a>
+          <a class="button primary" href="#studio">Essayer JUSTEVIVO <b>→</b></a>
           <a class="button ghost" href="#showcase">Voir les démonstrations</a>
         </div>
         <div class="hero-proof">
@@ -141,6 +141,130 @@
         <article><span>02</span><h3>Entrepreneurs & marques</h3><p>Présentez vos offres et vos produits avec des vidéos soignées.</p></article>
         <article><span>03</span><h3>Coachs & formateurs</h3><p>Transformez vos prises de parole en contenus faciles à suivre.</p></article>
         <article><span>04</span><h3>Agences & équipes</h3><p>Centralisez vos projets vidéo et harmonisez vos styles de publication.</p></article>
+      </div>
+    </section>
+
+    <section class="studio-section" id="studio">
+      <div class="section-heading">
+        <div>
+          <div class="eyebrow">VOTRE ESPACE DE CRÉATION</div>
+          <h2>Le studio <span>JUSTEVIVO</span></h2>
+        </div>
+        <p>Importez, générez, personnalisez et exportez vos sous-titres.</p>
+      </div>
+
+      <div class="studio">
+        <aside class="sidebar jv-sidebar">
+          <div class="mini-brand"><span class="brand-mark"><img src="/icons/justevivo-brand.svg?v=3" alt=""></span><span>JUSTEVIVO <b>AI</b><small>CRÉER · MONTER · PUBLIER</small></span><em>v2.0</em></div>
+          <button class="jv-sidebar-new" data-page="studio">＋ Nouveau projet</button>
+          <div class="jv-sidebar-label">ESPACE DE TRAVAIL</div>
+          <div class="side-link active" data-page="dashboard">⌂ <span>Mon compte / Dashboard</span></div>
+          <div class="side-link" data-page="projects">▤ <span>Mes projets</span></div>
+          <div class="side-link" data-page="studio" data-jv-panel="text">▣ <span>Éditeur vidéo IA</span></div>
+          <div class="side-link" data-page="studio" data-jv-panel="styles">✦ <span>Modèles & Templates</span></div>
+          <div class="side-link" data-page="studio" data-jv-panel="scenes">✂ <span>Scènes & Découpage</span></div>
+          <div class="side-link" data-page="audio">♫ <span>Audio & Voix</span></div>
+          <div class="side-link" data-page="studio" data-jv-panel="export">⇧ <span>Export vidéo</span></div>
+          <div class="jv-sidebar-label">OUTILS DE PRODUCTION</div>
+          <div class="side-link" data-page="media">▧ <span>Bibliothèque média</span></div>
+          <div class="side-link" data-page="clips">⚡ <span>Magic Clips <i>IA</i></span></div>
+          <div class="side-link" data-page="brand">◈ <span>Brand Kit</span></div>
+          <div class="side-link" data-page="timeline">▤ <span>Timeline de montage</span></div>
+          <div class="side-link" data-page="production">✦ <span>Assistant de production <i>IA</i></span></div>
+
+          <div class="side-link" data-page="upcoming">◉ <span>B-Roll intelligent</span></div>
+          <div class="side-link" data-page="studio" data-jv-panel="text" data-jv-feature="dubbing">文 <span>Traduction & Doublage</span></div>
+          <div class="jv-sidebar-label">COMPTE</div>
+          
+          <div class="side-link" data-page="pricing">♧ <span>Formules & Abonnement</span></div>
+          <div class="side-link" data-page="studio" data-jv-panel="settings">⚙ <span>Paramètres</span></div>
+          <div class="side-bottom">JUSTEVIVO AI · Votre studio vidéo</div>
+        </aside>
+
+        <div class="workspace">
+          <div class="workspace-head">
+            <div>
+              <h3>Créer une vidéo</h3>
+              <p>Importez un fichier pour commencer votre projet.</p>
+            </div>
+            <span class="status">STUDIO JUSTEVIVO</span>
+          </div>
+
+          <label class="upload-zone" for="videoInput">
+            <div class="upload-icon">↑</div>
+            <strong>Déposez vos vidéos et photos ici</strong>
+            <span>ou cliquez pour choisir un fichier</span>
+            <small>Vidéos MP4, MOV, WebM · Photos JPG, PNG, WebP, GIF, AVIF</small>
+            <input id="videoInput" type="file" accept="video/*,image/*,.mp4,.mov,.webm,.m4v,.png,.jpg,.jpeg,.webp,.gif,.avif" multiple>
+          </label>
+
+          <div class="editor-grid">
+            <div class="preview-panel">
+              <div class="panel-label">APERÇU DU MÉDIA</div>
+              <div class="preview-frame" id="previewFrame">
+                <video id="videoPreview" controls hidden></video>
+                <img id="imagePreview" alt="Aperçu de la photo sélectionnée" hidden>
+                <div id="placeholderPreview">
+                  <div class="preview-play">▶</div>
+                  <div class="preview-caption" id="captionPreview">
+                    TES MOTS<br><b>PRENNENT VIE</b> ✦
+                  </div>
+                </div>
+              </div>
+              <div class="preview-note" id="fileName">Aucune vidéo sélectionnée</div>
+            </div>
+
+            <div class="controls-panel">
+              <div class="panel-label">PERSONNALISER LES SOUS-TITRES</div>
+
+              <label class="field-label" for="captionText">Texte de démonstration</label>
+              <textarea id="captionText" rows="3">Tes mots prennent vie !</textarea>
+
+              <div id="subtitleLanguagePanel" style="margin:14px 0;padding:12px;border:1px solid rgba(255,255,255,.14);border-radius:12px;background:rgba(255,255,255,.035)">
+                <div style="font-weight:700;margin-bottom:8px">LANGUE DES SOUS-TITRES</div>
+                <div style="font-size:12px;opacity:.8;margin-bottom:8px">Langue audio détectée : <strong id="detectedAudioLanguage">En attente de transcription</strong></div>
+                <label class="field-label" for="subtitleLanguage">Afficher les sous-titres en</label>
+                <select id="subtitleLanguage" style="width:100%;padding:10px;border-radius:8px;margin:5px 0 9px;background:#111827;color:inherit;border:1px solid rgba(255,255,255,.2)">
+                  <option value="original">Langue originale de l’audio</option>
+                  <option value="fr">Français</option>
+                  <option value="en">Anglais</option>
+                  <option value="es">Espagnol</option>
+                  <option value="pt">Portugais</option>
+                  <option value="de">Allemand</option>
+                  <option value="it">Italien</option>
+                  <option value="ar">Arabe</option>
+                  <option value="nl">Néerlandais</option>
+                  <option value="ru">Russe</option>
+                  <option value="zh">Chinois simplifié</option>
+                  <option value="ja">Japonais</option>
+                  <option value="ko">Coréen</option>
+                  <option value="tr">Turc</option>
+                  <option value="hi">Hindi</option>
+                  <option value="sw">Swahili</option>
+                </select>
+                <button class="button full" id="translateSubtitlesButton" type="button" style="width:100%">Appliquer la langue</button>
+                <small style="display:block;margin-top:7px;opacity:.72">La piste audio reste inchangée. Seuls les textes des sous-titres sont traduits.</small>
+              </div>
+
+
+              <label class="field-label">Choisir un style</label>
+              <div class="style-options">
+                <button type="button" class="style-option selected" data-style="pop">POP</button>
+                <button type="button" class="style-option" data-style="neon">NÉON</button>
+                <button type="button" class="style-option" data-style="clean">ÉPURÉ</button>
+              </div>
+
+              <label class="field-label" for="captionColor">Couleur d'accentuation</label>
+              <input id="captionColor" type="color" value="#a879ff">
+
+              <button class="button primary full" id="previewButton" type="button">
+                Actualiser l'aperçu <span>↗</span>
+              </button>
+            </div>
+          </div>
+
+          <p class="demo-warning">JUSTEVIVO est dédié au montage vidéo, aux sous-titres et aux outils créatifs. La génération de vidéos par IA n’est pas incluse dans les abonnements.</p>
+        </div>
       </div>
     </section>
 
@@ -261,7 +385,7 @@
   <script src="app.js"></script>
 
   <!-- Modules complémentaires -->
-  <!-- app4.js est réservé au studio vidéo (studio.html) : ne pas le charger sur la page d'accueil. -->
+  <script src="app4.js"></script>
   <script src="app5.js?v=creative-api-auth-20261112"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="app6.js?v=11"></script>

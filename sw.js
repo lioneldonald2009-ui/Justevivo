@@ -1,5 +1,5 @@
-const CACHE_NAME = "justevivo-shell-v16";
-const APP_SHELL = ["/", "/index.html", "/offline.html", "/icons/icon-192.png", "/icons/icon-512.png", "/icons/apple-touch-icon.png"];
+const CACHE_NAME = "justevivo-shell-v17";
+const APP_SHELL = ["/", "/index.html", "/creative-studio.html", "/montage.html", "/offline.html", "/icons/icon-192.png", "/icons/icon-512.png", "/icons/apple-touch-icon.png"];
 
 self.addEventListener("install", event => {
   event.waitUntil((async () => {
@@ -31,11 +31,17 @@ self.addEventListener("fetch", event => {
         const response = await fetch(request);
         if (response.ok) {
           const cache = await caches.open(CACHE_NAME);
-          cache.put("/index.html", response.clone());
+          const path = url.pathname === "/" ? "/index.html" : url.pathname;
+          if (["/index.html", "/creative-studio.html", "/montage.html"].includes(path)) {
+            cache.put(path, response.clone());
+          }
         }
         return response;
       } catch {
-        return (await caches.match(request)) || (await caches.match("/index.html")) || (await caches.match("/offline.html"));
+        return (await caches.match(request))
+          || (await caches.match(url.pathname))
+          || (await caches.match("/index.html"))
+          || (await caches.match("/offline.html"));
       }
     })());
     return;

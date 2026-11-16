@@ -666,8 +666,9 @@
 
   let pending = null;
 
-  // Quand on réimporte la vidéo, les sous-titres du projet reviennent
-  videoInput.addEventListener('change', () => {
+  // Quand on réimporte la vidéo, les sous-titres du projet reviennent.
+  // Certains écrans n'intègrent pas le champ vidéo : on attache l'écouteur uniquement s'il existe.
+  if (videoInput) videoInput.addEventListener('change', () => {
     if (!pending) return;
 
     const p = pending;

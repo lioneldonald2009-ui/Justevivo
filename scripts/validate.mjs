@@ -75,6 +75,8 @@ const checks = [
   ['device-aware responsive mode handles mobile desktop-site browsers', read('index.html').includes('responsive-overrides.css?v=2') && read('index.html').includes('scroll-recovery.css?v=1') && read('index.html').includes('device-layout.js?v=1') && /jv-touch-mobile/.test(read('device-layout.js'))],
   ['mobile layout switches to a compact one-column view and drawer menu', /body\.jv-touch-mobile \.studio\{display:block/.test(read('responsive-overrides.css')) && /jv-touch-mobile/.test(read('mobile-drawer.js'))],
   ['desktop document scrolling is enabled with a visible scrollbar', /overflow-y:auto!important/.test(read('responsive-overrides.css')) && /::-webkit-scrollbar-thumb/.test(read('responsive-overrides.css'))],
+  ['main studio links open the Creative Studio landing page', (read('index.html').match(/href="creative-studio\.html"/g)||[]).length >= 4 && !/href="#studio"/.test(read('index.html'))],
+  ['Creative Studio defaults to dark mode on first visit and preserves user choice', /let themeMode="dark"/.test(read('creative-studio.js')) && /localStorage\.getItem\("jvCreativeTheme"\)\|\|"dark"/.test(read('creative-studio.js')) && /applyTheme\(themeMode\)/.test(read('creative-studio.js'))],
   ['photo montage is positioned beside the media library', /mediaLink\.insertAdjacentElement\("afterend",nav\)/.test(read('photo-studio.js'))],
   ['Windows desktop packaging does not require a publishing token', /electron-builder --win nsis portable --publish never/.test(read('.github/workflows/build-windows.yml'))],
   ['iOS simulator workflow targets generated Xcode project', /xcodebuild -project ios\/App\/App\.xcodeproj/.test(read('.github/workflows/build-native.yml'))]

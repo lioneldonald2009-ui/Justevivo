@@ -34,6 +34,20 @@
   <link rel="stylesheet" href="mobile-app.css?v=2">
   <link rel="stylesheet" href="studio-viewport.css?v=6">
   <link rel="stylesheet" href="mobile-drawer-fix.css?v=2">\n  <link rel="stylesheet" href="responsive-overrides.css?v=1">\n  <script src="device-layout.js?v=1" defer></script>
+
+<style id="jv-studio-separation">
+/* Le studio est une application distincte de la vitrine publique. */
+body:not(.jv-studio-only) .studio-section{display:none!important}
+body.jv-studio-only main>section:not(.studio-section){display:none!important}
+body.jv-studio-only .topbar nav,
+body.jv-studio-only #installAppBtn,
+body.jv-studio-only .top-cta{display:none!important}
+body.jv-studio-only .topbar{justify-content:space-between}
+.jv-studio-home{display:none;align-items:center;gap:8px;margin-left:auto;padding:9px 13px;border:1px solid #e3def4;border-radius:11px;background:#fff;color:#4933bd;font-weight:700;text-decoration:none;font-size:12px}
+body.jv-studio-only .jv-studio-home{display:inline-flex}
+.jv-return-home{display:inline-flex;align-items:center;gap:8px;margin:0 0 14px;padding:9px 13px;border:1px solid #e3def4;border-radius:11px;background:#fff;color:#4933bd;font-weight:700;font-size:12px;cursor:pointer}
+@media(max-width:760px){body.jv-studio-only .topbar{min-height:52px;padding:7px 12px}body.jv-studio-only .brand{font-size:13px}.jv-studio-home{padding:8px 10px}}
+</style>
 </head>
 
 <body>
@@ -424,6 +438,46 @@
     }catch(_){const s=document.getElementById("jv-public-promo-status");if(s)s.textContent="Compteur momentanément indisponible";}
   }
   refresh();window.setInterval(refresh,60000);
+})();
+</script>
+
+<script id="jv-studio-view-controller">
+(function(){
+  "use strict";
+  const studio=document.getElementById("studio");
+  if(!studio)return;
+  const home=document.querySelector(".topbar .brand");
+  const cta=document.querySelector('.topbar a[href="#studio"]');
+  const actions=document.querySelector(".topbar .topbar-actions");
+  if(actions&&!document.querySelector(".jv-studio-home")){
+    const back=document.createElement("a");
+    back.className="jv-studio-home";
+    back.href="#home";
+    back.textContent="← Retour à l’accueil";
+    actions.appendChild(back);
+    back.addEventListener("click",function(e){e.preventDefault();leaveStudio();});
+  }
+  function enterStudio(){
+    document.body.classList.add("jv-studio-only");
+    studio.hidden=false;
+    requestAnimationFrame(()=>studio.scrollIntoView({behavior:"smooth",block:"start"}));
+  }
+  function leaveStudio(){
+    document.body.classList.remove("jv-studio-only");
+    window.scrollTo({top:0,behavior:"smooth"});
+    if(location.hash==="#studio"||location.hash==="#home")history.replaceState(null,"",location.pathname+location.search);
+  }
+  document.querySelectorAll('a[href="#studio"]').forEach(a=>a.addEventListener("click",enterStudio));
+  if(home)home.addEventListener("click",function(e){e.preventDefault();leaveStudio();});
+  if(location.hash==="#studio")enterStudio();
+  else document.body.classList.remove("jv-studio-only");
+  const heading=studio.querySelector(".section-heading");
+  if(heading&&!studio.querySelector(".jv-return-home")){
+    const b=document.createElement("button");
+    b.type="button";b.className="jv-return-home";b.textContent="← Retour à l’accueil";
+    b.addEventListener("click",leaveStudio);
+    heading.parentNode.insertBefore(b,heading);
+  }
 })();
 </script>
 </body>

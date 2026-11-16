@@ -79,7 +79,7 @@ html[data-theme="light"] .jv-studio-home,html[data-theme="light"] .jv-return-hom
         <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v11m0 0 4-4m-4 4-4-4M5 17v3h14v-3"/></svg>
         <span>Installer l'application</span>
       </button>
-      <a class="top-cta" href="#studio">Ouvrir le studio <span>↗</span></a>
+      <a class="top-cta" href="creative-studio.html">Ouvrir le studio <span>↗</span></a>
     </div>
   </header>
 
@@ -90,7 +90,7 @@ html[data-theme="light"] .jv-studio-home,html[data-theme="light"] .jv-return-hom
         <h1>Transformez vos vidéos en contenus <span>irrésistibles.</span></h1>
         <p>JUSTEVIVO vous aide à monter plus vite : sous-titres dynamiques, coupes intelligentes et outils créatifs réunis dans un seul studio.</p>
         <div class="hero-actions">
-          <a class="button primary" href="#pricing">Découvrir les offres <b>→</b></a>
+          <a class="button primary" href="creative-studio.html">Essayer JUSTEVIVO <b>→</b></a>
           <a class="button ghost" href="#showcase">Voir les démonstrations</a>
         </div>
         <div class="hero-proof">
@@ -459,7 +459,7 @@ html[data-theme="light"] .jv-studio-home,html[data-theme="light"] .jv-return-hom
   const studio=document.getElementById("studio");
   if(!studio)return;
   const home=document.querySelector(".topbar .brand");
-  const cta=document.querySelector('.topbar a[href="#studio"]');
+  const cta=document.querySelector('.topbar a[href="creative-studio.html"]');
   const actions=document.querySelector(".topbar .topbar-actions");
   if(actions&&!document.querySelector(".jv-studio-home")){
     const back=document.createElement("a");
@@ -479,11 +479,10 @@ html[data-theme="light"] .jv-studio-home,html[data-theme="light"] .jv-return-hom
     window.scrollTo({top:0,behavior:"smooth"});
     if(location.hash==="#studio"||location.hash==="#home")history.replaceState(null,"",location.pathname+location.search);
   }
-  document.querySelectorAll('a[href="#studio"]').forEach(a=>a.addEventListener("click",function(e){e.preventDefault();enterStudio();history.replaceState(null,"","#studio");}));
+  document.querySelectorAll('a[href="creative-studio.html"]').forEach(a=>a.addEventListener("click",enterStudio));
   if(home)home.addEventListener("click",function(e){e.preventDefault();leaveStudio();});
   if(location.hash==="#studio")enterStudio();
   else document.body.classList.remove("jv-studio-only");
-  window.addEventListener("hashchange",function(){if(location.hash==="#studio")enterStudio();else if(!location.hash||location.hash==="#home")leaveStudio();});
   const heading=studio.querySelector(".section-heading");
   if(heading&&!studio.querySelector(".jv-return-home")){
     const b=document.createElement("button");

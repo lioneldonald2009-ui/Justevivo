@@ -30,6 +30,3 @@
 .jv-zoom-control button{grid-column:1/-1;justify-self:start}
 #previewFrame video{transition:transform .12s ease;transform-origin:center center}
 @media(max-width:600px){.jv-timeline-actions>*{flex:1 1 100%}.jv-zoom-control{grid-template-columns:1fr}}
-
-/* Repurpose IA */
-.jv-repurpose-platforms{display:flex;flex-wrap:wrap;gap:10px 16px;border:1px solid #e1e6f0;border-radius:12px;padding:12px;margin:14px 0}.jv-repurpose-platforms legend{font-weight:700;padding:0 6px}.jv-repurpose-platforms label{display:inline-flex;align-items:center;gap:6px;font-size:13px}.jv-repurpose-platforms input{accent-color:#7657f5}.jv-suite-view[data-view="repurpose"] .jv-script-result{display:grid;gap:12px;margin-top:14px}.jv-suite-view[data-view="repurpose"] .jv-tool-card p{white-space:pre-wrap;overflow-wrap:anywhere}

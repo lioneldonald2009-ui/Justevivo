@@ -249,7 +249,7 @@
     categories.forEach(category=>{const button=document.createElement("button");button.type="button";button.textContent=category;button.className=category==="Tous"?"active":"";button.addEventListener("click",()=>{activeCategory=category;categoryBox.querySelectorAll("button").forEach(b=>b.classList.toggle("active",b===button));renderTemplateCards();});categoryBox.append(button);});
     $("jvp-template-search").addEventListener("input",renderTemplateCards);renderTemplateCards();
     nav.addEventListener("click",()=>{window.location.assign("index.html#photo-studio");});
-    const openPhotoStudio=()=>{if(window.location.hash!=="#photo-studio")return;workspace.querySelectorAll(".workspace-page").forEach(view=>{if(view.id!=="jv-photo-studio")view.hidden=true;});const dashboard=document.getElementById("dashboard");if(dashboard)dashboard.hidden=true;page.hidden=false;};
+    const openPhotoStudio=()=>{if (!(window.location.hash === "#photo-studio")) return;workspace.querySelectorAll(".workspace-page").forEach(view=>{if(view.id!=="jv-photo-studio")view.hidden=true;});const dashboard=document.getElementById("dashboard");if(dashboard)dashboard.hidden=true;page.hidden=false;};
     window.addEventListener("hashchange",openPhotoStudio);openPhotoStudio();
   };
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();

@@ -115,7 +115,7 @@ document.addEventListener("DOMContentLoaded", function () {
   function showDashboard() {
     const suite = document.getElementById("jv-creative-suite");
     if (suite) suite.hidden = true;
-    workspace.querySelectorAll(".workspace-page").forEach(page => { page.hidden = true; });
+    workspace.querySelectorAll(".workspace-page").forEach(view => { if (view.id !== "jv-photo-studio" || location.hash !== "#photo-studio") view.hidden = true; });
     subscriptionPage.hidden = true;
     dashboard.hidden = false;
     studioParts.forEach(el => { el.hidden = true; });

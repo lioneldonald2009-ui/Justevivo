@@ -311,7 +311,15 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
     if (page === "upcoming") { openBroll(); return; }
-    if (page === "photo-studio") {\n      showStudio();\n      studioParts.forEach(el => { el.hidden = true; });\n      workspace.querySelectorAll(".workspace-page").forEach(view => { view.hidden = view.id !== "jv-photo-studio"; });\n      const photoView = document.getElementById("jv-photo-studio");\n      if (photoView) { photoView.hidden = false; workspaceBack.style.display = "inline-flex"; photoView.scrollIntoView({behavior:"smooth",block:"start"}); }\n      else showNavigationNotice("Le studio photo n’a pas pu être chargé. Actualisez la page puis réessayez.");\n      return;\n    }
+    if (page === "photo-studio") {
+      showStudio();
+      studioParts.forEach(el => { el.hidden = true; });
+      workspace.querySelectorAll(".workspace-page").forEach(view => { view.hidden = view.id !== "jv-photo-studio"; });
+      const photoView = document.getElementById("jv-photo-studio");
+      if (photoView) { photoView.hidden = false; workspaceBack.style.display = "inline-flex"; photoView.scrollIntoView({behavior:"smooth",block:"start"}); }
+      else showNavigationNotice("Le studio photo n’a pas pu être chargé. Actualisez la page puis réessayez.");
+      return;
+    }
     if (page === "audio") { openAudioStudio(); return; }
     const viewByPage = {media:"media",clips:"clips",brand:"brand",timeline:"timeline",production:"production"};
     if (viewByPage[page]) { openSuiteView(viewByPage[page], page); return; }

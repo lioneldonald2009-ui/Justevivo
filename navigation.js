@@ -311,7 +311,7 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
     if (page === "upcoming") { openBroll(); return; }
-    if (page === "photo-studio") return;
+    if (page === "photo-studio") {\n      showStudio();\n      studioParts.forEach(el => { el.hidden = true; });\n      workspace.querySelectorAll(".workspace-page").forEach(view => { view.hidden = view.id !== "jv-photo-studio"; });\n      const photoView = document.getElementById("jv-photo-studio");\n      if (photoView) { photoView.hidden = false; workspaceBack.style.display = "inline-flex"; photoView.scrollIntoView({behavior:"smooth",block:"start"}); }\n      else showNavigationNotice("Le studio photo n’a pas pu être chargé. Actualisez la page puis réessayez.");\n      return;\n    }
     if (page === "audio") { openAudioStudio(); return; }
     const viewByPage = {media:"media",clips:"clips",brand:"brand",timeline:"timeline",production:"production"};
     if (viewByPage[page]) { openSuiteView(viewByPage[page], page); return; }
@@ -329,7 +329,7 @@ document.addEventListener("DOMContentLoaded", function () {
   sidebar.addEventListener("click", event => {
     const link = event.target.closest(".side-link[data-page]");
     if (!link || !sidebar.contains(link)) return;
-    if (link.dataset.page === "photo-studio") return; // Le module photo gère sa propre vue.
+    // Toutes les entrées de navigation sont traitées ici, y compris le studio photo.
     event.preventDefault();
     event.stopImmediatePropagation();
     handleSidebarLink(link);

@@ -36,6 +36,7 @@
         <button type="button" data-tab="clips">Magic Clips</button>
         <button type="button" data-tab="timeline">Timeline</button>
         <button type="button" data-tab="production">Production IA</button>
+        <button type="button" data-tab="repurpose">Repurpose IA</button>
       </div>
       <div class="jv-suite-view" data-view="media">
         <div class="jv-suite-grid">
@@ -121,13 +122,34 @@
           </article>
         </div>
       </div>
+      <div class="jv-suite-view" data-view="repurpose" hidden>
+        <div class="jv-production-intro"><span class="jv-eyebrow">DÉCLINAISON MULTICANAL</span><h4>Un contenu source, plusieurs publications adaptées.</h4><p>Transformez un texte, une idée ou un script en contenus distincts pour vos réseaux. Relisez et validez chaque variante avant publication.</p></div>
+        <div class="jv-tool-card">
+          <label>Contenu source<textarea id="jv-repurpose-source" class="jv-text-input" rows="7" maxlength="7000" placeholder="Collez votre script, votre publication, votre description produit ou votre idée…"></textarea></label>
+          <div class="jv-production-fields">
+            <label>Objectif<select id="jv-repurpose-objective" class="jv-text-input"><option>Engagement</option><option>Vues et rétention</option><option>Éducation</option><option>Conversion</option><option>Notoriété</option></select></label>
+            <label>Ton<select id="jv-repurpose-tone" class="jv-text-input"><option>Naturel et dynamique</option><option>Expert et pédagogique</option><option>Storytelling émotionnel</option><option>Humoristique</option><option>Premium et élégant</option><option>Direct et persuasif</option></select></label>
+          </div>
+          <fieldset class="jv-repurpose-platforms"><legend>Plateformes à préparer</legend>
+            <label><input type="checkbox" name="jv-repurpose-platform" value="TikTok" checked> TikTok</label>
+            <label><input type="checkbox" name="jv-repurpose-platform" value="Instagram Reels" checked> Instagram Reels</label>
+            <label><input type="checkbox" name="jv-repurpose-platform" value="YouTube Shorts"> YouTube Shorts</label>
+            <label><input type="checkbox" name="jv-repurpose-platform" value="Facebook"> Facebook</label>
+            <label><input type="checkbox" name="jv-repurpose-platform" value="LinkedIn"> LinkedIn</label>
+            <label><input type="checkbox" name="jv-repurpose-platform" value="YouTube"> YouTube</label>
+          </fieldset>
+          <button type="button" class="jv-action jv-action-primary" id="jv-run-repurpose">✦ Générer les déclinaisons</button>
+          <p id="jv-repurpose-status" class="jv-feedback" role="status" aria-live="polite"></p>
+          <div id="jv-repurpose-results" class="jv-script-result" aria-live="polite"></div>
+        </div>
+      </div>
       <div class="jv-suite-footer"><span>Les outils locaux sont utilisables avec vos fichiers.</span><button type="button" data-action="save-session">Enregistrer la configuration du montage</button></div>
     `;
     workspace.appendChild(panel);
 
     const $=(s)=>panel.querySelector(s);
-    const views=["media","audio","brand","clips","timeline","production"];
-    const titles={media:["Bibliothèque média","Vos ressources visuelles et vos plans d'illustration."],audio:["Audio & effets","Préparez et mixez vos pistes audio."],brand:["Brand Kit","Enregistrez une identité visuelle cohérente."],clips:["Magic Clips","Préparez des extraits courts à partir d'une longue vidéo."],timeline:["Timeline de montage","Organisez vos repères et votre séquence vidéo."],production:["Production IA","Générez vos scripts et assemblez les pistes de votre vidéo."]};
+    const views=["media","audio","brand","clips","timeline","production","repurpose"];
+    const titles={media:["Bibliothèque média","Vos ressources visuelles et vos plans d'illustration."],audio:["Audio & effets","Préparez et mixez vos pistes audio."],brand:["Brand Kit","Enregistrez une identité visuelle cohérente."],clips:["Magic Clips","Préparez des extraits courts à partir d'une longue vidéo."],timeline:["Timeline de montage","Organisez vos repères et votre séquence vidéo."],production:["Production IA","Générez vos scripts et assemblez les pistes de votre vidéo."],repurpose:["Repurpose IA","Déclinez un contenu sur plusieurs plateformes."]};
     const setView=(name)=>{
       views.forEach(v=>{const el=$('[data-view="'+v+'"]');el.hidden=v!==name;});
       panel.querySelectorAll("[data-tab]").forEach(b=>b.classList.toggle("active",b.dataset.tab===name));
@@ -310,7 +332,39 @@
       }
       if(a==="save-session"){const state={cuts,trimStart:Number($("#jv-trim-start").value),trimEnd:Number($("#jv-trim-end").value),duration:duration(),savedAt:new Date().toISOString()};localStorage.setItem("justevivo_edit_session_v1",JSON.stringify(state));$("#jv-timeline-feedback").textContent="Configuration de montage enregistrée dans ce navigateur.";}
     });
-    function showPage(page){
+    $("#jv-run-repurpose").addEventListener("click",async()=>{
+       const button=$("#jv-run-repurpose"),status=$("#jv-repurpose-status"),results=$("#jv-repurpose-results");
+       const content=$("#jv-repurpose-source").value.trim();
+       const platforms=[...panel.querySelectorAll('input[name="jv-repurpose-platform"]:checked')].map(x=>x.value);
+       if(content.length<30){status.textContent="Ajoutez un contenu source d’au moins 30 caractères.";return;}
+       if(!platforms.length){status.textContent="Sélectionnez au moins une plateforme.";return;}
+       let session={};try{session=JSON.parse(localStorage.getItem("justevivo_session_v1")||"{}");}catch(_){}
+       if(!session.access_token){status.textContent="Connectez-vous pour utiliser Repurpose IA.";return;}
+       button.disabled=true;button.textContent="Génération IA…";status.textContent="Création des variantes adaptées à chaque plateforme…";results.replaceChildren();
+       try{
+         const response=await fetch(API_URL+"/api/creative/repurpose",{method:"POST",headers:{"Content-Type":"application/json","Authorization":"Bearer "+session.access_token},body:JSON.stringify({content,platforms,objective:$("#jv-repurpose-objective").value,tone:$("#jv-repurpose-tone").value})});
+         const data=await response.json().catch(()=>({}));
+         if(!response.ok)throw new Error(data.error||"La génération des déclinaisons a échoué.");
+         if(!Array.isArray(data.variants)||!data.variants.length)throw new Error("Aucune déclinaison exploitable n’a été renvoyée.");
+         data.variants.forEach(variant=>{
+           const card=document.createElement("article");card.className="jv-tool-card";
+           const heading=document.createElement("h4");heading.textContent=variant.platform+" · "+(variant.format||"Publication");
+           const hook=document.createElement("p");hook.textContent="ACCROCHE\n"+variant.hook;
+           const caption=document.createElement("p");caption.textContent="LÉGENDE\n"+variant.caption;
+           const cta=document.createElement("p");cta.textContent="APPEL À L’ACTION\n"+variant.cta;
+           const tags=document.createElement("p");tags.textContent=(variant.hashtags||[]).join(" ");
+           const copy=document.createElement("button");copy.type="button";copy.className="jv-action";copy.textContent="Copier cette variante";
+           copy.addEventListener("click",async()=>{
+             const text=[variant.platform,variant.hook,variant.caption,variant.cta,(variant.hashtags||[]).join(" ")].filter(Boolean).join("\n\n");
+             try{await navigator.clipboard.writeText(text);copy.textContent="✓ Copié";}catch(_){const blob=new Blob([text],{type:"text/plain;charset=utf-8"}),url=URL.createObjectURL(blob),link=document.createElement("a");link.href=url;link.download="justevivo-"+variant.platform.toLowerCase().replace(/[^a-z0-9]+/g,"-")+".txt";link.click();setTimeout(()=>URL.revokeObjectURL(url),30000);copy.textContent="Télécharger la variante";}
+           });
+           card.append(heading,hook,caption,cta,tags,copy);results.appendChild(card);
+         });
+         status.textContent=data.variants.length+" déclinaison(s) générée(s). Vérifiez les informations et adaptez-les avant publication.";
+       }catch(error){status.textContent=error.message||"Erreur pendant la génération.";}
+       finally{button.disabled=false;button.textContent="✦ Générer les déclinaisons";}
+     });
+     function showPage(page){
       const isExtra=views.includes(page);
       panel.hidden=!isExtra;
       const head=workspace.querySelector(".workspace-head");

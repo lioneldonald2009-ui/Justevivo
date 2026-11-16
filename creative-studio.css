@@ -10,7 +10,7 @@ body.light .rail button.active,body.light .bottom button.active{background:#eeea
 body.light h1,body.light h2,body.light h3,body.light .tile h3,body.light .template strong{color:#172033}
 body.light .muted,body.light .tile p,body.light .template p,body.light .note{color:#526078}
 body.light .tile,body.light .template,body.light .empty,body.light .settings{background:#fff;color:#172033;border-color:#d9dfeb}
-body.light .purple,body.light .pink,body.light .blue,body.light .gold{background:#fff}
+body.light .purple{background:linear-gradient(145deg,#eeeaff 0%,#fff 88%);border-color:#d8cffd}body.light .pink{background:linear-gradient(145deg,#fff0f5 0%,#fff 88%);border-color:#f4d1e0}body.light .blue{background:linear-gradient(145deg,#eaf5ff 0%,#fff 88%);border-color:#c9e2f8}body.light .gold{background:linear-gradient(145deg,#fff5e5 0%,#fff 88%);border-color:#f0dfbd}
 body.light .tile span,body.light .tile a{color:#4d36b2}
 body.light .search,body.light .hero-actions button,body.light .chips button{background:#fff;color:#172033;border-color:#cbd3e1}
 body.light .chips button.active{background:#eeeaff;color:#4d36b2;border-color:#b8a8f3}

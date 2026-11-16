@@ -459,7 +459,6 @@ html[data-theme="light"] .jv-studio-home,html[data-theme="light"] .jv-return-hom
   const studio=document.getElementById("studio");
   if(!studio)return;
   const home=document.querySelector(".topbar .brand");
-  const cta=document.querySelector('.topbar a[href="creative-studio.html"]');
   const actions=document.querySelector(".topbar .topbar-actions");
   if(actions&&!document.querySelector(".jv-studio-home")){
     const back=document.createElement("a");
@@ -479,7 +478,6 @@ html[data-theme="light"] .jv-studio-home,html[data-theme="light"] .jv-return-hom
     window.scrollTo({top:0,behavior:"smooth"});
     if(location.hash==="#studio"||location.hash==="#home")history.replaceState(null,"",location.pathname+location.search);
   }
-  document.querySelectorAll('a[href="creative-studio.html"]').forEach(a=>a.addEventListener("click",enterStudio));
   if(home)home.addEventListener("click",function(e){e.preventDefault();leaveStudio();});
   if(location.hash==="#studio")enterStudio();
   else document.body.classList.remove("jv-studio-only");

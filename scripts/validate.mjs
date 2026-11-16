@@ -32,8 +32,8 @@ else console.log('Syntax OK:', files.length, 'JavaScript/TypeScript source files
 
 const read = name => fs.readFileSync(path.join(root, name), 'utf8');
 const checks = [
-  ['multi-file image/video input', /id="videoInput"[^>]*multiple/.test(read('index.html'))],
-  ['photo preview element', /id="imagePreview"/.test(read('index.html'))],
+  ['multi-file image/video input', /id="videoInput"[^>]*multiple/.test(read('studio.html'))],
+  ['photo preview element', /id="imagePreview"/.test(read('studio.html'))],
   ['persistent media bin', /justevivo-media-bin-v1/.test(read('editor-essentials.js')) && /window\.JV_MEDIA_BIN/.test(read('editor-essentials.js'))],
   ['photo preview lifecycle', /function attachProjectPhoto/.test(read('app.js')) && /function detachProjectMedia/.test(read('app.js'))],
   ['Dodo checkout response uses checkoutUrl', /d\.checkoutUrl/.test(read('app6.js')) && /window\.location\.href = d\.checkoutUrl/.test(read('app6.js'))],
@@ -43,7 +43,7 @@ const checks = [
   ['service worker cache revision', /justevivo-shell-v15/.test(read('sw.js'))],
   ['reference vertical sidebar on tablet', /navigation latérale verticale sur tablettes/.test(read('jv-v7-unified-ui.css')) && /max-width:760px/.test(read('jv-v7-unified-ui.css')) && /grid-template-columns:188px minmax\(0,1fr\)/.test(read('jv-v7-unified-ui.css'))],
   ['visible independent sidebar scrolling', /\.studio > \.jv-sidebar[\s\S]*?overflow-y:auto!important/.test(read('studio-viewport.css'))],
-  ['dubbing menu opens its dedicated tool', /data-jv-feature="dubbing"/.test(read('index.html')) && /dataset\.jvFeature === "dubbing"/.test(read('navigation.js'))],
+  ['dubbing menu opens its dedicated tool', /data-jv-feature="dubbing"/.test(read('studio.html')) && /dataset\.jvFeature === "dubbing"/.test(read('navigation.js'))],
   ['dashboard return control preserves editor state', /Retour au tableau de bord sans fermer le projet/.test(read('navigation.js'))],
   ['production feature views are made visible when opened', /suite\.hidden = false;/.test(read('navigation.js')) && /studioParts\.forEach\(el => \{ el\.hidden = true; \}\)/.test(read('navigation.js'))],
   ['audio sidebar opens the full audio and voice panel', /function openAudioStudio\(\)/.test(read('navigation.js')) && /jv-editor-panel-tab\[data-panel="audio"\]/.test(read('navigation.js'))],
@@ -65,7 +65,7 @@ const checks = [
   ['standalone editor supports quality, speed, framing and positioning controls', read('montage-editor.js').includes('Qualité de sortie') && read('montage-editor.js').includes('Position horizontale') && read('montage-editor.js').includes('Vitesse')],
   ['montage tool buttons clear and switch the inspector panel', /function renderInspectorForTool\(tool\)\{const tabMap/.test(read('montage-editor.js')) && /inspector\.replaceChildren\(\)/.test(read('montage-editor.js')) && /renderInspectorForTool\(b\.dataset\.tool\)/.test(read('montage-editor.js'))],
   ['desktop marketing page restores vertical scrolling and scrollbar', /overflow-y: scroll !important/.test(read('studio-viewport.css')) && /position: relative !important/.test(read('studio-viewport.css')) && /scrollbar-gutter: stable/.test(read('studio-viewport.css'))],
-  ['montage editor asset cache revisions are refreshed', /montage-editor\.js\?v=4/.test(read('montage.html')) && /montage\.css\?v=4/.test(read('montage.html')) && /studio-viewport\.css\?v=6/.test(read('index.html'))],
+  ['montage editor asset cache revisions are refreshed', /montage-editor\.js\?v=4/.test(read('montage.html')) && /montage\.css\?v=4/.test(read('montage.html')) && /studio-viewport\.css\?v=6/.test(read('studio.html'))],
   ['dedicated subtitle lane with editable timed captions', /id="subtitleTrack"/.test(read('montage.html')) && /function addSubtitle\(\)/.test(read('montage-editor.js')) && /function renderSubtitleTrack\(\)/.test(read('montage-editor.js')) && /state\.subtitles\.find\(x=>time>=x\.start&&time<=x\.end\)/.test(read('montage-editor.js'))],
   ['clip keyframes interpolate zoom and position during preview and export', /function keyframeValues\(c,local\)/.test(read('montage-editor.js')) && /animated=keyframeValues\(c,local\)/.test(read('montage-editor.js')) && /Ajouter une image-clé/.test(read('montage-editor.js'))],
   ['keyframes and subtitle tracks persist in history and local project saves', /keyframes:c\.keyframes\|\|\[\]/.test(read('montage-editor.js')) && /subtitles:state\.subtitles/.test(read('montage-editor.js'))],

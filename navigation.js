@@ -312,11 +312,18 @@ document.addEventListener("DOMContentLoaded", function () {
     }
     if (page === "upcoming") { openBroll(); return; }
     if (page === "photo-studio") {
+      // Depuis une autre vue, recharger l'application sur la route du studio photo.
+      // Au chargement, photo-studio.js réactive ce menu avec le hash déjà présent :
+      // on affiche alors la vue sans relancer une nouvelle navigation.
+      if (window.location.hash !== "#photo-studio") {
+        window.location.assign(window.location.pathname + window.location.search + "#photo-studio");
+        return;
+      }
       showStudio();
       studioParts.forEach(el => { el.hidden = true; });
       workspace.querySelectorAll(".workspace-page").forEach(view => { view.hidden = view.id !== "jv-photo-studio"; });
       const photoView = document.getElementById("jv-photo-studio");
-      if (photoView) { photoView.hidden = false; workspaceBack.style.display = "inline-flex"; photoView.scrollIntoView({behavior:"smooth",block:"start"}); }
+      if (photoView) { photoView.hidden = false; workspaceBack.style.display = "inline-flex"; photoView.scrollIntoView({behavior:"instant",block:"start"}); }
       else showNavigationNotice("Le studio photo n’a pas pu être chargé. Actualisez la page puis réessayez.");
       return;
     }

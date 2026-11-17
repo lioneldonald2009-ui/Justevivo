@@ -1137,17 +1137,16 @@
     sm.body.appendChild(out);
   }
 
-  // ===== Paiement des formules (Dodo Payments) =====
+  // ===== Paiement des formules (SasPay) =====
   (async function showPayNote() {
     try {
       const res = await window.fetch(API_URL + '/api/config');
       const d = await res.json();
       const note = document.querySelector('.plans-note');
       if (note) {
-        note.textContent =
-          'Paiement sécurisé par Dodo Payments. ' +
-          'La devise et les moyens de paiement disponibles sont affichés sur la page de paiement selon votre pays. ' +
-          'Votre formule est activée après confirmation du paiement.';
+        note.textContent = d.paymentProvider === 'saspay'
+          ? 'Paiement sécurisé par SasPay en FCFA. Les moyens de paiement disponibles sont proposés sur la page de paiement. Votre formule est activée après confirmation du paiement.'
+          : 'Le paiement en ligne sera bientôt disponible.';
       }
     } catch (e) { /* tant pis */ }
   })();
@@ -1158,40 +1157,32 @@
       openLogin();
       return;
     }
-
     const old = b.textContent;
     b.disabled = true;
     b.textContent = 'Un instant...';
-
     try {
       const me = await getMe();
-      if (!me) {
+      if (!me || !me.enabled) {
         showToast('Connexion nécessaire. Réessayez après vous être connecté.');
         return;
       }
-
-      if (!me.enabled || !me.payments) {
-        showToast('Le paiement en ligne sera activé prochainement.');
+      if (!me.payments) {
+        showToast('Le paiement SasPay sera activé dès que la configuration sécurisée sera terminée.');
         return;
       }
-
       const res = await window.fetch(API_URL + '/api/me/pay/create', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ plan })
       });
-
       let d = {};
-      try {
-        d = await res.json();
-      } catch (e) { /* réponse vide */ }
-
-      if (!res.ok || !d.checkoutUrl) {
+      try { d = await res.json(); } catch (e) { /* réponse vide */ }
+      if (!res.ok || !d.checkoutUrl || !d.sessionId) {
         showToast(d.error || 'Paiement impossible pour le moment. Réessayez.');
         return;
       }
-
-      showToast('Redirection vers la page de paiement...');
+      try { sessionStorage.setItem('jv_saspay_session', d.sessionId); } catch (e) {}
+      showToast('Redirection vers SasPay...');
       window.location.href = d.checkoutUrl;
     } catch (e) {
       showToast('Paiement impossible : ' + (e.message || 'erreur'));
@@ -1204,40 +1195,42 @@
   document.addEventListener('click', e => {
     const b = e.target && e.target.closest ? e.target.closest('.plan-button') : null;
     if (!b) return;
-
     e.stopImmediatePropagation();
     e.preventDefault();
     buy(String(b.dataset.plan || '').toLowerCase(), b);
   }, true);
 
-  // Retour depuis la page de paiement : on attend la confirmation
   async function watchPayment() {
-    showToast('Vérification de votre paiement...');
-
-    const first = await getMe();
-    if (!first || !first.enabled) return;
-
-    const start = first.planUntil || null;
-
-    for (let i = 0; i < 20; i++) {
-      await sleep(6000);
-
-      const me = await getMe();
-      if (me && me.planUntil && me.planUntil !== start) {
-        showToast('Paiement confirmé ! Formule ' + me.planName + ' active.');
-        await sleep(2000);
-        window.location.reload();
-        return;
-      }
+    showToast('Vérification de votre paiement SasPay...');
+    let sessionId = '';
+    try { sessionId = sessionStorage.getItem('jv_saspay_session') || ''; } catch (e) {}
+    if (!sessionId) {
+      showToast('Session de paiement introuvable. Si vous avez payé, contactez le support avec votre reçu.');
+      return;
     }
-
-    showToast('Paiement en attente de confirmation. Rechargez la page dans quelques minutes.');
+    for (let i = 0; i < 10; i++) {
+      try {
+        const response = await window.fetch(API_URL + '/api/me/pay/confirm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ sessionId })
+        });
+        const result = await response.json();
+        if (response.ok && result.activated) {
+          try { sessionStorage.removeItem('jv_saspay_session'); } catch (e) {}
+          showToast('Paiement confirmé ! Votre formule est active.');
+          await sleep(1800);
+          window.location.reload();
+          return;
+        }
+      } catch (e) { /* nouvel essai */ }
+      await sleep(5000);
+    }
+    showToast('Paiement en attente de confirmation. Revenez dans quelques instants.');
   }
 
-  if (/[?&]payment=dodo-return(?:&|$)/.test(window.location.search)) {
-    try {
-      history.replaceState(null, '', window.location.pathname);
-    } catch (e) { /* rien */ }
+  if (/[?&]payment=saspay-return(?:&|$)/.test(window.location.search)) {
+    try { history.replaceState(null, '', window.location.pathname); } catch (e) {}
     watchPayment();
   }
 })();

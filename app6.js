@@ -387,7 +387,9 @@
 
   async function getMe() {
     try {
-      const res = await window.fetch(API_URL + '/api/me');
+      const authToken = await token();
+      if (!authToken) return null;
+      const res = await window.fetch(API_URL + '/api/me', { headers: { Authorization: 'Bearer ' + authToken } });
       if (!res.ok) return null;
       return await res.json();
     } catch (e) {
@@ -1170,9 +1172,11 @@
         showToast('Le paiement SasPay sera activé dès que la configuration sécurisée sera terminée.');
         return;
       }
+      const authToken = await token();
+      if (!authToken) { showToast('Votre session a expiré. Reconnectez-vous.'); return; }
       const res = await window.fetch(API_URL + '/api/me/pay/create', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + authToken },
         body: JSON.stringify({ plan })
       });
       let d = {};
@@ -1210,9 +1214,11 @@
     }
     for (let i = 0; i < 10; i++) {
       try {
+        const authToken = await token();
+        if (!authToken) { showToast('Reconnectez-vous pour vérifier le paiement.'); return; }
         const response = await window.fetch(API_URL + '/api/me/pay/confirm', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + authToken },
           body: JSON.stringify({ sessionId })
         });
         const result = await response.json();

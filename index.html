@@ -422,7 +422,7 @@
       if(count)count.textContent=left+" / 60";
       if(status)status.textContent=p.active?claimed+" abonnement(s) confirmé(s) · "+left+" place(s) restante(s)":"Offre terminée ou quota atteint";
       if(bar)bar.style.width=Math.min(100,claimed/60*100)+"%";
-      if(!p.active){box.querySelector("h3").textContent=claimed>=60?"Les 60 places ont été attribuées":"La campagne promotionnelle est terminée";box.querySelector("p").textContent="Les tarifs standards s'appliquent désormais.";document.querySelectorAll(".plan-price").forEach((node,i)=>{node.innerHTML=["$15 <small>/ mois</small>","$20 <small>/ mois</small>","$30 <small>/ mois</small>"][i]||node.innerHTML;});}
+      if(!p.active){box.querySelector("h3").textContent=claimed>=60?"Les 60 places ont été attribuées":"La campagne promotionnelle est terminée";box.querySelector("p").textContent="Les tarifs standards s'appliquent désormais.";document.querySelectorAll(".plan-price").forEach((node,i)=>{node.innerHTML=["9 800 FCFA <small>/ mois</small>","13 100 FCFA <small>/ mois</small>","19 700 FCFA <small>/ mois</small>"][i]||node.innerHTML;});}
     }catch(_){const s=document.getElementById("jv-public-promo-status");if(s)s.textContent="Compteur momentanément indisponible";}
   }
   refresh();window.setInterval(refresh,60000);

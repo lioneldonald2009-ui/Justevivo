@@ -57,3 +57,21 @@ body.jv-touch-mobile .jv-template-grid{grid-template-columns:repeat(2,minmax(0,1
 body.jv-touch-mobile .jvp-grid{grid-template-columns:minmax(0,1fr)!important}
 body.jv-touch-mobile .jv-extra-nav{margin-top:2px!important}
 @media(prefers-reduced-motion:reduce){body.jv-touch-mobile .studio>.jv-sidebar,body.jv-touch-mobile .jv-mobile-menu-backdrop{transition:none!important}}
+
+
+/* Device-first desktop layout: a narrow desktop browser window remains desktop.
+   Mobile hardware keeps the touch-first drawer and stacked workspace above. */
+body.jv-device-desktop .topbar nav{display:flex!important;flex-wrap:nowrap!important;overflow:visible!important}
+body.jv-device-desktop .studio{display:grid!important;grid-template-columns:minmax(218px,17.5vw) minmax(0,1fr)!important;flex-direction:initial!important;align-items:stretch!important;gap:0!important}
+body.jv-device-desktop .studio>.jv-sidebar,
+body.jv-device-desktop .studio>.sidebar{position:relative!important;inset:auto!important;display:flex!important;flex-direction:column!important;transform:none!important;visibility:visible!important;width:auto!important;min-width:0!important;height:auto!important;max-height:none!important;min-height:0!important;overflow-x:hidden!important;overflow-y:auto!important;border-radius:0!important}
+body.jv-device-desktop .studio>.workspace{display:block!important;width:auto!important;min-width:0!important;height:auto!important;max-height:none!important;overflow:visible!important}
+body.jv-device-desktop .jv-mobile-menu-toggle,
+body.jv-device-desktop .jv-mobile-menu-backdrop{display:none!important}
+body.jv-device-desktop .hero{grid-template-columns:minmax(0,1fr) minmax(0,1fr)!important}
+body.jv-device-desktop .showcase-grid,
+body.jv-device-desktop .marketing-feature-grid,
+body.jv-device-desktop .usecase-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+body.jv-device-desktop .plans-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+body.jv-device-desktop .studio-section{padding:0!important}
+body.jv-device-desktop .studio-section>.section-heading{display:none!important}

@@ -73,20 +73,29 @@
     config={url:data.url,anonKey:data.anonKey,captchaSiteKey:data.captchaSiteKey || ''};
     renderCaptcha();
   }
-  async function sendCode() {
+  async function sendCode({resend=false} = {}) {
     const email=emailInput.value.trim();
-    if (!/^\S+@\S+\.\S+$/.test(email)) { showMessage('Saisissez une adresse email valide.',true); emailInput.focus(); return; }
-    if (config.captchaSiteKey && !captchaToken) { showMessage('Validez le contrôle anti-robot avant de demander le code.',true); return; }
-    sendButton.disabled=true; showMessage('Envoi du code en cours…');
+    if (!/^\\S+@\\S+\\.\\S+$/.test(email)) { showMessage('Saisissez une adresse email valide.',true); emailInput.focus(); return; }
+    if (config.captchaSiteKey && !captchaToken) {
+      showStep('email'); renderCaptcha();
+      showMessage('Validez le contrôle anti-robot pour recevoir un nouveau code.',true); return;
+    }
+    sendButton.disabled=true;
+    const resendButton=$('resend-code');
+    if(resendButton) resendButton.disabled=true;
+    showMessage(resend ? 'Envoi d’un nouveau code en cours…' : 'Envoi du code en cours…');
     try {
       await auth('recover',{email,captcha_token:captchaToken || undefined});
       $('masked-email').textContent=email;
       showStep('code');
-      showMessage('Si cette adresse est associée à un compte, un code vient d’être envoyé.');
+      codeInput.value='';
+      showMessage('Demande prise en compte. Utilisez uniquement le dernier code reçu : les codes précédents peuvent être invalidés.');
     } catch (error) {
       showMessage(error.message,true);
     } finally {
-      sendButton.disabled=false; resetCaptcha();
+      sendButton.disabled=false;
+      if(resendButton) resendButton.disabled=false;
+      resetCaptcha();
     }
   }
   async function changePassword() {
@@ -112,7 +121,7 @@
   }
   $('send-code').addEventListener('click',sendCode);
   $('change-password').addEventListener('click',changePassword);
-  $('resend-code').addEventListener('click',()=>{showStep('email');resetCaptcha();renderCaptcha();showMessage('Demandez un nouveau code.');});
+  $('resend-code').addEventListener('click',()=>sendCode({resend:true}));
   $('go-login').addEventListener('click',()=>{window.location.href='studio.html';});
   emailInput.addEventListener('keydown',e=>{if(e.key==='Enter')sendCode();});
   codeInput.addEventListener('input',()=>{codeInput.value=codeInput.value.replace(/\D/g,'').slice(0,6);});

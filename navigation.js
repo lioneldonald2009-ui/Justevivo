@@ -74,7 +74,7 @@ document.addEventListener("DOMContentLoaded", function () {
         <article class="jv-subscription-pro"><span class="jv-subscription-tag">LE PLUS POPULAIRE</span><h4>Pro</h4><strong><del style="opacity:.55;font-size:.8em">20 $</del> <span data-promo-price="pro">14 $</span> <small>/ mois le 1er mois</small></strong><p>Pour les créateurs actifs et les réseaux sociaux.</p><ul><li>50 vidéos par mois</li><li>Jusqu'à 10 minutes par vidéo</li><li>100 opérations IA par jour</li><li>Sous-titres et outils IA avancés</li><li>Modèles de texte animés</li><li>Export sans filigrane</li></ul><button type="button" data-subscription-plan="Pro">Choisir Pro</button></article>
         <article><span class="jv-subscription-tag">POUR LES ÉQUIPES</span><h4>Business</h4><strong><del style="opacity:.55;font-size:.8em">30 $</del> <span data-promo-price="business">21 $</span> <small>/ mois le 1er mois</small></strong><p>Pour les productions soutenues.</p><ul><li>110 vidéos par mois</li><li>Jusqu'à 30 minutes par vidéo</li><li>Outils IA avancés</li><li>Personnalisation avancée</li><li>Export HD sans filigrane</li></ul><button type="button" data-subscription-plan="Business">Choisir Business</button></article>
       </div>
-      <p class="jv-subscription-notice">Paiement sécurisé par Dodo Payments · Abonnement mensuel renouvelé automatiquement. Votre formule JUSTEVIVO sera activée après confirmation sécurisée du paiement.</p>`;
+      <p class="jv-subscription-notice">Paiement sécurisé par SasPay · Accès valable 30 jours après confirmation. Renouvellement manuel.</p>`;
     workspace.insertBefore(subscriptionPage, workspace.querySelector(".upload-zone"));
   }
 
@@ -225,13 +225,13 @@ document.addEventListener("DOMContentLoaded", function () {
     const note=document.getElementById("jv-subscription-current-note");
     let session=null;try{session=JSON.parse(localStorage.getItem("justevivo_session_v1")||"null")}catch(_){}
     if(!session||!session.access_token){note.textContent="Connectez-vous et confirmez votre adresse e-mail avant de souscrire à une formule.";note.scrollIntoView({behavior:"smooth",block:"nearest"});return;}
-    const label=b.textContent;b.disabled=true;b.textContent="Préparation du paiement…";note.textContent="Connexion sécurisée à Dodo Payments…";
+    const label=b.textContent;b.disabled=true;b.textContent="Préparation du paiement…";note.textContent="Connexion sécurisée à SasPay…";
     try{
       const response=await fetch(API_URL+"/api/me/pay/create",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+session.access_token},body:JSON.stringify({plan})});
       const data=await response.json().catch(()=>({}));
       if(!response.ok)throw new Error(data.error||"Le paiement n'est pas disponible pour le moment.");
       const url=new URL(data.checkoutUrl||"");
-      if(url.protocol!=="https:"||!url.hostname.endsWith("dodopayments.com"))throw new Error("Lien de paiement non reconnu. Contactez le support.");
+      if(url.protocol!=="https:"||(url.hostname!=="saspay.me"&&!url.hostname.endsWith(".saspay.me"))||url.username||url.password)throw new Error("Lien SasPay non reconnu. Contactez le support.");
       note.textContent="Redirection vers le paiement sécurisé…";window.location.assign(url.href);
     }catch(e){note.textContent=e.message||"Impossible de lancer le paiement. Réessayez.";}
     finally{b.disabled=false;b.textContent=label;}

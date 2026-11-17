@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /forgot-password.html
+Disallow: /studio.html
+
+Sitemap: https://justevivo.pages.dev/sitemap.xml

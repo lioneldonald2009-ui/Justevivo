@@ -118,3 +118,16 @@ html[data-theme="dark"] .faq-list p{color:#c4ccda!important}
   .plan-card{max-width:none!important}
   .how-section .steps{grid-template-columns:1fr!important}
 }
+
+
+/* FIX 2026-11-17 — contraste stable du titre principal de la vitrine.
+   Le hero conserve son fond bleu nuit : son titre doit rester blanc,
+   quel que soit le thème enregistré ou l'ordre de chargement des feuilles CSS. */
+.hero .hero-copy h1,
+.hero .hero-copy h1 span{
+  color:#f7f7ff!important;
+  -webkit-text-fill-color:#f7f7ff!important;
+  background:none!important;
+  opacity:1!important;
+  visibility:visible!important;
+}

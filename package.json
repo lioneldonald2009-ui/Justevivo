@@ -19,9 +19,9 @@
     "desktop:dist": "npm run build:web && electron-builder --win nsis portable"
   },
   "dependencies": {
-    "@capacitor/android": "8.5.3",
-    "@capacitor/ios": "8.5.3",
-    "@capacitor/core": "8.5.3"
+    "@capacitor/android": "8.6.2",
+    "@capacitor/ios": "8.6.2",
+    "@capacitor/core": "8.6.2"
   },
   "devDependencies": {
     "@capacitor/cli": "8.5.3",

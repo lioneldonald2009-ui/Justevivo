@@ -24,10 +24,10 @@
     "@capacitor/core": "8.5.3"
   },
   "devDependencies": {
-    "@capacitor/cli": "8.5.3",
-    "@capacitor/assets": "^3.0.5",
-    "typescript": "^5.9.3",
-    "electron": "^41.0.0",
+    "@capacitor/cli": "8.6.2",
+    "@capacitor/assets": "^4.0.0",
+    "typescript": "^7.0.2",
+    "electron": "^45.4.1",
     "electron-builder": "^26.0.12"
   },
   "main": "desktop-main.cjs",

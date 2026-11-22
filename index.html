@@ -5,8 +5,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#080b18">
-  <meta name="application-name" content="JUSTEVIVO AI">
-  <meta name="apple-mobile-web-app-title" content="JUSTEVIVO AI">
+  <meta name="application-name" content="JUSTEVIVO">
+  <meta name="apple-mobile-web-app-title" content="JUSTEVIVO">
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -32,20 +32,32 @@
   <script type="application/ld+json">
   {
     "@context": "https://schema.org",
-    "@type": "SoftwareApplication",
-    "name": "JUSTEVIVO",
-    "alternateName": "JUSTEVIVO AI",
-    "applicationCategory": "MultimediaApplication",
-    "operatingSystem": "Web, Android, Windows, iOS",
-    "url": "https://justevivo.pages.dev/",
-    "description": "Studio vidéo en ligne avec sous-titres automatiques par IA, montage intelligent, traduction des sous-titres, styles animés et export vidéo.",
-    "inLanguage": "fr",
-    "offers": {
-      "@type": "Offer",
-      "price": "0",
-      "priceCurrency": "XOF",
-      "description": "Accès gratuit avec fonctionnalités et limites selon la formule."
-    }
+    "@graph": [
+      {
+        "@type": "WebSite",
+        "@id": "https://justevivo.pages.dev/#website",
+        "name": "JUSTEVIVO",
+        "alternateName": ["JUSTEVIVO AI", "justevivo.pages.dev"],
+        "url": "https://justevivo.pages.dev/"
+      },
+      {
+        "@type": "SoftwareApplication",
+        "@id": "https://justevivo.pages.dev/#application",
+        "name": "JUSTEVIVO",
+        "alternateName": "JUSTEVIVO AI",
+        "applicationCategory": "MultimediaApplication",
+        "operatingSystem": "Web, Android, Windows, iOS",
+        "url": "https://justevivo.pages.dev/",
+        "description": "Studio vidéo en ligne avec sous-titres automatiques par IA, montage intelligent, traduction des sous-titres, styles animés et export vidéo.",
+        "inLanguage": "fr",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "XOF",
+          "description": "Accès gratuit avec fonctionnalités et limites selon la formule."
+        }
+      }
+    ]
   }
   </script>
 

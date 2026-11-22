@@ -75,7 +75,7 @@
   }
   async function sendCode({resend=false} = {}) {
     const email=emailInput.value.trim();
-    if (!/^\\S+@\\S+\\.\\S+$/.test(email)) { showMessage('Saisissez une adresse email valide.',true); emailInput.focus(); return; }
+    if (!/^\S+@\S+\.\S+$/.test(email)) { showMessage('Saisissez une adresse email valide.',true); emailInput.focus(); return; }
     if (config.captchaSiteKey && !captchaToken) {
       showStep('email'); renderCaptcha();
       showMessage('Validez le contrôle anti-robot pour recevoir un nouveau code.',true); return;

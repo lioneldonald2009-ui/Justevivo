@@ -299,7 +299,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function handleSidebarLink(link) {
     const page = link.dataset.page;
-    if (page === "home") { window.scrollTo({ top: 0, behavior: "smooth" }); return; }
+    if (page === "home") { showDashboard(); return; }
     if (page === "dashboard") { showDashboard(); return; }
     if (page === "pricing") { showSubscription(); return; }
     setActiveLink(link);

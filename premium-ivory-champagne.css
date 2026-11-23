@@ -221,3 +221,35 @@ a{color:inherit}
   .featured-plan{transform:none}
 }
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;scroll-behavior:auto!important}}
+
+
+/* ACCESSIBILITÉ — modale de connexion générée dynamiquement par app5.js.
+   Neutralise aussi les couleurs définies en styles inline, sans toucher aux événements. */
+.jv-auth-modal .jv-auth-card{
+  background:#fffefa!important;color:#20242b!important;border:1px solid #e4dfd4!important;
+  box-shadow:0 24px 70px rgba(18,20,24,.24)!important;
+}
+.jv-auth-modal .jv-auth-title{color:#20242b!important}
+.jv-auth-modal .jv-auth-message{
+  background:#f4f1ea!important;color:#4b4943!important;border:1px solid #e4dfd4!important;
+  padding:10px 12px!important;border-radius:12px!important;
+}
+.jv-auth-modal .jv-auth-field{
+  background:#fffefa!important;color:#20242b!important;border:1px solid #d9d2c5!important;
+  caret-color:#927345!important;
+}
+.jv-auth-modal .jv-auth-field::placeholder{color:#77766f!important;opacity:1!important}
+.jv-auth-modal .jv-auth-field:focus{border-color:#927345!important;box-shadow:0 0 0 3px #b4935e26!important;outline:none!important}
+.jv-auth-modal .jv-auth-card button:not(.button){
+  color:#735a34!important;background:transparent!important;
+}
+.jv-auth-modal #jv-password-requirements{
+  background:#f5f1e8!important;color:#4b4943!important;border:1px solid #ded5c5!important;
+}
+.jv-auth-modal .button.ghost,.jv-auth-modal .button:not(.primary){
+  background:#fffefa!important;color:#30343a!important;border:1px solid #ded8cc!important;
+}
+.jv-auth-modal .button.primary{
+  background:linear-gradient(135deg,#b4935e,#927345)!important;color:#fffefa!important;
+}
+.jv-auth-modal button:disabled{opacity:.6!important;cursor:wait!important}

@@ -1,5 +1,15 @@
 // JUSTEVIVO V6 — navigation unifiée : dashboard séparé, studio persistant.
 document.addEventListener("DOMContentLoaded", function () {
+  // Le CTA public doit fonctionner même lorsque la page ne contient pas la sidebar du studio.
+  const homePromoCta = document.getElementById("jv-home-promo-cta");
+  if (homePromoCta) homePromoCta.addEventListener("click", event => {
+    const pricing = document.getElementById("pricing");
+    if (!pricing) return;
+    event.preventDefault();
+    history.replaceState(null, "", "#pricing");
+    pricing.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+
   const sidebar = document.querySelector(".sidebar");
   if (!sidebar) return;
   const links = Array.from(document.querySelectorAll(".sidebar .side-link"));
@@ -335,17 +345,6 @@ document.addEventListener("DOMContentLoaded", function () {
     event.stopImmediatePropagation();
     handleSidebarLink(link);
   }, true);
-
-  // Le CTA de lancement ouvre directement les formules publiques, sans dépendre du hash.
-  const homePromoCta = document.getElementById("jv-home-promo-cta");
-  if (homePromoCta) homePromoCta.addEventListener("click", event => {
-    event.preventDefault();
-    const pricing = document.getElementById("pricing");
-    if (pricing) {
-      history.replaceState(null, "", "#pricing");
-      pricing.scrollIntoView({ behavior: "smooth", block: "start" });
-    }
-  });
 
   // Les CTA du site pointent vers #studio : ils doivent aussi réactiver le studio
   // après que le tableau de bord a masqué les éléments de montage.

@@ -299,6 +299,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function handleSidebarLink(link) {
     const page = link.dataset.page;
+    if (page === "home") { window.scrollTo({ top: 0, behavior: "smooth" }); return; }
     if (page === "dashboard") { showDashboard(); return; }
     if (page === "pricing") { showSubscription(); return; }
     setActiveLink(link);
@@ -334,6 +335,17 @@ document.addEventListener("DOMContentLoaded", function () {
     event.stopImmediatePropagation();
     handleSidebarLink(link);
   }, true);
+
+  // Le CTA de lancement ouvre directement les formules publiques, sans dépendre du hash.
+  const homePromoCta = document.getElementById("jv-home-promo-cta");
+  if (homePromoCta) homePromoCta.addEventListener("click", event => {
+    event.preventDefault();
+    const pricing = document.getElementById("pricing");
+    if (pricing) {
+      history.replaceState(null, "", "#pricing");
+      pricing.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  });
 
   // Les CTA du site pointent vers #studio : ils doivent aussi réactiver le studio
   // après que le tableau de bord a masqué les éléments de montage.

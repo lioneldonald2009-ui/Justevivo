@@ -104,6 +104,12 @@
   </header>
 
   <main>
+    <section id="jv-home-promo" style="margin:0;padding:14px 20px;background:linear-gradient(100deg,#21163f,#5635a5);color:#fff;text-align:center">
+<div style="max-width:1120px;margin:auto;display:flex;align-items:center;justify-content:center;gap:14px;flex-wrap:wrap">
+<strong>OFFRE DE LANCEMENT JUSTEVIVO : −30 % sur votre abonnement, chaque mois</strong>
+<span id="jv-home-promo-count" style="font-weight:800;color:#eadfff">Chargement des places…</span>
+<a id="jv-home-promo-cta" href="#pricing" style="display:inline-flex;padding:9px 17px;border-radius:999px;background:#fff;color:#40247f;font-weight:800;text-decoration:none">Profiter de l’offre →</a>
+</div></section>
     <section class="hero">
       <div class="hero-copy">
         <div class="eyebrow"><i></i> LE STUDIO DE MONTAGE VIDÉO INTELLIGENT</div>
@@ -344,7 +350,7 @@
 
       <section id="jv-novdec-promo-public" style="max-width:980px;margin:24px auto;padding:24px;border:1px solid #8c6cff;border-radius:18px;background:linear-gradient(120deg,#17152c,#282044);color:#fff">
         <div style="display:flex;justify-content:space-between;align-items:center;gap:18px;flex-wrap:wrap">
-          <div><span style="font-size:11px;font-weight:800;letter-spacing:1.4px;color:#c9b8ff">OFFRE SPÉCIALE · NOVEMBRE & DÉCEMBRE 2026</span><h3 style="margin:8px 0;font-size:clamp(22px,3vw,30px)">−30 % pour les 60 premiers abonnés</h3><p style="margin:0;color:#ded9ee">Sur le premier mois uniquement. Offre valable jusqu'au 31 décembre 2026 ou jusqu'à épuisement des places.</p></div>
+          <div><span style="font-size:11px;font-weight:800;letter-spacing:1.4px;color:#c9b8ff">OFFRE DE LANCEMENT · 60 PREMIERS ABONNÉS</span><h3 style="margin:8px 0;font-size:clamp(22px,3vw,30px)">−30 % pour les 60 premiers abonnés</h3><p style="margin:0;color:#ded9ee">−30 % chaque mois, sans date limite : jusqu’à attribution des 60 places.</p></div>
           <div style="min-width:145px;text-align:center"><strong id="jv-public-promo-remaining" style="display:block;font-size:32px">— / 60</strong><span id="jv-public-promo-status" style="font-size:12px;color:#ded9ee">Chargement du compteur…</span></div>
         </div>
         <div style="height:9px;margin-top:16px;border-radius:99px;background:#ffffff2b;overflow:hidden"><i id="jv-public-promo-progress" style="display:block;width:0;height:100%;background:#a78bfa;border-radius:99px"></i></div>
@@ -352,7 +358,7 @@
       <div class="plans-grid">
         <article class="plan-card">
           <span class="plan">JUSTEVIVO STARTER</span>
-          <div class="plan-price"><del style="opacity:.55;font-size:.75em">9 800 FCFA</del> 6 900 FCFA <small>/ 1er mois</small></div>
+          <div class="plan-price"><del style="opacity:.55;font-size:.75em">9 800 FCFA</del> 6 900 FCFA <small>/ mois pendant l’offre</small></div>
           <div class="video-limit">25 <span>vidéos par mois</span></div>
           <p class="plan-description">Pour commencer à créer régulièrement.</p>
           <ul>
@@ -458,16 +464,19 @@
 (function(){
   const endpoint="https://justevivo-backend.onrender.com/api/promotions/nov-dec-2026";
   async function refresh(){
-    const box=document.getElementById("jv-novdec-promo-public");if(!box)return;
+    const box=document.getElementById("jv-novdec-promo-public");
     try{
       const r=await fetch(endpoint,{cache:"no-store"});if(!r.ok)throw new Error("unavailable");
       const p=await r.json(),left=Math.max(0,Number(p.remaining)||0),claimed=Math.max(0,Number(p.claimed)||0);
-      const count=document.getElementById("jv-public-promo-remaining"),status=document.getElementById("jv-public-promo-status"),bar=document.getElementById("jv-public-promo-progress");
+      const count=document.getElementById("jv-public-promo-remaining"),status=document.getElementById("jv-public-promo-status"),bar=document.getElementById("jv-public-promo-progress"),homeCount=document.getElementById("jv-home-promo-count"),homeCta=document.getElementById("jv-home-promo-cta"),homePromo=document.getElementById("jv-home-promo");
       if(count)count.textContent=left+" / 60";
+      if(homeCount)homeCount.textContent=p.active?left+" places restantes sur 60":"Offre terminée";
+      if(homeCta)homeCta.hidden=!p.active;
+      if(homePromo)homePromo.hidden=!p.active;
       if(status)status.textContent=p.active?claimed+" abonnement(s) confirmé(s) · "+left+" place(s) restante(s)":"Offre terminée ou quota atteint";
       if(bar)bar.style.width=Math.min(100,claimed/60*100)+"%";
-      if(!p.active){box.querySelector("h3").textContent=claimed>=60?"Les 60 places ont été attribuées":"La campagne promotionnelle est terminée";box.querySelector("p").textContent="Les tarifs standards s'appliquent désormais.";document.querySelectorAll(".plan-price").forEach((node,i)=>{node.innerHTML=["9 800 FCFA <small>/ mois</small>","13 100 FCFA <small>/ mois</small>","19 700 FCFA <small>/ mois</small>"][i]||node.innerHTML;});}
-    }catch(_){const s=document.getElementById("jv-public-promo-status");if(s)s.textContent="Compteur momentanément indisponible";}
+      if(!p.active&&box){box.querySelector("h3").textContent=claimed>=60?"Les 60 places ont été attribuées":"La campagne promotionnelle est terminée";box.querySelector("p").textContent="Les tarifs standards s'appliquent désormais.";document.querySelectorAll(".plan-price").forEach((node,i)=>{node.innerHTML=["9 800 FCFA <small>/ mois</small>","13 100 FCFA <small>/ mois</small>","19 700 FCFA <small>/ mois</small>"][i]||node.innerHTML;});}
+    }catch(_){const s=document.getElementById("jv-public-promo-status");if(s)s.textContent="Compteur momentanément indisponible";const h=document.getElementById("jv-home-promo-count");if(h)h.textContent="Vérification des places indisponible";}
   }
   refresh();window.setInterval(refresh,60000);
 })();

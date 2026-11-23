@@ -134,7 +134,7 @@
   $('send-code').addEventListener('click',sendCode);
   $('change-password').addEventListener('click',changePassword);
   $('resend-code').addEventListener('click',()=>sendCode({resend:true}));
-  $('go-login').addEventListener('click',()=>{window.location.href='studio.html';});
+  $('go-login').addEventListener('click',()=>{window.location.href='index.html';});
   emailInput.addEventListener('keydown',e=>{if(e.key==='Enter')sendCode();});
   codeInput.addEventListener('input',()=>{codeInput.value=codeInput.value.replace(/\D/g,'').slice(0,8);});
   $('confirm-password').addEventListener('keydown',e=>{if(e.key==='Enter')changePassword();});

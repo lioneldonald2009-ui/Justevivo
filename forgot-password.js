@@ -119,12 +119,24 @@
     } catch (error) { showMessage(error.message,true); }
     finally { button.disabled=false; }
   }
+  document.querySelectorAll('.toggle-password').forEach(toggle => {
+    toggle.addEventListener('click', () => {
+      const field = $(toggle.dataset.target);
+      const reveal = field.type === 'password';
+      field.type = reveal ? 'text' : 'password';
+      toggle.setAttribute('aria-pressed', String(reveal));
+      toggle.setAttribute('aria-label', reveal ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+      toggle.innerHTML = reveal
+        ? '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3l18 18"/><path d="M10.6 10.6a2 2 0 002.8 2.8"/><path d="M9.9 5.2A10.8 10.8 0 0112 5c6.4 0 10 7 10 7a16 16 0 01-3.1 3.9M6.2 6.2C3.5 8 2 12 2 12s3.6 7 10 7c1.4 0 2.7-.3 3.8-.8"/></svg>'
+        : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12Z"/><circle cx="12" cy="12" r="3"/></svg>';
+    });
+  });
   $('send-code').addEventListener('click',sendCode);
   $('change-password').addEventListener('click',changePassword);
   $('resend-code').addEventListener('click',()=>sendCode({resend:true}));
   $('go-login').addEventListener('click',()=>{window.location.href='studio.html';});
   emailInput.addEventListener('keydown',e=>{if(e.key==='Enter')sendCode();});
-  codeInput.addEventListener('input',()=>{codeInput.value=codeInput.value.replace(/\D/g,'').slice(0,6);});
+  codeInput.addEventListener('input',()=>{codeInput.value=codeInput.value.replace(/\D/g,'').slice(0,8);});
   $('confirm-password').addEventListener('keydown',e=>{if(e.key==='Enter')changePassword();});
   const initialEmail=new URLSearchParams(location.search).get('email');
   if(initialEmail) emailInput.value=initialEmail;

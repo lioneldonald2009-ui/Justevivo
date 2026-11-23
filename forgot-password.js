@@ -101,7 +101,7 @@
   async function changePassword() {
     const email=emailInput.value.trim(), token=codeInput.value.trim();
     const password=$('password').value, confirmation=$('confirm-password').value;
-    if (!/^\d{6}$/.test(token)) { showMessage('Entrez le code à 6 chiffres reçu par email.',true); codeInput.focus(); return; }
+    if (!/^\\d{8}$/.test(token)) { showMessage('Entrez les 8 chiffres du code reçu par email.',true); codeInput.focus(); return; }
     if (password.length<8) { showMessage('Le mot de passe doit contenir au moins 8 caractères.',true); $('password').focus(); return; }
     if (password!==confirmation) { showMessage('Les deux mots de passe ne correspondent pas.',true); $('confirm-password').focus(); return; }
     const button=$('change-password'); button.disabled=true; showMessage('Vérification du code…');

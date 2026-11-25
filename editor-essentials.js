@@ -23,6 +23,7 @@
       '</div>',
       '<div class="jv-transport-meta"><label>Vitesse <select data-jv-speed aria-label="Vitesse de lecture"><option value=".5">0,5×</option><option value=".75">0,75×</option><option value="1" selected>1×</option><option value="1.25">1,25×</option><option value="1.5">1,5×</option><option value="2">2×</option></select></label><span data-jv-time>00:00 / 00:00</span></div>',
       '<p data-jv-playback-status role="status" aria-live="polite">Lecteur vidéo prêt · MP4, MOV et WebM selon les codecs du navigateur.</p>',
+      '<div class="jv-transport-stream"><input type="url" data-jv-stream-url inputmode="url" placeholder="URL vidéo MP4, HLS (.m3u8) ou DASH (.mpd)" aria-label="Adresse d’une vidéo en ligne"><button type="button" data-jv-load-stream>Lire l’URL</button></div>',
       '<details class="jv-shortcuts"><summary>Raccourcis clavier</summary><p><kbd>Espace</kbd> Lecture/pause · <kbd>J</kbd>/<kbd>L</kbd> −/+ 5 s · <kbd>←</kbd>/<kbd>→</kbd> −/+ 1 s · <kbd>M</kbd> Son · <kbd>F</kbd> Plein écran</p></details>'
     ].join('');
     frame.insertAdjacentElement('afterend', toolbar);
@@ -31,6 +32,76 @@
     const speed = toolbar.querySelector('[data-jv-speed]');
     const playbackStatus = toolbar.querySelector('[data-jv-playback-status]');
     const setPlaybackStatus = message => { if (playbackStatus) playbackStatus.textContent = message; };
+    const streamInput = toolbar.querySelector('[data-jv-stream-url]');
+    const streamButton = toolbar.querySelector('[data-jv-load-stream]');
+    let hlsEngine = null;
+    let dashEngine = null;
+    const loadScript = (src, ready) => new Promise((resolve, reject) => {
+      if (ready()) { resolve(); return; }
+      const existing = document.querySelector('script[data-jv-engine="' + src + '"]');
+      if (existing) {
+        existing.addEventListener('load', resolve, {once:true});
+        existing.addEventListener('error', () => reject(new Error('Moteur de lecture indisponible.')), {once:true});
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = src;
+      script.async = true;
+      script.dataset.jvEngine = src;
+      script.onload = resolve;
+      script.onerror = () => reject(new Error('Impossible de charger le moteur de lecture. Vérifiez votre connexion.'));
+      document.head.appendChild(script);
+    });
+    const releaseStreamEngines = () => {
+      if (hlsEngine) { try { hlsEngine.destroy(); } catch (_) {} hlsEngine = null; }
+      if (dashEngine) { try { dashEngine.reset(); } catch (_) {} dashEngine = null; }
+    };
+    const setPlaybackSource = async rawUrl => {
+      const url = String(rawUrl || '').trim();
+      if (!/^https?:\\/\\//i.test(url)) throw new Error('Saisissez une URL vidéo commençant par http:// ou https://.');
+      releaseStreamEngines();
+      video.pause();
+      video.removeAttribute('src');
+      video.load();
+      const cleanUrl = url.split(/[?#]/)[0].toLowerCase();
+      if (cleanUrl.endsWith('.m3u8')) {
+        if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          video.src = url;
+          video.load();
+        } else {
+          await loadScript('https://cdn.jsdelivr.net/npm/hls.js@1.6.15/dist/hls.min.js', () => !!window.Hls);
+          if (!window.Hls.isSupported()) throw new Error('HLS n’est pas pris en charge sur cet appareil.');
+          hlsEngine = new window.Hls({enableWorker:true});
+          hlsEngine.attachMedia(video);
+          hlsEngine.on(window.Hls.Events.MEDIA_ATTACHED, () => hlsEngine && hlsEngine.loadSource(url));
+          hlsEngine.on(window.Hls.Events.ERROR, (_, data) => {
+            if (data && data.fatal) setPlaybackStatus('Erreur HLS : vérifiez l’URL et les autorisations CORS du serveur vidéo.');
+          });
+        }
+        setPlaybackStatus('Moteur HLS activé. Chargement du flux…');
+      } else if (cleanUrl.endsWith('.mpd')) {
+        await loadScript('https://cdn.jsdelivr.net/npm/dashjs@5.0.3/dist/modern/umd/dash.all.min.js', () => !!window.dashjs);
+        dashEngine = window.dashjs.MediaPlayer().create();
+        dashEngine.initialize(video, url, false);
+        dashEngine.on(window.dashjs.MediaPlayer.events.ERROR, () => setPlaybackStatus('Erreur DASH : vérifiez l’URL et les autorisations CORS du serveur vidéo.'));
+        setPlaybackStatus('Moteur MPEG-DASH activé. Chargement du flux…');
+      } else {
+        video.src = url;
+        video.load();
+        setPlaybackStatus('Lecteur HTML5 activé. Chargement de la vidéo…');
+      }
+      return true;
+    };
+    window.JVSetPlaybackSource = setPlaybackSource;
+    streamButton.addEventListener('click', async () => {
+      streamButton.disabled = true;
+      try {
+        await setPlaybackSource(streamInput.value);
+        await video.play();
+      } catch (error) {
+        setPlaybackStatus(error.message || 'Impossible de lire cette adresse vidéo.');
+      } finally { streamButton.disabled = false; }
+    });
     video.playsInline = true;
     video.preload = 'metadata';
     const format = value => {
@@ -147,6 +218,7 @@
     frame.setAttribute('aria-label', 'Aperçu vidéo ou photo. Déposez un ou plusieurs médias ici pour les importer.');
     initMediaBin(input, panel);
     updateTime();
+    window.addEventListener('pagehide', releaseStreamEngines, { once: true });
   };
 
   // Chutier multi-médias local : les fichiers restent sur l'appareil (IndexedDB).

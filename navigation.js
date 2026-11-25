@@ -170,6 +170,8 @@ document.addEventListener("DOMContentLoaded", function () {
     subscriptionPage.hidden = true;
     dashboard.hidden = false;
     studioParts.forEach(el => { el.hidden = true; });
+    const subtitleManager = document.getElementById("jvSubtitleManager");
+    if (subtitleManager) subtitleManager.hidden = true;
     workspaceBack.style.display = "none";
     setActive("dashboard");
     refreshDashboard();
@@ -185,6 +187,8 @@ document.addEventListener("DOMContentLoaded", function () {
     dashboard.hidden = true;
     subscriptionPage.hidden = false;
     studioParts.forEach(el => { el.hidden = true; });
+    const subtitleManager = document.getElementById("jvSubtitleManager");
+    if (subtitleManager) subtitleManager.hidden = true;
     workspaceBack.style.display = "none";
     setActive("pricing");
     const email=document.getElementById("jv-account-email");
@@ -203,6 +207,8 @@ document.addEventListener("DOMContentLoaded", function () {
     subscriptionPage.hidden = true;
     dashboard.hidden = true;
     studioParts.forEach(el => { el.hidden = false; });
+    const subtitleManager = document.getElementById("jvSubtitleManager");
+    if (subtitleManager) subtitleManager.hidden = false;
     workspaceBack.style.display = "inline-flex";
   }
 
@@ -316,10 +322,17 @@ document.addEventListener("DOMContentLoaded", function () {
     if (link.dataset.jvFeature === "dubbing") { openDubbing(); return; }
     if (link.dataset.jvFeature === "subtitles") {
       showStudio();
+      if (!document.getElementById("jvSubtitleManager") && typeof window.JV_INIT_SUBTITLE_MANAGER === "function") {
+        window.JV_INIT_SUBTITLE_MANAGER();
+      }
       requestAnimationFrame(() => {
         const manager = document.getElementById("jvSubtitleManager");
-        if (manager) manager.scrollIntoView({behavior:"smooth", block:"center"});
-        else showNavigationNotice("La gestion des sous-titres n’a pas pu être chargée. Actualisez la page puis réessayez.");
+        if (manager) {
+          manager.hidden = false;
+          manager.scrollIntoView({behavior:"smooth", block:"center"});
+        } else {
+          showNavigationNotice("Le gestionnaire de sous-titres est indisponible : vérifiez le chargement de subtitle-manager.js.");
+        }
       });
       return;
     }

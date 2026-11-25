@@ -1,13 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 180" role="img" aria-labelledby="title">
-<title id="title">JUSTEVIVO</title>
-<defs><linearGradient id="champagne" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#D9C39A"/><stop offset="1" stop-color="#A98752"/></linearGradient></defs>
-<g transform="translate(10 12) scale(.29)">
-<rect width="512" height="512" rx="112" fill="#26364F"/>
-<path d="M177 112h72v202c0 70-44 112-113 112-25 0-48-6-68-19l34-61c10 7 21 10 34 10 27 0 41-15 41-44V112Z" fill="#FFFEFA"/>
-<path d="m260 174 78 174 78-174h-75l-35 83-36-83h-10Z" fill="url(#champagne)"/>
-<path d="m344 240 52 30-52 30v-60Z" fill="#26364F"/>
-</g>
-<text x="178" y="128" font-family="Manrope,Montserrat,Arial,sans-serif" font-size="104" font-weight="800" letter-spacing="-5" fill="#26364F">JUSTE</text>
-<text x="493" y="128" font-family="Manrope,Montserrat,Arial,sans-serif" font-size="104" font-weight="800" letter-spacing="-5" fill="url(#champagne)">VIVO</text>
-<path d="M180 151H820" stroke="#B99A68" stroke-width="4" stroke-linecap="round" opacity=".65"/>
+<title id="title">JUSTEVIVO AI</title>
+<defs><linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FFF0C8"/><stop offset=".45" stop-color="#E8C77F"/><stop offset="1" stop-color="#B98235"/></linearGradient></defs>
+<g transform="translate(8 6) scale(.32)"><rect width="512" height="512" rx="112" fill="#081832"/><path d="M173 128h70v183c0 65-40 105-105 105-23 0-45-6-64-18l33-57c9 6 19 9 31 9 25 0 35-14 35-40V128Z" fill="#fff"/><path d="m258 190 70 155 70-155h-67l-32 73-32-73h-9Z" fill="url(#gold)"/><path d="m330 249 56 30-56 30v-60Z" fill="#081832"/></g>
+<text x="190" y="120" font-family="Arial,sans-serif" font-size="104" font-weight="800" letter-spacing="-5" fill="#0B1A36">JUSTE</text>
+<text x="500" y="120" font-family="Arial,sans-serif" font-size="104" font-weight="800" letter-spacing="-5" fill="url(#gold)">VIVO</text>
+<text x="196" y="158" font-family="Arial,sans-serif" font-size="22" font-weight="700" letter-spacing="10" fill="#B18B4E">AI VIDEO STUDIO</text>
 </svg>

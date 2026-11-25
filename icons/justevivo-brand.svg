@@ -1,18 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+<title id="title">JUSTEVIVO AI</title>
 <defs>
- <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#18002f"/><stop offset=".55" stop-color="#080510"/><stop offset="1" stop-color="#26004b"/></linearGradient>
- <linearGradient id="violet" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#8b00f5"/><stop offset=".55" stop-color="#d64cff"/><stop offset="1" stop-color="#fff"/></linearGradient>
- <linearGradient id="white" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fff"/><stop offset="1" stop-color="#e9d8ff"/></linearGradient>
- <filter id="glow"><feGaussianBlur stdDeviation="9" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#101F3D"/><stop offset=".58" stop-color="#07152F"/><stop offset="1" stop-color="#020B1D"/></linearGradient>
+ <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FFF0C8"/><stop offset=".45" stop-color="#E8C77F"/><stop offset="1" stop-color="#B98235"/></linearGradient>
+ <linearGradient id="ivory" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#E8E5DC"/></linearGradient>
+ <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="7"/></filter>
 </defs>
 <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-<rect x="5" y="5" width="502" height="502" rx="108" fill="none" stroke="#a52cff" stroke-opacity=".55" stroke-width="4"/>
-<g filter="url(#glow)">
- <path d="M176 160c0-17 19-28 34-19l125 72c15 9 15 30 0 39L210 324c-15 9-34-2-34-19z" fill="url(#violet)"/>
- <path d="M255 90h74c17 0 30 13 30 30v198c0 65-53 118-118 118h-25c-52 0-94-42-94-94v-16h77v12c0 10 8 18 18 18h20c24 0 44-20 44-44V120c0-17 13-30 30-30z" fill="url(#white)" opacity=".96"/>
- <path d="M115 274c41-62 105-104 181-119" fill="none" stroke="url(#violet)" stroke-width="10" stroke-linecap="round"/>
- <path d="M375 155c29 22 49 54 57 91" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round"/>
- <path d="M420 104l10 24 24 10-24 10-10 24-10-24-24-10 24-10z" fill="#fff"/>
-</g>
-<text x="256" y="474" text-anchor="middle" font-family="Arial,sans-serif" font-size="36" font-weight="900" letter-spacing="-1"><tspan fill="#fff">JUSTE</tspan><tspan fill="#c13cff">VIVO</tspan></text>
+<rect x="9" y="9" width="494" height="494" rx="104" fill="none" stroke="#D7B66F" stroke-opacity=".48" stroke-width="3"/>
+<path d="M112 103H400" stroke="url(#gold)" stroke-width="5" stroke-linecap="round" opacity=".9"/>
+<path d="M173 136h70v183c0 65-40 105-105 105-23 0-45-6-64-18l33-57c9 6 19 9 31 9 25 0 35-14 35-40V136Z" fill="#000" opacity=".28" filter="url(#shadow)"/>
+<path d="M173 128h70v183c0 65-40 105-105 105-23 0-45-6-64-18l33-57c9 6 19 9 31 9 25 0 35-14 35-40V128Z" fill="url(#ivory)"/>
+<path d="m258 190 70 155 70-155h-67l-32 73-32-73h-9Z" fill="url(#gold)"/>
+<path d="m330 249 56 30-56 30v-60Z" fill="#0A1832"/>
+<path d="M108 369c48 31 100 32 152 4 44-24 77-63 105-107" fill="none" stroke="url(#gold)" stroke-width="10" stroke-linecap="round"/>
+<path d="m369 114 8 19 19 8-19 8-8 19-8-19-19-8 19-8Z" fill="#FFF0C8"/>
 </svg>

@@ -427,3 +427,42 @@ html[data-theme="dark"] body .feature-strip strong {color:#f4f7ff!important}
 html[data-theme="dark"] body .feature-strip small {color:#c4ccda!important}
 html[data-theme="dark"] body .faq-list summary {color:#f4f7ff!important}
 html[data-theme="dark"] body .faq-list p {color:#c4ccda!important}
+
+
+/* IDENTITÉ DE NAVIGATION — couleurs fixes, indépendantes du thème actif. */
+html body .topbar nav a,
+html[data-theme="light"] body .topbar nav a,
+html[data-theme="dark"] body .topbar nav a {
+  color:#d6bd91!important;
+  -webkit-text-fill-color:#d6bd91!important;
+  opacity:1!important;
+  transition:color .18s ease,text-shadow .18s ease,background .18s ease!important;
+}
+html body .topbar nav a:hover,
+html body .topbar nav a:focus-visible {
+  color:#f0d9ad!important;
+  -webkit-text-fill-color:#f0d9ad!important;
+  text-shadow:0 0 12px rgba(212,188,146,.24)!important;
+}
+/* CTA Ouvrir le studio : bouton sombre permanent dans les deux thèmes. */
+html body .topbar .top-cta,
+html[data-theme="light"] body .topbar .top-cta,
+html[data-theme="dark"] body .topbar .top-cta {
+  background:#171a1e!important;
+  color:#fffefa!important;
+  -webkit-text-fill-color:#fffefa!important;
+  border:1px solid #b4935e!important;
+  box-shadow:0 5px 18px rgba(0,0,0,.20)!important;
+  transition:background .18s ease,color .18s ease,border-color .18s ease,box-shadow .18s ease!important;
+}
+html body .topbar .top-cta span {color:#d6bd91!important;-webkit-text-fill-color:#d6bd91!important}
+html body .topbar .top-cta:hover,
+html body .topbar .top-cta:focus-visible {
+  background:#b4935e!important;
+  color:#171a1e!important;
+  -webkit-text-fill-color:#171a1e!important;
+  border-color:#dfc99f!important;
+  box-shadow:0 8px 22px rgba(180,147,94,.28)!important;
+}
+html body .topbar .top-cta:hover span,
+html body .topbar .top-cta:focus-visible span {color:#171a1e!important;-webkit-text-fill-color:#171a1e!important}

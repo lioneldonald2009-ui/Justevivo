@@ -110,7 +110,22 @@
     try {
       setBusy(true, "Lecture des images et reconnaissance OCR des sous-titres visibles…");
       const response = await api("/api/subtitles/analyze-video", { method:"POST", body:form });
-      const data = await response.json();
+      const started = await response.json();
+      if (!started.jobId) throw new Error("Le serveur n'a pas pu démarrer l'analyse OCR.");
+      status("Vidéo reçue. Analyse OCR lancée en arrière-plan…");
+      let data = null;
+      const maxWait = 30 * 60 * 1000;
+      const startedAt = Date.now();
+      while (Date.now() - startedAt < maxWait) {
+        await new Promise(resolve => setTimeout(resolve, 2500));
+        const check = await api("/api/subtitles/analyze-video/" + encodeURIComponent(started.jobId));
+        const progress = await check.json();
+        if (progress.status === "completed") { data = progress; break; }
+        if (progress.status === "failed") throw new Error(progress.error || "L'analyse OCR a échoué.");
+        const elapsed = Math.floor((Date.now() - startedAt) / 1000);
+        status("Analyse OCR en cours… " + elapsed + " s. Tu peux laisser cette fenêtre ouverte.");
+      }
+      if (!data) throw new Error("L'analyse prend plus de temps que prévu. Réessaie avec une vidéo plus courte ou moins volumineuse.");
       loadParsed({ format:"srt", cues:data.cues || [] });
       if (data.region) {
         $("jvBurnX").value = Math.round(data.region.x * 100);

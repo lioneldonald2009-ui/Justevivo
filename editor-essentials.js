@@ -22,12 +22,17 @@
       '<button type="button" data-jv-action="fullscreen" aria-label="Plein écran" title="Plein écran (F)">⛶</button>',
       '</div>',
       '<div class="jv-transport-meta"><label>Vitesse <select data-jv-speed aria-label="Vitesse de lecture"><option value=".5">0,5×</option><option value=".75">0,75×</option><option value="1" selected>1×</option><option value="1.25">1,25×</option><option value="1.5">1,5×</option><option value="2">2×</option></select></label><span data-jv-time>00:00 / 00:00</span></div>',
+      '<p data-jv-playback-status role="status" aria-live="polite">Lecteur vidéo prêt · MP4, MOV et WebM selon les codecs du navigateur.</p>',
       '<details class="jv-shortcuts"><summary>Raccourcis clavier</summary><p><kbd>Espace</kbd> Lecture/pause · <kbd>J</kbd>/<kbd>L</kbd> −/+ 5 s · <kbd>←</kbd>/<kbd>→</kbd> −/+ 1 s · <kbd>M</kbd> Son · <kbd>F</kbd> Plein écran</p></details>'
     ].join('');
     frame.insertAdjacentElement('afterend', toolbar);
 
     const timeLabel = toolbar.querySelector('[data-jv-time]');
     const speed = toolbar.querySelector('[data-jv-speed]');
+    const playbackStatus = toolbar.querySelector('[data-jv-playback-status]');
+    const setPlaybackStatus = message => { if (playbackStatus) playbackStatus.textContent = message; };
+    video.playsInline = true;
+    video.preload = 'metadata';
     const format = value => {
       if (!Number.isFinite(value)) return '00:00';
       const s = Math.max(0, Math.floor(value));
@@ -38,9 +43,22 @@
       if (!Number.isFinite(video.duration)) return;
       video.currentTime = Math.min(video.duration, Math.max(0, video.currentTime + delta));
     };
-    const togglePlay = () => {
-      if (!video.src && !video.currentSrc) { input.click(); return; }
-      if (video.paused) video.play().catch(() => {}); else video.pause();
+    const togglePlay = async () => {
+      if (!video.currentSrc && !video.getAttribute('src')) {
+        setPlaybackStatus('Importez une vidéo pour démarrer la lecture.');
+        input.click();
+        return;
+      }
+      if (!video.paused) { video.pause(); return; }
+      try {
+        await video.play();
+        setPlaybackStatus('Lecture en cours.');
+      } catch (error) {
+        const message = error && error.name === 'NotAllowedError'
+          ? 'Lecture bloquée par le navigateur : appuyez directement sur ▶ dans la vidéo.'
+          : 'Lecture impossible. Vérifiez le format et le codec de cette vidéo.';
+        setPlaybackStatus(message);
+      }
     };
     const actions = {
       back: () => seek(-5),
@@ -59,8 +77,28 @@
     });
     speed.addEventListener('change', () => { video.playbackRate = Number(speed.value) || 1; });
     ['timeupdate', 'durationchange', 'loadedmetadata', 'seeked'].forEach(name => video.addEventListener(name, updateTime));
-    video.addEventListener('play', () => { toolbar.querySelector('[data-jv-action="play"]').textContent = 'Ⅱ'; });
-    video.addEventListener('pause', () => { toolbar.querySelector('[data-jv-action="play"]').textContent = '▶'; });
+    video.addEventListener('play', () => {
+      toolbar.querySelector('[data-jv-action="play"]').textContent = 'Ⅱ';
+      setPlaybackStatus('Lecture en cours.');
+    });
+    video.addEventListener('pause', () => {
+      toolbar.querySelector('[data-jv-action="play"]').textContent = '▶';
+      if (video.currentSrc) setPlaybackStatus('Lecture en pause.');
+    });
+    video.addEventListener('ended', () => setPlaybackStatus('Lecture terminée.'));
+    video.addEventListener('loadedmetadata', () => setPlaybackStatus('Vidéo chargée · ' + Math.round(video.videoWidth) + ' × ' + Math.round(video.videoHeight) + '.'));
+    video.addEventListener('error', () => {
+      const code = video.error && video.error.code;
+      const messages = {
+        1: 'Chargement vidéo interrompu.',
+        2: 'Erreur réseau pendant le chargement de la vidéo.',
+        3: 'Le navigateur ne parvient pas à décoder cette vidéo.',
+        4: 'Format ou codec non pris en charge par ce navigateur.'
+      };
+      setPlaybackStatus(messages[code] || 'Erreur de lecture vidéo. Essayez un MP4 H.264 avec audio AAC.');
+    });
+    video.addEventListener('waiting', () => setPlaybackStatus('Chargement de la vidéo…'));
+    video.addEventListener('stalled', () => setPlaybackStatus('Lecture en attente de données vidéo.'));
     video.addEventListener('volumechange', () => {
       const button = toolbar.querySelector('[data-jv-action="mute"]');
       button.textContent = video.muted ? 'Muet' : 'Son';
@@ -72,7 +110,7 @@
       if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
       const target = event.target;
       if (target && (target.isContentEditable || /INPUT|TEXTAREA|SELECT|BUTTON/.test(target.tagName))) return;
-      if (!video.src && !video.currentSrc) return;
+      if (!video.currentSrc && !video.getAttribute('src')) return;
       const key = event.key.toLowerCase();
       const map = {
         ' ': () => togglePlay(),

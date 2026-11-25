@@ -8,10 +8,19 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#26364F",
-  "theme_color": "#26364F",
-  "categories": ["video", "productivity", "photo"],
+  "background_color": "#081832",
+  "theme_color": "#081832",
+  "categories": [
+    "video",
+    "productivity",
+    "photo"
+  ],
   "icons": [
-    {"src": "/icons/justevivo-monogram.svg?v=20261125-4", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}
+    {
+      "src": "/icons/justevivo-monogram.svg?v=20261125-5",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
   ]
 }

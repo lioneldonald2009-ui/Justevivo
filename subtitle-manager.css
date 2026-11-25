@@ -19,3 +19,10 @@
 .jv-sm-primary{background:#26364f;color:#fff;border-color:#26364f}
 .jv-sm-primary:hover{background:#394e6c;color:#fff}
 @media(max-width:650px){.jv-sm-region{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.jv-sm-cue{grid-template-columns:minmax(130px,190px) minmax(0,1fr)}
+.jv-sm-preview{margin:0;padding:9px 10px;border:1px solid #e4dfd6;border-radius:8px;background:#fff;color:#26364f;font-size:13px;line-height:1.5;white-space:pre-wrap}
+.jv-sm-cue-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.jv-sm-cue-actions .jv-sm-button{min-height:34px;padding:6px 9px;font-size:11px}
+.jv-sm-cue textarea[hidden],.jv-sm-preview[hidden],.jv-sm-cue-actions button[hidden]{display:none!important}
+@media(max-width:650px){.jv-sm-cue{grid-template-columns:1fr}.jv-sm-cue-actions{justify-content:flex-start}}

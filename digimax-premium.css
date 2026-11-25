@@ -681,3 +681,63 @@ html[data-theme="light"] body .plans-section .plan-card .plan-price small,
 html[data-theme="light"] body .plan-card .plan-price small {
   color:#7052A1!important;-webkit-text-fill-color:#7052A1!important;
 }
+
+
+/* FINAL PRICE HIERARCHY — explicit text-fill prevents inherited/competing
+   theme rules from dimming the actual amount in dark mode. */
+html[data-theme="dark"] body #pricing .plans-grid .plan-card .plan-price,
+html[data-theme="dark"] body #pricing .plans-grid .plan-card .plan-price * {
+  opacity:1!important;
+}
+html[data-theme="dark"] body #pricing .plans-grid .plan-card .plan-price {
+  color:#F4FAFF!important;
+  -webkit-text-fill-color:#F4FAFF!important;
+  background:none!important;
+  font-size:clamp(1.65rem,2.5vw,2.05rem)!important;
+  font-weight:800!important;
+  letter-spacing:-.045em!important;
+  line-height:1.2!important;
+  text-shadow:0 0 18px rgba(76,220,239,.16)!important;
+}
+html[data-theme="dark"] body #pricing .plans-grid .plan-card .plan-price .plan-current-price {
+  color:#F4FAFF!important;
+  -webkit-text-fill-color:#F4FAFF!important;
+  font-weight:800!important;
+  text-shadow:0 0 18px rgba(76,220,239,.18)!important;
+}
+html[data-theme="dark"] body #pricing .plans-grid .plan-card .plan-price small {
+  color:#69E3EE!important;
+  -webkit-text-fill-color:#69E3EE!important;
+  font-size:.39em!important;
+  font-weight:650!important;
+  letter-spacing:.015em!important;
+  text-shadow:none!important;
+}
+html[data-theme="dark"] body #pricing .plans-grid .plan-card .plan-price .plan-old-price {
+  color:#AAB7CB!important;
+  -webkit-text-fill-color:#AAB7CB!important;
+  opacity:.78!important;
+  font-size:.48em!important;
+  font-weight:500!important;
+  text-decoration-color:#AAB7CB!important;
+  text-shadow:none!important;
+}
+html[data-theme="dark"] body #pricing .plans-grid .plan-card .video-limit {
+  color:#F4FAFF!important;
+  -webkit-text-fill-color:#F4FAFF!important;
+  font-weight:750!important;
+}
+html[data-theme="dark"] body #pricing .plans-grid .plan-card .video-limit span {
+  color:#82E7EF!important;
+  -webkit-text-fill-color:#82E7EF!important;
+}
+html[data-theme="light"] body #pricing .plans-grid .plan-card .plan-price,
+html[data-theme="light"] body #pricing .plans-grid .plan-card .plan-price .plan-current-price {
+  color:#20242B!important;-webkit-text-fill-color:#20242B!important;text-shadow:none!important;
+}
+html[data-theme="light"] body #pricing .plans-grid .plan-card .plan-price small {
+  color:#7052A1!important;-webkit-text-fill-color:#7052A1!important;
+}
+html[data-theme="light"] body #pricing .plans-grid .plan-card .plan-price .plan-old-price {
+  color:#77766F!important;-webkit-text-fill-color:#77766F!important;opacity:.78!important;
+}

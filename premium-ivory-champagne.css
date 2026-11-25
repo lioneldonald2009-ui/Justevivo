@@ -297,3 +297,39 @@ a{color:inherit}
   .topbar .topbar-actions{gap:6px!important}
   .app-install-cta span{display:none!important}
 }
+
+
+/* CONTRASTE FINAL — titres du hero et titres marketing sur fond ivoire.
+   Valeurs forcées y compris le remplissage du texte, pour neutraliser les anciens thèmes. */
+body .hero .hero-copy h1,
+body .hero .hero-copy h1 span,
+body .marketing-heading h2,
+body .marketing-heading h2 span,
+body .section-heading h2,
+body .section-heading h2 span,
+body .plans-heading h2,
+body .plans-heading h2 span,
+body .how-section h2,
+body .how-section h2 span{
+  color:#20242b!important;
+  -webkit-text-fill-color:#20242b!important;
+  background:transparent!important;
+  opacity:1!important;
+  text-shadow:none!important;
+}
+body .hero .hero-copy h1 span,
+body .marketing-heading h2 span,
+body .section-heading h2 span,
+body .plans-heading h2 span,
+body .how-section h2 span{
+  color:#80633b!important;
+  -webkit-text-fill-color:#80633b!important;
+}
+body .hero .hero-copy>p,
+body .hero .hero-proof,
+body .marketing-heading>p,
+body .section-heading>p{
+  color:#55534d!important;
+  -webkit-text-fill-color:#55534d!important;
+  opacity:1!important;
+}

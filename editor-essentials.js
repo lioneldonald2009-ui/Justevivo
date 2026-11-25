@@ -22,12 +22,121 @@
       '<button type="button" data-jv-action="fullscreen" aria-label="Plein écran" title="Plein écran (F)">⛶</button>',
       '</div>',
       '<div class="jv-transport-meta"><label>Vitesse <select data-jv-speed aria-label="Vitesse de lecture"><option value=".5">0,5×</option><option value=".75">0,75×</option><option value="1" selected>1×</option><option value="1.25">1,25×</option><option value="1.5">1,5×</option><option value="2">2×</option></select></label><span data-jv-time>00:00 / 00:00</span></div>',
+      '<p data-jv-playback-status role="status" aria-live="polite">Lecteur vidéo prêt · MP4, MOV et WebM selon les codecs du navigateur.</p>',
+      '<div class="jv-transport-stream"><input type="url" data-jv-stream-url inputmode="url" placeholder="URL vidéo MP4, HLS (.m3u8) ou DASH (.mpd)" aria-label="Adresse d’une vidéo en ligne"><button type="button" data-jv-load-stream>Lire l’URL</button></div>',
       '<details class="jv-shortcuts"><summary>Raccourcis clavier</summary><p><kbd>Espace</kbd> Lecture/pause · <kbd>J</kbd>/<kbd>L</kbd> −/+ 5 s · <kbd>←</kbd>/<kbd>→</kbd> −/+ 1 s · <kbd>M</kbd> Son · <kbd>F</kbd> Plein écran</p></details>'
     ].join('');
     frame.insertAdjacentElement('afterend', toolbar);
+    const playbackStyle = document.createElement('style');
+    playbackStyle.textContent = `
+      .jv-transport{display:grid;gap:10px;margin:10px 0;padding:12px;border:1px solid rgba(120,130,160,.22);border-radius:14px;background:rgba(120,130,160,.06)}
+      .jv-transport-main,.jv-transport-meta,.jv-transport-stream{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+      .jv-transport-main button,.jv-transport-stream button{min-height:36px;padding:7px 12px;border:1px solid #cfc7b8;border-radius:9px;background:#fff;color:#26364f;font-weight:700;cursor:pointer}
+      .jv-transport-main button:disabled,.jv-transport-stream button:disabled{opacity:.55;cursor:wait}
+      .jv-transport-meta{justify-content:space-between;font-size:12px}
+      .jv-transport-meta select,.jv-transport-stream input{min-height:36px;padding:7px 9px;border:1px solid #d6d0c5;border-radius:9px;background:#fff;color:#26364f;max-width:100%}
+      .jv-transport-stream input{flex:1 1 220px;min-width:0}
+      [data-jv-playback-status]{margin:0;font-size:12px;line-height:1.45;color:inherit;opacity:.82}
+      .jv-shortcuts{font-size:12px}.jv-shortcuts p{line-height:1.6}
+    `;
+    document.head.appendChild(playbackStyle);
 
     const timeLabel = toolbar.querySelector('[data-jv-time]');
     const speed = toolbar.querySelector('[data-jv-speed]');
+    const playbackStatus = toolbar.querySelector('[data-jv-playback-status]');
+    const setPlaybackStatus = message => { if (playbackStatus) playbackStatus.textContent = message; };
+    const streamInput = toolbar.querySelector('[data-jv-stream-url]');
+    const streamButton = toolbar.querySelector('[data-jv-load-stream]');
+    let hlsEngine = null;
+    let dashEngine = null;
+    const loadScript = (src, ready) => new Promise((resolve, reject) => {
+      if (ready()) { resolve(); return; }
+      const existing = document.querySelector('script[data-jv-engine="' + src + '"]');
+      if (existing) {
+        existing.addEventListener('load', resolve, {once:true});
+        existing.addEventListener('error', () => reject(new Error('Moteur de lecture indisponible.')), {once:true});
+        return;
+      }
+      const script = document.createElement('script');
+      script.src = src;
+      script.async = true;
+      script.dataset.jvEngine = src;
+      script.onload = resolve;
+      script.onerror = () => reject(new Error('Impossible de charger le moteur de lecture. Vérifiez votre connexion.'));
+      document.head.appendChild(script);
+    });
+    const releaseStreamEngines = () => {
+      if (hlsEngine) { try { hlsEngine.destroy(); } catch (_) {} hlsEngine = null; }
+      if (dashEngine) { try { dashEngine.reset(); } catch (_) {} dashEngine = null; }
+    };
+    const setPlaybackSource = async rawUrl => {
+      const url = String(rawUrl || '').trim();
+      if (!/^https?:\/\//i.test(url)) throw new Error('Saisissez une URL vidéo commençant par http:// ou https://.');
+      releaseStreamEngines();
+      video.pause();
+      video.removeAttribute('src');
+      video.load();
+      const cleanUrl = url.split(/[?#]/)[0].toLowerCase();
+      if (cleanUrl.endsWith('.m3u8')) {
+        if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          video.src = url;
+          video.load();
+        } else {
+          await loadScript('https://cdn.jsdelivr.net/npm/hls.js@1.6.15/dist/hls.min.js', () => !!window.Hls);
+          if (!window.Hls.isSupported()) throw new Error('HLS n’est pas pris en charge sur cet appareil.');
+          hlsEngine = new window.Hls({enableWorker:true});
+          hlsEngine.attachMedia(video);
+          hlsEngine.on(window.Hls.Events.MEDIA_ATTACHED, () => hlsEngine && hlsEngine.loadSource(url));
+          hlsEngine.on(window.Hls.Events.ERROR, (_, data) => {
+            if (data && data.fatal) setPlaybackStatus('Erreur HLS : vérifiez l’URL et les autorisations CORS du serveur vidéo.');
+          });
+        }
+        setPlaybackStatus('Moteur HLS activé. Chargement du flux…');
+      } else if (cleanUrl.endsWith('.mpd')) {
+        await loadScript('https://cdn.dashjs.org/latest/dash.all.min.js', () => !!window.dashjs);
+        dashEngine = window.dashjs.MediaPlayer().create();
+        dashEngine.initialize(video, url, false);
+        dashEngine.on(window.dashjs.MediaPlayer.events.ERROR, () => setPlaybackStatus('Erreur DASH : vérifiez l’URL et les autorisations CORS du serveur vidéo.'));
+        setPlaybackStatus('Moteur MPEG-DASH activé. Chargement du flux…');
+      } else {
+        video.src = url;
+        video.load();
+        setPlaybackStatus('Lecteur HTML5 activé. Chargement de la vidéo…');
+      }
+      return true;
+    };
+    window.JVSetPlaybackSource = setPlaybackSource;
+    input.addEventListener('change', () => {
+      releaseStreamEngines();
+      if (video.currentSrc && video.currentSrc.startsWith('blob:')) setPlaybackStatus('Média locale prêt pour lecture.');
+    });
+    const waitForMetadata = () => {
+      if (video.readyState >= 1) return Promise.resolve();
+      return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => { cleanup(); reject(new Error('Délai dépassé pendant le chargement du flux vidéo.')); }, 20000);
+        const cleanup = () => {
+          clearTimeout(timer);
+          video.removeEventListener('loadedmetadata', onReady);
+          video.removeEventListener('error', onError);
+        };
+        const onReady = () => { cleanup(); resolve(); };
+        const onError = () => { cleanup(); reject(new Error('Le flux ne peut pas être décodé par ce navigateur.')); };
+        video.addEventListener('loadedmetadata', onReady, {once:true});
+        video.addEventListener('error', onError, {once:true});
+      });
+    };
+    streamButton.addEventListener('click', async () => {
+      streamButton.disabled = true;
+      try {
+        await setPlaybackSource(streamInput.value);
+        await waitForMetadata();
+        await video.play();
+      } catch (error) {
+        setPlaybackStatus(error.message || 'Impossible de lire cette adresse vidéo.');
+      } finally { streamButton.disabled = false; }
+    });
+    video.playsInline = true;
+    video.preload = 'metadata';
     const format = value => {
       if (!Number.isFinite(value)) return '00:00';
       const s = Math.max(0, Math.floor(value));
@@ -38,9 +147,22 @@
       if (!Number.isFinite(video.duration)) return;
       video.currentTime = Math.min(video.duration, Math.max(0, video.currentTime + delta));
     };
-    const togglePlay = () => {
-      if (!video.src && !video.currentSrc) { input.click(); return; }
-      if (video.paused) video.play().catch(() => {}); else video.pause();
+    const togglePlay = async () => {
+      if (!video.currentSrc && !video.getAttribute('src')) {
+        setPlaybackStatus('Importez une vidéo pour démarrer la lecture.');
+        input.click();
+        return;
+      }
+      if (!video.paused) { video.pause(); return; }
+      try {
+        await video.play();
+        setPlaybackStatus('Lecture en cours.');
+      } catch (error) {
+        const message = error && error.name === 'NotAllowedError'
+          ? 'Lecture bloquée par le navigateur : appuyez directement sur ▶ dans la vidéo.'
+          : 'Lecture impossible. Vérifiez le format et le codec de cette vidéo.';
+        setPlaybackStatus(message);
+      }
     };
     const actions = {
       back: () => seek(-5),
@@ -59,8 +181,28 @@
     });
     speed.addEventListener('change', () => { video.playbackRate = Number(speed.value) || 1; });
     ['timeupdate', 'durationchange', 'loadedmetadata', 'seeked'].forEach(name => video.addEventListener(name, updateTime));
-    video.addEventListener('play', () => { toolbar.querySelector('[data-jv-action="play"]').textContent = 'Ⅱ'; });
-    video.addEventListener('pause', () => { toolbar.querySelector('[data-jv-action="play"]').textContent = '▶'; });
+    video.addEventListener('play', () => {
+      toolbar.querySelector('[data-jv-action="play"]').textContent = 'Ⅱ';
+      setPlaybackStatus('Lecture en cours.');
+    });
+    video.addEventListener('pause', () => {
+      toolbar.querySelector('[data-jv-action="play"]').textContent = '▶';
+      if (video.currentSrc) setPlaybackStatus('Lecture en pause.');
+    });
+    video.addEventListener('ended', () => setPlaybackStatus('Lecture terminée.'));
+    video.addEventListener('loadedmetadata', () => setPlaybackStatus('Vidéo chargée · ' + Math.round(video.videoWidth) + ' × ' + Math.round(video.videoHeight) + '.'));
+    video.addEventListener('error', () => {
+      const code = video.error && video.error.code;
+      const messages = {
+        1: 'Chargement vidéo interrompu.',
+        2: 'Erreur réseau pendant le chargement de la vidéo.',
+        3: 'Le navigateur ne parvient pas à décoder cette vidéo.',
+        4: 'Format ou codec non pris en charge par ce navigateur.'
+      };
+      setPlaybackStatus(messages[code] || 'Erreur de lecture vidéo. Essayez un MP4 H.264 avec audio AAC.');
+    });
+    video.addEventListener('waiting', () => setPlaybackStatus('Chargement de la vidéo…'));
+    video.addEventListener('stalled', () => setPlaybackStatus('Lecture en attente de données vidéo.'));
     video.addEventListener('volumechange', () => {
       const button = toolbar.querySelector('[data-jv-action="mute"]');
       button.textContent = video.muted ? 'Muet' : 'Son';
@@ -72,7 +214,7 @@
       if (event.defaultPrevented || event.ctrlKey || event.metaKey || event.altKey) return;
       const target = event.target;
       if (target && (target.isContentEditable || /INPUT|TEXTAREA|SELECT|BUTTON/.test(target.tagName))) return;
-      if (!video.src && !video.currentSrc) return;
+      if (!video.currentSrc && !video.getAttribute('src')) return;
       const key = event.key.toLowerCase();
       const map = {
         ' ': () => togglePlay(),
@@ -109,6 +251,7 @@
     frame.setAttribute('aria-label', 'Aperçu vidéo ou photo. Déposez un ou plusieurs médias ici pour les importer.');
     initMediaBin(input, panel);
     updateTime();
+    window.addEventListener('pagehide', releaseStreamEngines, { once: true });
   };
 
   // Chutier multi-médias local : les fichiers restent sur l'appareil (IndexedDB).

@@ -8,8 +8,8 @@
   "scope": "/",
   "display": "standalone",
   "orientation": "any",
-  "background_color": "#080b18",
-  "theme_color": "#080b18",
+  "background_color": "#26364F",
+  "theme_color": "#26364F",
   "categories": [
     "video",
     "productivity",
@@ -17,7 +17,7 @@
   ],
   "icons": [
     {
-      "src": "/icons/justevivo-brand.svg?v=3",
+      "src": "/icons/justevivo-monogram.svg?v=1",
       "sizes": "any",
       "type": "image/svg+xml",
       "purpose": "any"

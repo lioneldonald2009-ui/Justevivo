@@ -29,3 +29,11 @@ html[data-theme="light"] main{background:#fff!important;color:#17213a!important}
 html[data-theme="light"] body{background:#f4f6fc!important}
 @media(max-width:650px){.theme-toggle{top:auto;bottom:16px;right:14px;padding:11px 13px}.theme-toggle span{display:none}}
 @media(prefers-reduced-motion:reduce){.theme-toggle,body{transition:none}}
+
+
+/* FIX 2026-11-25 — le sélecteur de thème reste dans l'en-tête, sans recouvrir la bannière promotionnelle. */
+.topbar-actions{display:flex;align-items:center;gap:10px;min-width:0}
+.theme-toggle-in-header{position:static!important;inset:auto!important;z-index:auto!important;flex:0 0 auto;white-space:nowrap;backdrop-filter:none!important;box-shadow:none!important}
+@media(max-width:1100px){.theme-toggle-in-header span{display:none!important}}
+@media(max-width:760px){.topbar-actions{gap:6px!important}.theme-toggle-in-header{padding:9px 10px!important}}
+.theme-toggle-floating{position:fixed!important;right:16px!important;bottom:18px!important;top:auto!important}

@@ -1,9 +1,18 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
-<title id="title">JUSTEVIVO monogramme</title>
-<defs><linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#E5D2AE"/><stop offset="1" stop-color="#A98752"/></linearGradient></defs>
-<rect width="512" height="512" rx="112" fill="#26364F"/>
-<path d="M177 112h72v202c0 70-44 112-113 112-25 0-48-6-68-19l34-61c10 7 21 10 34 10 27 0 41-15 41-44V112Z" fill="#FFFEFA"/>
-<path d="m260 174 78 174 78-174h-75l-35 83-36-83h-10Z" fill="url(#gold)"/>
-<path d="m344 240 52 30-52 30v-60Z" fill="#26364F"/>
-<path d="M110 92h292" stroke="#B99A68" stroke-width="5" stroke-linecap="round" opacity=".85"/>
+<title id="title">JUSTEVIVO AI — Icône JV</title>
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#101F3D"/><stop offset=".58" stop-color="#07152F"/><stop offset="1" stop-color="#020B1D"/></linearGradient>
+ <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FFF0C8"/><stop offset=".45" stop-color="#E8C77F"/><stop offset="1" stop-color="#B98235"/></linearGradient>
+ <linearGradient id="ivory" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#E8E5DC"/></linearGradient>
+ <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="7"/></filter>
+</defs>
+<rect width="512" height="512" rx="112" fill="url(#bg)"/>
+<rect x="9" y="9" width="494" height="494" rx="104" fill="none" stroke="#D7B66F" stroke-opacity=".48" stroke-width="3"/>
+<path d="M112 103H400" stroke="url(#gold)" stroke-width="5" stroke-linecap="round" opacity=".9"/>
+<path d="M173 136h70v183c0 65-40 105-105 105-23 0-45-6-64-18l33-57c9 6 19 9 31 9 25 0 35-14 35-40V136Z" fill="#000" opacity=".28" filter="url(#shadow)"/>
+<path d="M173 128h70v183c0 65-40 105-105 105-23 0-45-6-64-18l33-57c9 6 19 9 31 9 25 0 35-14 35-40V128Z" fill="url(#ivory)"/>
+<path d="m258 190 70 155 70-155h-67l-32 73-32-73h-9Z" fill="url(#gold)"/>
+<path d="m330 249 56 30-56 30v-60Z" fill="#0A1832"/>
+<path d="M108 369c48 31 100 32 152 4 44-24 77-63 105-107" fill="none" stroke="url(#gold)" stroke-width="10" stroke-linecap="round"/>
+<path d="m369 114 8 19 19 8-19 8-8 19-8-19-19-8 19-8Z" fill="#FFF0C8"/>
 </svg>

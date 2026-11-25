@@ -27,6 +27,19 @@
       '<details class="jv-shortcuts"><summary>Raccourcis clavier</summary><p><kbd>Espace</kbd> Lecture/pause · <kbd>J</kbd>/<kbd>L</kbd> −/+ 5 s · <kbd>←</kbd>/<kbd>→</kbd> −/+ 1 s · <kbd>M</kbd> Son · <kbd>F</kbd> Plein écran</p></details>'
     ].join('');
     frame.insertAdjacentElement('afterend', toolbar);
+    const playbackStyle = document.createElement('style');
+    playbackStyle.textContent = `
+      .jv-transport{display:grid;gap:10px;margin:10px 0;padding:12px;border:1px solid rgba(120,130,160,.22);border-radius:14px;background:rgba(120,130,160,.06)}
+      .jv-transport-main,.jv-transport-meta,.jv-transport-stream{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+      .jv-transport-main button,.jv-transport-stream button{min-height:36px;padding:7px 12px;border:1px solid #cfc7b8;border-radius:9px;background:#fff;color:#26364f;font-weight:700;cursor:pointer}
+      .jv-transport-main button:disabled,.jv-transport-stream button:disabled{opacity:.55;cursor:wait}
+      .jv-transport-meta{justify-content:space-between;font-size:12px}
+      .jv-transport-meta select,.jv-transport-stream input{min-height:36px;padding:7px 9px;border:1px solid #d6d0c5;border-radius:9px;background:#fff;color:#26364f;max-width:100%}
+      .jv-transport-stream input{flex:1 1 220px;min-width:0}
+      [data-jv-playback-status]{margin:0;font-size:12px;line-height:1.45;color:inherit;opacity:.82}
+      .jv-shortcuts{font-size:12px}.jv-shortcuts p{line-height:1.6}
+    `;
+    document.head.appendChild(playbackStyle);
 
     const timeLabel = toolbar.querySelector('[data-jv-time]');
     const speed = toolbar.querySelector('[data-jv-speed]');

@@ -49,7 +49,15 @@
   let loadedFormat = "srt";
   const status = message => { $("jvSubtitleStatus").textContent = message; };
   const api = async (path, options = {}) => {
-    const response = await fetch(API + path, options);
+    let session = null;
+    try { session = JSON.parse(localStorage.getItem("justevivo_session_v1") || "null"); } catch (_) {}
+    if (session && session.expires_at && session.expires_at - Math.floor(Date.now()/1000) <= 90) {
+      try { await fetch(API + "/api/me"); } catch (_) {}
+      try { session = JSON.parse(localStorage.getItem("justevivo_session_v1") || "null"); } catch (_) {}
+    }
+    const headers = new Headers(options.headers || {});
+    if (session && session.access_token) headers.set("Authorization", "Bearer " + session.access_token);
+    const response = await fetch(API + path, { ...options, headers });
     if (!response.ok) {
       let data = {};
       try { data = await response.json(); } catch (_) {}

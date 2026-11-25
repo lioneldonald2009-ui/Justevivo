@@ -93,7 +93,7 @@
         }
         setPlaybackStatus('Moteur HLS activé. Chargement du flux…');
       } else if (cleanUrl.endsWith('.mpd')) {
-        await loadScript('https://cdn.jsdelivr.net/npm/dashjs@5.0.3/dist/modern/umd/dash.all.min.js', () => !!window.dashjs);
+        await loadScript('https://cdn.dashjs.org/latest/dash.all.min.js', () => !!window.dashjs);
         dashEngine = window.dashjs.MediaPlayer().create();
         dashEngine.initialize(video, url, false);
         dashEngine.on(window.dashjs.MediaPlayer.events.ERROR, () => setPlaybackStatus('Erreur DASH : vérifiez l’URL et les autorisations CORS du serveur vidéo.'));
@@ -106,6 +106,10 @@
       return true;
     };
     window.JVSetPlaybackSource = setPlaybackSource;
+    input.addEventListener('change', () => {
+      releaseStreamEngines();
+      if (video.currentSrc && video.currentSrc.startsWith('blob:')) setPlaybackStatus('Média locale prêt pour lecture.');
+    });
     const waitForMetadata = () => {
       if (video.readyState >= 1) return Promise.resolve();
       return new Promise((resolve, reject) => {

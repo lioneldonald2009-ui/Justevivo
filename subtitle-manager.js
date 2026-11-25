@@ -78,7 +78,7 @@
       });
     }
     $("jvExportSrt").disabled = !cues.length; $("jvExportVtt").disabled = !cues.length;
-    $("jvTranslateLoaded").disabled = !cues.length; $("jvClearSubtitles").disabled = !cues.length;
+    $("jvTranslateLoaded").disabled = !cues.length; $("jvClearSubtitles").disabled = !cues.length; $("jvReplaceBurned").disabled = !cues.length;
   }
   function formatTime(seconds) { const ms=Math.max(0,Math.round(seconds*1000)); const h=Math.floor(ms/3600000),m=Math.floor(ms%3600000/60000),s=Math.floor(ms%60000/1000); return [h,m,s].map(n=>String(n).padStart(2,"0")).join(":"); }
   function loadParsed(data) { cues = data.cues || []; loadedFormat = data.format || "srt"; refresh(); status(cues.length + " sous-titre(s) chargé(s). Vous pouvez modifier les textes ou supprimer des lignes."); }

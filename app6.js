@@ -530,6 +530,9 @@
   });
 
   function go(id) {
+    // Le tableau de bord masque les zones de montage : les réactiver avant
+    // d'ouvrir un onglet mobile, un projet ou les paramètres du studio.
+    if (typeof window.JVShowStudio === 'function') window.JVShowStudio();
     if (id === 'studio') {
       showEditorPanel('text');
       if (workspace) workspace.scrollIntoView({ behavior: 'smooth', block: 'start' });

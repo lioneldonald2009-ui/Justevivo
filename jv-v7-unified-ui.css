@@ -398,3 +398,13 @@ html[data-theme="light"] .jv-subscription-grid .is-featured button{background:li
     grid-template-columns:minmax(0,1fr)!important;
   }
 }
+
+/* JUSTEVIVO — iconographie cohérente, style Lucide minimaliste */
+.jv-sidebar .side-link{gap:11px!important}
+.jv-sidebar .side-link .jv-nav-icon{width:18px!important;height:18px!important;flex:0 0 18px!important;display:block!important;fill:none!important;stroke:currentColor!important;stroke-width:1.7!important;stroke-linecap:round!important;stroke-linejoin:round!important;color:#aeb5d2!important;opacity:.94}
+.jv-sidebar .side-link.active .jv-nav-icon,.jv-sidebar .side-link:hover .jv-nav-icon{color:#fff!important;opacity:1}
+.jv-sidebar .side-link>span{display:flex;align-items:center;gap:7px;min-width:0}
+.jv-sidebar .side-link>span i{font-size:8px!important;line-height:1!important;color:#e7caff!important;background:#6a2c9f!important;padding:3px 5px!important;border-radius:6px!important}
+.jv-sidebar-new{display:flex!important;align-items:center!important;justify-content:center!important;gap:9px!important}
+.jv-sidebar-new .jv-nav-icon{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;flex:0 0 17px}
+@media(max-width:760px){.jv-sidebar .side-link .jv-nav-icon{width:17px!important;height:17px!important;flex-basis:17px!important}}

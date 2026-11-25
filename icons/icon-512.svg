@@ -1,19 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+<title id="title">JUSTEVIVO AI — Icône JV</title>
 <defs>
- <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#090817"/><stop offset=".55" stop-color="#17102f"/><stop offset="1" stop-color="#080b18"/></linearGradient>
- <linearGradient id="ribbon" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ff9d3d"/><stop offset=".42" stop-color="#ff3e9d"/><stop offset="1" stop-color="#783cff"/></linearGradient>
- <linearGradient id="shine" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#fff" stop-opacity=".34"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>
- <filter id="glow" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="13" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#101F3D"/><stop offset=".58" stop-color="#07152F"/><stop offset="1" stop-color="#020B1D"/></linearGradient>
+ <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#FFF0C8"/><stop offset=".45" stop-color="#E8C77F"/><stop offset="1" stop-color="#B98235"/></linearGradient>
+ <linearGradient id="ivory" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#FFFFFF"/><stop offset="1" stop-color="#E8E5DC"/></linearGradient>
+ <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feGaussianBlur stdDeviation="7"/></filter>
 </defs>
 <rect width="512" height="512" rx="112" fill="url(#bg)"/>
-<circle cx="255" cy="245" r="174" fill="#8c38ff" opacity=".11"/>
-<path d="M148 112h216a28 28 0 0 1 28 28v232a28 28 0 0 1-28 28H148a28 28 0 0 1-28-28V140a28 28 0 0 1 28-28Z" fill="#fff" opacity=".035" stroke="#ffffff" stroke-opacity=".12" stroke-width="3"/>
-<g filter="url(#glow)">
- <path d="M205 157c0-15 16-24 29-16l129 78c13 8 13 27 0 35l-129 78c-13 8-29-1-29-16V157Z" fill="url(#ribbon)"/>
- <path d="M219 179v160l129-80-129-80Z" fill="#fff" opacity=".13"/>
- <path d="M239 215c0-9 10-15 18-10l58 36c8 5 8 16 0 21l-58 36c-8 5-18-1-18-10v-73Z" fill="#fff"/>
-</g>
-<path d="M115 342c27 38 69 57 119 54 54-3 102-28 147-76" fill="none" stroke="url(#ribbon)" stroke-width="17" stroke-linecap="round"/>
-<g fill="#fff"><path d="m381 106 8 20 20 8-20 8-8 20-8-20-20-8 20-8Z"/><circle cx="130" cy="180" r="6" opacity=".8"/><circle cx="389" cy="277" r="5" opacity=".65"/></g>
-<path d="M112 118h288v276H112z" fill="url(#shine)" opacity=".12"/>
+<rect x="9" y="9" width="494" height="494" rx="104" fill="none" stroke="#D7B66F" stroke-opacity=".48" stroke-width="3"/>
+<path d="M112 103H400" stroke="url(#gold)" stroke-width="5" stroke-linecap="round" opacity=".9"/>
+<path d="M173 136h70v183c0 65-40 105-105 105-23 0-45-6-64-18l33-57c9 6 19 9 31 9 25 0 35-14 35-40V136Z" fill="#000" opacity=".28" filter="url(#shadow)"/>
+<path d="M173 128h70v183c0 65-40 105-105 105-23 0-45-6-64-18l33-57c9 6 19 9 31 9 25 0 35-14 35-40V128Z" fill="url(#ivory)"/>
+<path d="m258 190 70 155 70-155h-67l-32 73-32-73h-9Z" fill="url(#gold)"/>
+<path d="m330 249 56 30-56 30v-60Z" fill="#0A1832"/>
+<path d="M108 369c48 31 100 32 152 4 44-24 77-63 105-107" fill="none" stroke="url(#gold)" stroke-width="10" stroke-linecap="round"/>
+<path d="m369 114 8 19 19 8-19 8-8 19-8-19-19-8 19-8Z" fill="#FFF0C8"/>
 </svg>

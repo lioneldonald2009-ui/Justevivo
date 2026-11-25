@@ -13,7 +13,7 @@
     <div class="jv-sm-head"><div><span class="jv-sm-kicker">OUTIL COMPLÉMENTAIRE</span><h3>Gérer les sous-titres existants</h3><p>Importez un fichier SRT/VTT ou analysez les pistes d'une vidéo.</p></div><span class="jv-sm-limit">Vidéo : 200 Mo max</span></div>
     <div class="jv-sm-actions">
       <label class="jv-sm-file">Importer SRT / VTT<input id="jvSubtitleFile" type="file" accept=".srt,.vtt,text/vtt,application/x-subrip"></label>
-      <button type="button" id="jvInspectVideo" class="jv-sm-button">Analyser les pistes vidéo</button>
+      <button type="button" id="jvInspectVideo" class="jv-sm-button">Analyser les pistes vidéo</button><button type="button" id="jvRemoveEmbedded" class="jv-sm-button jv-sm-danger">Retirer les pistes intégrées</button>
       <button type="button" id="jvExportSrt" class="jv-sm-button" disabled>Exporter SRT</button>
       <button type="button" id="jvExportVtt" class="jv-sm-button" disabled>Exporter VTT</button>
     </div>
@@ -95,6 +95,14 @@
       }
       status(data.note || (data.streams.length + " piste(s) détectée(s)."));
     } catch(error) { status(error.message); } finally { setBusy(false); }
+  });
+  $("jvRemoveEmbedded").addEventListener("click", async () => {
+    const file=currentVideo(); if(!file){status("Sélectionnez d'abord une vidéo dans la zone d'import principale.");return;}
+    if(file.size>200*1024*1024){status("La vidéo dépasse la limite de 200 Mo.");return;}
+    if(!confirm("Créer une nouvelle copie de la vidéo sans aucune piste de sous-titres intégrée ? Le fichier original restera inchangé."))return;
+    const form=new FormData();form.append("video",file);
+    try{setBusy(true,"Création d'une copie sans pistes de sous-titres…");const response=await api("/api/subtitles/remove-tracks",{method:"POST",body:form});const blob=await response.blob();const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;const ext=(file.name.split(".").pop()||"mp4").toLowerCase();a.download="justevivo-sans-sous-titres."+ext;a.click();URL.revokeObjectURL(url);status("Nouvelle copie prête. La vidéo originale n'a pas été modifiée.");}
+    catch(error){status(error.message);}finally{setBusy(false);}
   });
   async function exportFile(format) {
     try { status("Préparation de l'export…"); const response=await api("/api/subtitles/export",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({cues,format})}); const blob=await response.blob(); const url=URL.createObjectURL(blob); const a=document.createElement("a"); a.href=url; a.download="justevivo-sous-titres."+format; a.click(); URL.revokeObjectURL(url); status("Export " + format.toUpperCase() + " prêt."); }

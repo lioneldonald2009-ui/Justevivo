@@ -3,7 +3,7 @@
  */
 (() => {
   'use strict';
-  const BUILD_VERSION = '1.0.49';
+  const BUILD_VERSION = '1.0.50';
   const MANIFEST_URL = 'https://justevivo-backend.onrender.com/api/app-version';
   const CHECK_INTERVAL_MS = 5 * 60 * 1000;
   let overlay = null;

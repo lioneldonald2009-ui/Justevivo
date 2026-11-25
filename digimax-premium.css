@@ -741,3 +741,55 @@ html[data-theme="light"] body #pricing .plans-grid .plan-card .plan-price small 
 html[data-theme="light"] body #pricing .plans-grid .plan-card .plan-price .plan-old-price {
   color:#77766F!important;-webkit-text-fill-color:#77766F!important;opacity:.78!important;
 }
+
+
+/* PREMIUM PRICING TINT — clearer price hierarchy on dark cards. */
+html[data-theme="dark"] body #pricing .plans-grid .plan-card .plan-price{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  align-items:baseline!important;
+  column-gap:.32em!important;
+  row-gap:.12em!important;
+  color:#F7FBFF!important;
+  -webkit-text-fill-color:#F7FBFF!important;
+  opacity:1!important;
+  text-shadow:none!important;
+}
+html[data-theme="dark"] body #pricing .plans-grid .plan-card .plan-price .plan-current-price{
+  display:inline-block!important;
+  color:#83F1EE!important;
+  -webkit-text-fill-color:#83F1EE!important;
+  font-family:var(--jv-font-display,"Plus Jakarta Sans",sans-serif)!important;
+  font-size:1.22em!important;
+  font-weight:800!important;
+  letter-spacing:-.055em!important;
+  line-height:1.08!important;
+  text-shadow:0 0 1px rgba(131,241,238,.3),0 0 16px rgba(53,228,232,.2)!important;
+}
+html[data-theme="dark"] body #pricing .plans-grid .plan-card .plan-price .plan-old-price{
+  color:#B8C2D4!important;
+  -webkit-text-fill-color:#B8C2D4!important;
+  opacity:.72!important;
+  font-size:.48em!important;
+  font-weight:500!important;
+  text-decoration-color:#B8C2D4!important;
+}
+html[data-theme="dark"] body #pricing .plans-grid .plan-card .plan-price small{
+  color:#C9D4E8!important;
+  -webkit-text-fill-color:#C9D4E8!important;
+  font-size:.42em!important;
+  font-weight:600!important;
+  letter-spacing:.005em!important;
+  text-shadow:none!important;
+  opacity:1!important;
+}
+html[data-theme="dark"] body #pricing .plans-grid .plan-card .video-limit{
+  color:#F7FBFF!important;-webkit-text-fill-color:#F7FBFF!important;
+}
+html[data-theme="dark"] body #pricing .plans-grid .plan-card .video-limit span{
+  color:#83F1EE!important;-webkit-text-fill-color:#83F1EE!important;
+}
+html[data-theme="light"] body #pricing .plans-grid .plan-card .plan-price .plan-current-price{
+  color:#6043A8!important;-webkit-text-fill-color:#6043A8!important;
+  text-shadow:none!important;
+}

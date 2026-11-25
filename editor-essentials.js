@@ -106,10 +106,26 @@
       return true;
     };
     window.JVSetPlaybackSource = setPlaybackSource;
+    const waitForMetadata = () => {
+      if (video.readyState >= 1) return Promise.resolve();
+      return new Promise((resolve, reject) => {
+        const timer = setTimeout(() => { cleanup(); reject(new Error('Délai dépassé pendant le chargement du flux vidéo.')); }, 20000);
+        const cleanup = () => {
+          clearTimeout(timer);
+          video.removeEventListener('loadedmetadata', onReady);
+          video.removeEventListener('error', onError);
+        };
+        const onReady = () => { cleanup(); resolve(); };
+        const onError = () => { cleanup(); reject(new Error('Le flux ne peut pas être décodé par ce navigateur.')); };
+        video.addEventListener('loadedmetadata', onReady, {once:true});
+        video.addEventListener('error', onError, {once:true});
+      });
+    };
     streamButton.addEventListener('click', async () => {
       streamButton.disabled = true;
       try {
         await setPlaybackSource(streamInput.value);
+        await waitForMetadata();
         await video.play();
       } catch (error) {
         setPlaybackStatus(error.message || 'Impossible de lire cette adresse vidéo.');

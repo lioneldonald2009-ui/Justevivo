@@ -10,17 +10,8 @@
   "orientation": "any",
   "background_color": "#26364F",
   "theme_color": "#26364F",
-  "categories": [
-    "video",
-    "productivity",
-    "photo"
-  ],
+  "categories": ["video", "productivity", "photo"],
   "icons": [
-    {
-      "src": "/icons/justevivo-monogram.svg?v=1",
-      "sizes": "any",
-      "type": "image/svg+xml",
-      "purpose": "any"
-    }
+    {"src": "/icons/justevivo-monogram.svg?v=20261125", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}
   ]
 }

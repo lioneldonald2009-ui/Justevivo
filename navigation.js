@@ -211,6 +211,49 @@ document.addEventListener("DOMContentLoaded", function () {
     if (subtitleManager) subtitleManager.hidden = false;
     workspaceBack.style.display = "inline-flex";
   }
+  // Point d'entrée partagé par les raccourcis mobiles et les menus historiques.
+  window.JVShowStudio = showStudio;
+
+  function openStudioSection(section) {
+    showStudio();
+    const tab = document.querySelector('.jv-editor-panel-tab[data-panel="' + section + '"]');
+    if (tab) tab.click();
+    requestAnimationFrame(() => {
+      const target = section === "text" ? document.querySelector(".controls-panel") : document.querySelector(".controls-panel");
+      if (target) target.scrollIntoView({behavior:"smooth", block:"start"});
+    });
+  }
+
+  function openNewVideo() {
+    showStudio();
+    requestAnimationFrame(() => {
+      if (upload) upload.scrollIntoView({behavior:"smooth", block:"center"});
+      else if (workspace) workspace.scrollIntoView({behavior:"smooth", block:"start"});
+    });
+  }
+
+  const createButtons = ["jv-dashboard-create", "jv-promo-create"];
+  createButtons.forEach(id => {
+    const button = document.getElementById(id);
+    if (button) button.addEventListener("click", openNewVideo);
+  });
+  const accountSettingsButton = document.getElementById("jv-open-account-settings");
+  if (accountSettingsButton) accountSettingsButton.addEventListener("click", () => openStudioSection("settings"));
+  const allPlansButton = document.getElementById("jv-see-all-plans");
+  if (allPlansButton) allPlansButton.addEventListener("click", showSubscription);
+
+  dashboard.querySelectorAll("[data-jv-action]").forEach(button => {
+    button.addEventListener("click", () => {
+      const action = button.dataset.jvAction;
+      if (action === "new") { openNewVideo(); return; }
+      if (action === "audio") { openAudioStudio(); return; }
+      const section = ({captions:"text", styles:"styles", translate:"text", export:"export"})[action];
+      if (section) openStudioSection(section);
+      if (action === "translate") {
+        requestAnimationFrame(() => document.getElementById("subtitleLanguagePanel")?.scrollIntoView({behavior:"smooth",block:"center"}));
+      }
+    });
+  });
 
   async function refreshDashboard() {
     const email=document.getElementById("jv-account-email"), plan=document.getElementById("jv-account-plan"), quota=document.getElementById("jv-quota-value"), note=document.getElementById("jv-quota-note"), fill=document.getElementById("jv-quota-fill"), recent=document.getElementById("jv-dashboard-recent-list");

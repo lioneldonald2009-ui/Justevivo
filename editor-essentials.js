@@ -71,7 +71,7 @@
     };
     const setPlaybackSource = async rawUrl => {
       const url = String(rawUrl || '').trim();
-      if (!/^https?:\\/\\//i.test(url)) throw new Error('Saisissez une URL vidéo commençant par http:// ou https://.');
+      if (!/^https?:\/\//i.test(url)) throw new Error('Saisissez une URL vidéo commençant par http:// ou https://.');
       releaseStreamEngines();
       video.pause();
       video.removeAttribute('src');

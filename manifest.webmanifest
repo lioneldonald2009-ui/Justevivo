@@ -12,6 +12,6 @@
   "theme_color": "#26364F",
   "categories": ["video", "productivity", "photo"],
   "icons": [
-    {"src": "/icons/justevivo-monogram.svg?v=20261125", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}
+    {"src": "/favicon.svg?v=20261125-3", "sizes": "any", "type": "image/svg+xml", "purpose": "any"}
   ]
 }

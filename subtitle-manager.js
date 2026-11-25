@@ -1,10 +1,12 @@
 /* JUSTEVIVO · Gestion des sous-titres existants */
 (() => {
   "use strict";
+  function initSubtitleManager() {
+  if (document.getElementById("jvSubtitleManager")) return true;
   const API = window.API_URL || "https://justevivo-backend.onrender.com";
   const videoInput = document.getElementById("videoInput");
   const editorGrid = document.querySelector(".editor-grid");
-  if (!editorGrid || !videoInput) return;
+  if (!editorGrid || !videoInput) return false;
 
   const panel = document.createElement("section");
   panel.id = "jvSubtitleManager";
@@ -117,4 +119,12 @@
     catch(error){status(error.message);} finally{setBusy(false);}
   });
   refresh();
+  return true;
+  }
+  window.JV_INIT_SUBTITLE_MANAGER = initSubtitleManager;
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initSubtitleManager, { once: true });
+  } else {
+    initSubtitleManager();
+  }
 })();

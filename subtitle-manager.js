@@ -12,10 +12,10 @@
   panel.id = "jvSubtitleManager";
   panel.className = "jv-subtitle-manager";
   panel.innerHTML = `
-    <div class="jv-sm-head"><div><span class="jv-sm-kicker">OUTIL COMPLÉMENTAIRE</span><h3>Gérer les sous-titres existants</h3><p>Importez un fichier SRT/VTT ou analysez les pistes d'une vidéo.</p></div><span class="jv-sm-limit">Vidéo : 200 Mo max</span></div>
+    <div class="jv-sm-head"><div><span class="jv-sm-kicker">OUTIL COMPLÉMENTAIRE</span><h3>Gérer les sous-titres existants</h3><p>Importez une vidéo : JUSTEVIVO extrait les pistes de sous-titres disponibles ou transcrit automatiquement les paroles pour créer des lignes modifiables.</p></div><span class="jv-sm-limit">Vidéo : 200 Mo max</span></div>
     <div class="jv-sm-actions">
       <label class="jv-sm-file">Importer SRT / VTT<input id="jvSubtitleFile" type="file" accept=".srt,.vtt,text/vtt,application/x-subrip"></label>
-      <button type="button" id="jvInspectVideo" class="jv-sm-button">Analyser les pistes vidéo</button><button type="button" id="jvRemoveEmbedded" class="jv-sm-button jv-sm-danger">Retirer les pistes intégrées</button>
+      <button type="button" id="jvAnalyzeSubtitles" class="jv-sm-button jv-sm-primary">Analyser la vidéo et détecter les sous-titres</button><button type="button" id="jvInspectVideo" class="jv-sm-button">Voir les pistes intégrées</button><button type="button" id="jvRemoveEmbedded" class="jv-sm-button jv-sm-danger">Retirer les pistes intégrées</button>
       <button type="button" id="jvExportSrt" class="jv-sm-button" disabled>Exporter SRT</button>
       <button type="button" id="jvExportVtt" class="jv-sm-button" disabled>Exporter VTT</button>
     </div>
@@ -79,10 +79,15 @@
       cues.forEach((cue, index) => {
         const row = document.createElement("article"); row.className = "jv-sm-cue";
         const timing = document.createElement("div"); timing.className = "jv-sm-time"; timing.textContent = "#" + (index + 1) + " · " + formatTime(cue.start) + " → " + formatTime(cue.end);
-        const edit = document.createElement("textarea"); edit.rows = 2; edit.maxLength = 4000; edit.value = cue.text; edit.setAttribute("aria-label", "Texte du sous-titre " + (index + 1));
-        edit.addEventListener("change", () => { cues[index].text = edit.value.trim(); });
+        const preview = document.createElement("p"); preview.className = "jv-sm-preview"; preview.textContent = cue.text;
+        const edit = document.createElement("textarea"); edit.rows = 2; edit.maxLength = 4000; edit.value = cue.text; edit.hidden = true; edit.setAttribute("aria-label", "Texte du sous-titre " + (index + 1));
+        const actions = document.createElement("div"); actions.className = "jv-sm-cue-actions";
+        const modify = document.createElement("button"); modify.type = "button"; modify.className = "jv-sm-button"; modify.textContent = "Modifier";
+        const save = document.createElement("button"); save.type = "button"; save.className = "jv-sm-button jv-sm-primary"; save.textContent = "Enregistrer"; save.hidden = true;
+        modify.addEventListener("click", () => { preview.hidden = true; edit.hidden = false; modify.hidden = true; save.hidden = false; edit.focus(); });
+        save.addEventListener("click", () => { const value = edit.value.trim(); if (!value) { status("Le texte ne peut pas être vide. Utilisez Supprimer pour retirer cette ligne."); return; } cues[index].text = value; refresh(); status("Modification enregistrée."); });
         const remove = document.createElement("button"); remove.type = "button"; remove.className = "jv-sm-remove"; remove.textContent = "Supprimer"; remove.addEventListener("click", () => { cues.splice(index, 1); refresh(); status("Sous-titre supprimé de la liste."); });
-        row.append(timing, edit, remove); $("jvSubtitleList").append(row);
+        actions.append(modify, save, remove); row.append(timing, preview, edit, actions); $("jvSubtitleList").append(row);
       });
     }
     $("jvExportSrt").disabled = !cues.length; $("jvExportVtt").disabled = !cues.length;
@@ -96,6 +101,20 @@
     const form = new FormData(); form.append("subtitle", file);
     try { setBusy(true, "Import du fichier en cours…"); const response = await api("/api/subtitles/import", { method:"POST", body:form }); loadParsed(await response.json()); }
     catch (error) { status(error.message); } finally { setBusy(false); }
+  });
+  $("jvAnalyzeSubtitles").addEventListener("click", async () => {
+    const file = currentVideo();
+    if (!file) { status("Sélectionnez d'abord une vidéo dans la zone d'import principale."); return; }
+    if (file.size > 200 * 1024 * 1024) { status("La vidéo dépasse la limite de 200 Mo."); return; }
+    const form = new FormData(); form.append("video", file);
+    try {
+      setBusy(true, "Analyse des pistes et transcription automatique de la vidéo…");
+      const response = await api("/api/subtitles/analyze-video", { method:"POST", body:form });
+      const data = await response.json();
+      loadParsed({ format:"srt", cues:data.cues || [] });
+      status((data.note || "Analyse terminée.") + " (" + (data.count || 0) + " lignes)");
+    } catch (error) { status(error.message); }
+    finally { setBusy(false); }
   });
   $("jvInspectVideo").addEventListener("click", async () => {
     const file = currentVideo(); if (!file) { status("Sélectionnez d'abord une vidéo dans la zone d'import principale."); return; }

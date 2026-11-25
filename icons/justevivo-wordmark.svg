@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 180" role="img" aria-labelledby="title">
+<title id="title">JUSTEVIVO</title>
+<defs><linearGradient id="champagne" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#D9C39A"/><stop offset="1" stop-color="#A98752"/></linearGradient></defs>
+<g transform="translate(10 12) scale(.29)">
+<rect width="512" height="512" rx="112" fill="#26364F"/>
+<path d="M177 112h72v202c0 70-44 112-113 112-25 0-48-6-68-19l34-61c10 7 21 10 34 10 27 0 41-15 41-44V112Z" fill="#FFFEFA"/>
+<path d="m260 174 78 174 78-174h-75l-35 83-36-83h-10Z" fill="url(#champagne)"/>
+<path d="m344 240 52 30-52 30v-60Z" fill="#26364F"/>
+</g>
+<text x="178" y="128" font-family="Manrope,Montserrat,Arial,sans-serif" font-size="104" font-weight="800" letter-spacing="-5" fill="#26364F">JUSTE</text>
+<text x="493" y="128" font-family="Manrope,Montserrat,Arial,sans-serif" font-size="104" font-weight="800" letter-spacing="-5" fill="url(#champagne)">VIVO</text>
+<path d="M180 151H820" stroke="#B99A68" stroke-width="4" stroke-linecap="round" opacity=".65"/>
+</svg>

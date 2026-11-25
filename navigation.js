@@ -314,6 +314,15 @@ document.addEventListener("DOMContentLoaded", function () {
     if (page === "pricing") { showSubscription(); return; }
     setActiveLink(link);
     if (link.dataset.jvFeature === "dubbing") { openDubbing(); return; }
+    if (link.dataset.jvFeature === "subtitles") {
+      showStudio();
+      requestAnimationFrame(() => {
+        const manager = document.getElementById("jvSubtitleManager");
+        if (manager) manager.scrollIntoView({behavior:"smooth", block:"center"});
+        else showNavigationNotice("La gestion des sous-titres n’a pas pu être chargée. Actualisez la page puis réessayez.");
+      });
+      return;
+    }
     if (page === "projects") {
       showStudio();
       const tab = Array.from(document.querySelectorAll(".studio-tab")).find(button => button.textContent.trim() === "Mes projets");

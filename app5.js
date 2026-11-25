@@ -694,8 +694,9 @@
     const isVideoCompose = isApi && url.indexOf('/api/video/compose') > 0;
     const isVideoFinalize = isApi && url.indexOf('/api/video/finalize') > 0;
     const isCreativeBroll = isApi && url.indexOf('/api/creative/suggest-broll') > 0;
+    const isSubtitleManager = isApi && url.indexOf('/api/subtitles/') > 0;
 
-    if (!(isMe || isTranscribe || isGenerate || isTranslate || isSmartCut || isFillerCut || isRepetitionTool || isAudioEnhance || isMagicClips || isCreativeScript || isVideoCompose || isVideoFinalize || isCreativeBroll)) return origFetch(input, init);
+    if (!(isMe || isTranscribe || isGenerate || isTranslate || isSmartCut || isFillerCut || isRepetitionTool || isAudioEnhance || isMagicClips || isCreativeScript || isVideoCompose || isVideoFinalize || isCreativeBroll || isSubtitleManager)) return origFetch(input, init);
 
     if (cfgPromise) await cfgPromise;
     if (!cfg.enabled) return origFetch(input, init);

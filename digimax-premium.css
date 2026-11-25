@@ -367,3 +367,262 @@ input,select,textarea{font-size:.9rem!important;line-height:1.5!important}
   .hero h1{font-size:2.1rem!important}
   .eyebrow,.marketing-kicker{font-size:.61rem!important;letter-spacing:.075em!important}
 }
+
+
+/* JUSTEVIVO — unified premium product interface.
+   Visual synthesis: deep fintech navy + cyan signals (Level), luminous violet
+   surfaces and pricing hierarchy (HorizonTech), editorial card rhythm (Digimax).
+   CSS only: existing controls, handlers, data and workflows remain untouched. */
+:root{
+  --jv-ui-night:#050914;
+  --jv-ui-night-soft:#0a1222;
+  --jv-ui-panel:#111b30;
+  --jv-ui-panel-raised:#17243b;
+  --jv-ui-cyan:#35e4e8;
+  --jv-ui-cyan-soft:rgba(53,228,232,.13);
+  --jv-ui-violet:#8957f5;
+  --jv-ui-pink:#d66ee8;
+  --jv-ui-border:rgba(166,185,224,.16);
+  --jv-ui-copy:#aebbd0;
+  --jv-ui-white:#f6f8ff;
+}
+body{
+  background:
+    radial-gradient(ellipse at 78% 0%,rgba(93,63,175,.18),transparent 34%),
+    radial-gradient(ellipse at 4% 36%,rgba(24,175,190,.07),transparent 31%),
+    var(--jv-ui-night)!important;
+}
+.topbar{border-color:var(--jv-ui-border)!important}
+.topbar nav a:hover,.site-footer a:hover{color:var(--jv-ui-cyan)!important}
+.top-cta,.button.primary,.plan-button,.jv-sidebar-new{
+  background:linear-gradient(105deg,#7250ef 0%,#a65be9 58%,#d56fc5 100%)!important;
+  box-shadow:0 9px 26px rgba(123,83,231,.25)!important;
+}
+.top-cta:hover,.button.primary:hover,.plan-button:hover,.jv-sidebar-new:hover{
+  background:linear-gradient(105deg,#24cbd8,#7a5af4 58%,#d56fc5)!important;
+  box-shadow:0 10px 30px rgba(53,228,232,.2)!important;
+}
+.button.ghost:hover,.button:not(.primary):hover,
+.jv-editor-panel-tab:hover,.studio-tab:hover{
+  border-color:rgba(53,228,232,.55)!important;color:var(--jv-ui-cyan)!important;
+}
+.hero .eyebrow i,.live-dot,.status{color:var(--jv-ui-cyan)!important}
+.hero h1 span,.marketing-heading h2 span,.section-heading h2 span,
+.plans-heading h2 span,.how-section h2 span{
+  background:linear-gradient(100deg,var(--jv-ui-cyan),#9d83ff 58%,#e58cc8)!important;
+  -webkit-background-clip:text!important;background-clip:text!important;
+  -webkit-text-fill-color:transparent!important;
+}
+.feature-strip,.showcase-card,.marketing-feature-grid>article,.usecase-grid>article,
+.steps>article,.faq-list details,.plan-card,.jv-promo-card,
+.dashboard-card,.dashboard-recent,.saved-project-card,
+.jv-account-card,.jv-feature-card,.jv-production-card{
+  border-color:var(--jv-ui-border)!important;
+  background:linear-gradient(145deg,rgba(25,36,59,.96),rgba(13,20,36,.98))!important;
+  box-shadow:0 18px 50px rgba(0,0,0,.24),inset 0 1px 0 rgba(255,255,255,.035)!important;
+}
+.plan-card.featured-plan,.plan-card.popular,.jv-plan-card.is-featured{
+  border-color:rgba(53,228,232,.52)!important;
+  box-shadow:0 0 0 1px rgba(53,228,232,.12),0 24px 65px rgba(72,50,150,.26)!important;
+}
+.popular-tag,.plan-card .popular-tag{
+  background:linear-gradient(100deg,#20cbd5,#8b61f3)!important;color:#07111d!important;
+}
+.plan-price,.price,.dashboard-value{color:#fff!important}
+.plan-price small,.price small{color:var(--jv-ui-cyan)!important}
+.feature-strip b,.marketing-feature-grid>article>b,.steps em,
+.dashboard-kicker,.jv-account-summary-label{color:var(--jv-ui-cyan)!important}
+.plan-card li:before,.price-card li:before{color:var(--jv-ui-cyan)!important}
+.showcase-visual,.video-card,.preview-frame{border-color:rgba(53,228,232,.18)!important}
+
+/* Studio navigation: compact, tactile and visually consistent across every tool tab. */
+.jv-editor-panel-nav,.studio-tabs{
+  display:flex!important;gap:7px!important;flex-wrap:wrap!important;
+  overflow:visible!important;padding:7px!important;margin:12px 0 16px!important;
+  border:1px solid var(--jv-ui-border)!important;border-radius:14px!important;
+  background:linear-gradient(135deg,rgba(23,34,57,.96),rgba(12,19,34,.96))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.04)!important;
+}
+.jv-editor-panel-tab,.studio-tab{
+  flex:1 1 auto!important;min-width:max-content!important;
+  padding:10px 13px!important;border:1px solid transparent!important;
+  border-radius:10px!important;background:transparent!important;
+  color:#aebbd0!important;font-size:.78rem!important;font-weight:600!important;
+  transition:all .18s ease!important;
+}
+.jv-editor-panel-tab.is-active,.studio-tab.active{
+  color:#fff!important;border-color:rgba(53,228,232,.35)!important;
+  background:linear-gradient(110deg,rgba(53,228,232,.16),rgba(137,87,245,.2))!important;
+  box-shadow:inset 0 0 0 1px rgba(53,228,232,.05),0 5px 18px rgba(0,0,0,.16)!important;
+}
+.jv-editor-control-group{
+  display:flex;flex-direction:column;gap:12px!important;
+  padding:18px!important;margin:0 0 12px!important;
+  border:1px solid var(--jv-ui-border)!important;border-radius:16px!important;
+  background:linear-gradient(150deg,rgba(21,32,53,.94),rgba(12,19,33,.98))!important;
+  box-shadow:0 14px 34px rgba(0,0,0,.16)!important;
+}
+.jv-editor-group-title{
+  margin:0 0 4px!important;padding:0 0 12px!important;
+  border-bottom:1px solid var(--jv-ui-border)!important;
+  color:#f7f8ff!important;font-family:var(--jv-font-display)!important;
+  font-size:1rem!important;font-weight:700!important;letter-spacing:-.025em!important;
+}
+.controls-panel details,.jv-editor-control-group details{
+  padding:13px 14px!important;border:1px solid var(--jv-ui-border)!important;
+  border-radius:12px!important;background:rgba(255,255,255,.035)!important;
+  color:#f4f7ff!important;
+}
+.controls-panel details[open]{border-color:rgba(53,228,232,.32)!important;background:rgba(53,228,232,.045)!important}
+.controls-panel details summary{
+  color:#f5f7ff!important;font-weight:650!important;line-height:1.5!important;
+  cursor:pointer;
+}
+.controls-panel details summary:hover{color:var(--jv-ui-cyan)!important}
+.controls-panel .field-label,.jv-editor-control-group .field-label{
+  display:block!important;margin:12px 0 7px!important;
+  color:#c5d1e3!important;font-size:.76rem!important;font-weight:600!important;
+}
+.controls-panel input:not([type=color]):not([type=checkbox]):not([type=radio]),
+.controls-panel select,.controls-panel textarea,
+.jv-editor-settings-panel input,.jv-editor-settings-panel select,
+.jv-editor-settings-panel textarea{
+  width:100%;max-width:100%;min-height:42px!important;
+  padding:11px 13px!important;border:1px solid rgba(158,181,220,.22)!important;
+  border-radius:10px!important;background:#0a1221!important;color:#f5f7ff!important;
+  font:500 .88rem/1.5 var(--jv-font-body)!important;
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.16)!important;
+}
+.controls-panel input:focus,.controls-panel select:focus,.controls-panel textarea:focus,
+.jv-editor-settings-panel input:focus{
+  outline:0!important;border-color:var(--jv-ui-cyan)!important;
+  box-shadow:0 0 0 3px rgba(53,228,232,.12)!important;
+}
+.controls-panel input[type=range],.jv-editor-control-group input[type=range]{accent-color:var(--jv-ui-cyan)!important}
+.controls-panel input[type=color]{border:1px solid var(--jv-ui-border)!important;border-radius:9px!important;background:#0a1221!important}
+.style-option,.jv-editor-control-group .style-option{
+  border-color:var(--jv-ui-border)!important;background:#101b2e!important;color:#bdc9dc!important;
+  border-radius:10px!important;padding:10px!important;font-size:.75rem!important;
+}
+.style-option.selected,.style-option[aria-pressed=true]{
+  border-color:rgba(53,228,232,.55)!important;background:rgba(53,228,232,.12)!important;color:#6ff5f2!important;
+}
+
+/* Account settings: clear information hierarchy and separate account, plan and security actions. */
+.jv-editor-settings-panel{
+  display:grid!important;gap:14px!important;padding:20px!important;
+  border:1px solid var(--jv-ui-border)!important;border-radius:18px!important;
+  background:
+    radial-gradient(ellipse at 100% 0%,rgba(111,79,207,.13),transparent 38%),
+    linear-gradient(145deg,#111c30,#0b1322)!important;
+  color:#f6f8ff!important;box-shadow:0 20px 50px rgba(0,0,0,.24)!important;
+}
+.jv-editor-settings-panel>h4{
+  margin:0!important;color:#fff!important;font-family:var(--jv-font-display)!important;
+  font-size:1.25rem!important;font-weight:750!important;letter-spacing:-.04em!important;
+}
+.jv-editor-settings-panel>.jv-settings-intro{
+  margin:-7px 0 3px!important;color:#aebbd0!important;font-size:.86rem!important;line-height:1.65!important;
+}
+.jv-settings-card{
+  display:flex!important;flex-direction:column!important;gap:10px!important;
+  min-width:0!important;padding:17px!important;margin:0!important;
+  border:1px solid var(--jv-ui-border)!important;border-radius:15px!important;
+  background:linear-gradient(145deg,rgba(27,40,64,.94),rgba(16,25,43,.98))!important;
+  color:#f5f7ff!important;box-shadow:0 12px 32px rgba(0,0,0,.16)!important;
+}
+.jv-settings-card h5{
+  margin:0!important;padding-bottom:10px!important;border-bottom:1px solid var(--jv-ui-border)!important;
+  color:#fff!important;font-family:var(--jv-font-display)!important;
+  font-size:.98rem!important;font-weight:700!important;letter-spacing:-.025em!important;
+}
+.jv-settings-hint{margin:0!important;color:#aebbd0!important;font-size:.82rem!important;line-height:1.65!important}
+.jv-account-summary{
+  display:grid!important;gap:0!important;padding:5px 14px!important;margin:0!important;
+  border:1px solid var(--jv-ui-border)!important;border-radius:12px!important;
+  background:rgba(4,10,20,.42)!important;color:#f4f7ff!important;
+}
+.jv-account-summary-row{
+  display:grid!important;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr)!important;
+  align-items:center!important;gap:12px!important;padding:11px 0!important;
+  border-bottom:1px solid rgba(166,185,224,.10)!important;
+}
+.jv-account-summary-row:last-child{border-bottom:0!important}
+.jv-account-summary-label{font-size:.75rem!important;font-weight:600!important}
+.jv-account-summary-value{
+  min-width:0!important;color:#f7f8ff!important;font-size:.8rem!important;
+  font-weight:650!important;text-align:right!important;overflow-wrap:anywhere!important;
+  font-variant-numeric:tabular-nums;
+}
+.jv-settings-message{
+  min-height:18px!important;margin:0!important;color:var(--jv-ui-cyan)!important;
+  font-size:.8rem!important;line-height:1.55!important;
+}
+#jv-settings-plans{
+  background:rgba(53,228,232,.08)!important;color:#69f0ed!important;
+  border:1px solid rgba(53,228,232,.28)!important;box-shadow:none!important;
+}
+#jv-settings-plans:hover{background:rgba(53,228,232,.16)!important;border-color:var(--jv-ui-cyan)!important}
+#jv-request-password-reset{
+  background:linear-gradient(105deg,#7050ef,#a65be9 62%,#d56fc5)!important;color:#fff!important;
+}
+#jv-request-password-reset:hover{background:linear-gradient(105deg,#25cbd6,#8060f1)!important}
+.jv-settings-card button:disabled{opacity:.6!important;cursor:wait!important}
+
+/* Light mode remains legible without changing the dark navigation and editor sidebar identity. */
+html[data-theme="light"] body{
+  background:radial-gradient(ellipse at 80% 0%,rgba(126,92,221,.10),transparent 34%),#f4f6fb!important;
+  color:#202b40!important;
+}
+html[data-theme="light"] .jv-editor-panel-nav,
+html[data-theme="light"] .studio-tabs{
+  background:linear-gradient(135deg,#fff,#f1f4fb)!important;border-color:#dce3ef!important;
+}
+html[data-theme="light"] .jv-editor-panel-tab{color:#5a6780!important}
+html[data-theme="light"] .jv-editor-panel-tab.is-active,
+html[data-theme="light"] .studio-tab.active{color:#fff!important}
+html[data-theme="light"] .jv-editor-control-group{
+  background:linear-gradient(150deg,#fff,#f4f6fc)!important;border-color:#dfe5ef!important;
+  box-shadow:0 12px 30px rgba(34,53,85,.06)!important;
+}
+html[data-theme="light"] .jv-editor-group-title{color:#202b40!important;border-color:#e1e7f0!important}
+html[data-theme="light"] .controls-panel details,
+html[data-theme="light"] .jv-editor-control-group details{
+  background:#fff!important;color:#25324a!important;border-color:#e0e6f0!important;
+}
+html[data-theme="light"] .controls-panel details summary{color:#25324a!important}
+html[data-theme="light"] .controls-panel .field-label,
+html[data-theme="light"] .jv-editor-control-group .field-label{color:#4c5a72!important}
+html[data-theme="light"] .controls-panel input:not([type=color]):not([type=checkbox]):not([type=radio]),
+html[data-theme="light"] .controls-panel select,
+html[data-theme="light"] .controls-panel textarea{
+  background:#fff!important;color:#25324a!important;border-color:#dce3ed!important;
+}
+html[data-theme="light"] .jv-editor-settings-panel{
+  background:radial-gradient(ellipse at 100% 0%,rgba(111,79,207,.08),transparent 38%),linear-gradient(145deg,#fff,#f3f6fc)!important;
+  color:#25324a!important;border-color:#dce3ed!important;
+}
+html[data-theme="light"] .jv-editor-settings-panel>h4,
+html[data-theme="light"] .jv-settings-card h5{color:#202b40!important}
+html[data-theme="light"] .jv-editor-settings-panel>.jv-settings-intro,
+html[data-theme="light"] .jv-settings-hint{color:#65738b!important}
+html[data-theme="light"] .jv-settings-card{
+  background:linear-gradient(145deg,#fff,#f4f6fb)!important;color:#25324a!important;
+  border-color:#dce3ed!important;box-shadow:0 10px 28px rgba(34,53,85,.06)!important;
+}
+html[data-theme="light"] .jv-account-summary{
+  background:#f8faff!important;color:#25324a!important;border-color:#e0e6f0!important;
+}
+html[data-theme="light"] .jv-account-summary-row{border-color:#e6ebf3!important}
+html[data-theme="light"] .jv-account-summary-value{color:#25324a!important}
+html[data-theme="light"] .jv-settings-message{color:#087f8b!important}
+html[data-theme="light"] .style-option{background:#fff!important;color:#526079!important;border-color:#dce3ed!important}
+html[data-theme="light"] .style-option.selected{background:#e7fbfc!important;color:#087f8b!important;border-color:#27bfc8!important}
+@media(max-width:700px){
+  .jv-editor-panel-nav{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important}
+  .jv-editor-panel-tab{min-width:0!important;padding:10px 6px!important;font-size:.72rem!important}
+  .jv-editor-control-group,.jv-editor-settings-panel{padding:13px!important}
+  .jv-settings-card{padding:13px!important}
+  .jv-account-summary-row{grid-template-columns:1fr!important;gap:4px!important}
+  .jv-account-summary-value{text-align:left!important}
+}

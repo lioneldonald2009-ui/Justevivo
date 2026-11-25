@@ -43,6 +43,7 @@
   const setBusy = (busy, message) => {
     panel.querySelectorAll("button,.jv-sm-file").forEach(el => { if (el.tagName === "BUTTON") el.disabled = busy || (el.dataset.requiresCues === "true" && !cues.length); });
     if (message) status(message);
+    if (!busy) refresh();
   };
   function refresh() {
     $("jvSubtitleList").replaceChildren();

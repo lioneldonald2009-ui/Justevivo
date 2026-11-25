@@ -1,0 +1,256 @@
+/* JUSTEVIVO — premium visual layer inspired by the supplied Digimax reference.
+   Presentation-only: no selectors alter editor state, controls, media, or application logic. */
+:root{
+  --jv-premium-bg:#0c0614;
+  --jv-premium-bg-2:#12091d;
+  --jv-premium-surface:#1b1128;
+  --jv-premium-surface-2:#241632;
+  --jv-premium-surface-3:#2d1b3c;
+  --jv-premium-text:#faf6ff;
+  --jv-premium-muted:#b7a9c5;
+  --jv-premium-line:rgba(221,181,255,.15);
+  --jv-premium-purple:#bd65f4;
+  --jv-premium-pink:#f184b8;
+  --jv-premium-gold:#f0c98b;
+  --jv-premium-gradient:linear-gradient(105deg,#a85cf0 0%,#d36ce2 52%,#f28bb4 100%);
+  --jv-premium-shadow:0 22px 70px rgba(0,0,0,.34);
+}
+html{scroll-behavior:smooth}
+body{
+  background:
+    radial-gradient(ellipse at 50% -12%,rgba(152,65,201,.22),transparent 34%),
+    radial-gradient(ellipse at 4% 42%,rgba(94,38,135,.12),transparent 35%),
+    var(--jv-premium-bg)!important;
+  color:var(--jv-premium-text)!important;
+  font-family:"DM Sans",Inter,system-ui,sans-serif!important;
+}
+body,body *{min-width:0}
+h1,h2,h3,h4,h5,p,a,button,label,small,strong,span{
+  overflow-wrap:break-word;
+}
+h1,h2,h3{line-height:1.16!important;text-wrap:balance}
+p{line-height:1.65}
+a,button{ -webkit-tap-highlight-color:transparent }
+button,.button,.top-cta,.jv-sidebar-new,.side-link{
+  transition:background .2s ease,color .2s ease,border-color .2s ease,box-shadow .2s ease,transform .2s ease!important;
+}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+  outline:2px solid var(--jv-premium-gold)!important;outline-offset:3px!important;
+}
+/* Header and public navigation */
+.topbar{
+  background:rgba(12,6,20,.88)!important;color:var(--jv-premium-text)!important;
+  border-bottom:1px solid var(--jv-premium-line)!important;
+  box-shadow:0 10px 35px rgba(0,0,0,.22)!important;
+  backdrop-filter:blur(20px)!important;
+}
+.topbar nav{align-items:center;flex-wrap:wrap}
+.topbar nav a,.topbar .brand,.topbar .brand span{color:#f7efff!important}
+.topbar nav a:hover{color:var(--jv-premium-gold)!important}
+.brand-mark{background:var(--jv-premium-gradient)!important;box-shadow:0 5px 24px rgba(190,101,244,.3)!important}
+.top-cta,.button.primary,.jv-sidebar-new{
+  background:var(--jv-premium-gradient)!important;color:#fff!important;border:1px solid transparent!important;
+  box-shadow:0 8px 26px rgba(189,101,244,.2)!important;font-weight:800!important;
+}
+.top-cta:hover,.button.primary:hover,.jv-sidebar-new:hover{
+  background:linear-gradient(105deg,#c47aff,#e57acb 55%,#ffc09a)!important;
+  color:#fff!important;box-shadow:0 10px 32px rgba(214,110,224,.38)!important;transform:translateY(-2px);
+}
+.button.ghost,.button:not(.primary),.topbar .theme-toggle{
+  background:rgba(255,255,255,.045)!important;color:#f6edff!important;border:1px solid var(--jv-premium-line)!important;
+}
+.button.ghost:hover,.button:not(.primary):hover{
+  border-color:rgba(240,201,139,.7)!important;color:var(--jv-premium-gold)!important;
+  background:rgba(240,201,139,.08)!important;
+}
+/* Public landing page */
+.hero,.marketing-showcase,.marketing-features,.marketing-usecases,.marketing-faq,
+.how-section,.plans-section,.studio-section{
+  background-color:transparent!important;color:var(--jv-premium-text)!important;
+}
+.hero{
+  background:
+    radial-gradient(ellipse at 72% 18%,rgba(177,76,225,.18),transparent 42%),
+    radial-gradient(ellipse at 16% 90%,rgba(109,48,160,.13),transparent 36%)!important;
+}
+.eyebrow,.marketing-kicker,.panel-label,.jv-sidebar-label{
+  color:#e6a5ee!important;letter-spacing:.14em!important;
+}
+.hero h1,.section-heading h2,.marketing-heading h2,.plans-heading h2,.how-section h2,
+.workspace-head h3,.workspace-page-heading h3,.workspace-page-title{
+  color:var(--jv-premium-text)!important;
+}
+.hero h1 span,.section-heading h2 span,.marketing-heading h2 span,.plans-heading h2 span,
+.how-section h2 span{
+  background:var(--jv-premium-gradient)!important;-webkit-background-clip:text!important;
+  background-clip:text!important;-webkit-text-fill-color:transparent!important;
+}
+.hero-copy>p,.hero-proof,.marketing-heading>p,.section-heading>p,.plans-heading>p,
+.how-section>p,.workspace-head p,.workspace-page-heading p,.workspace-page-intro{
+  color:var(--jv-premium-muted)!important;
+}
+.feature-strip,.showcase-card,.marketing-feature-grid>article,.usecase-grid>article,
+.steps>article,.faq-list details,.plan-card,.jv-promo-card{
+  background:linear-gradient(145deg,rgba(48,31,64,.88),rgba(25,15,37,.96))!important;
+  color:var(--jv-premium-text)!important;border:1px solid var(--jv-premium-line)!important;
+  border-radius:16px!important;box-shadow:var(--jv-premium-shadow)!important;
+}
+.showcase-card:hover,.marketing-feature-grid>article:hover,.usecase-grid>article:hover,
+.steps>article:hover,.plan-card:hover{
+  border-color:rgba(219,145,239,.48)!important;transform:translateY(-3px);
+}
+.showcase-card h3,.marketing-feature-grid h3,.usecase-grid h3,.steps h3,
+.plan-card h3,.plan-card .plan,.faq-list summary{color:#fff5ff!important}
+.showcase-card p,.marketing-feature-grid p,.usecase-grid p,.steps p,
+.plan-description,.plan-card li,.plans-note,.faq-list p{color:var(--jv-premium-muted)!important}
+.plan-card.featured-plan{border-color:rgba(222,133,232,.7)!important;box-shadow:0 0 0 1px rgba(222,133,232,.15),var(--jv-premium-shadow)!important}
+.popular-tag{background:var(--jv-premium-gradient)!important;color:#fff!important;border-radius:999px!important}
+.plan-price{color:#fff!important}.plan-price small{color:var(--jv-premium-muted)!important}
+.plan-button{background:var(--jv-premium-gradient)!important;color:#fff!important;border:0!important}
+.faq-list details{margin-bottom:10px;padding:16px 18px!important}
+.faq-list summary{cursor:pointer;line-height:1.5!important}
+.faq-list summary:hover{color:var(--jv-premium-gold)!important}
+.site-footer{background:#090411!important;color:var(--jv-premium-muted)!important;border-top:1px solid var(--jv-premium-line)!important}
+.site-footer a:hover{color:var(--jv-premium-gold)!important}
+/* Studio workspace — keep the existing editor geometry and controls intact */
+.studio-section{background:transparent!important}
+.studio{
+  background:var(--jv-premium-bg-2)!important;border:1px solid var(--jv-premium-line)!important;
+  border-radius:20px!important;box-shadow:var(--jv-premium-shadow)!important;overflow:hidden;
+}
+.studio>.jv-sidebar,.studio>.sidebar,.jv-sidebar{
+  background:linear-gradient(180deg,#160b22 0%,#100818 100%)!important;
+  border-right:1px solid var(--jv-premium-line)!important;color:var(--jv-premium-text)!important;
+}
+.mini-brand{color:#fff4ff!important}
+.mini-brand b{color:#e7a1ef!important}
+.mini-brand small,.mini-brand em,.side-bottom{color:#a995b7!important}
+.jv-sidebar-label{color:#b987d0!important}
+.side-link{color:#c0b2ce!important;border:1px solid transparent!important;border-radius:10px!important}
+.side-link:hover{background:rgba(214,130,235,.09)!important;color:#fff!important;border-color:rgba(214,130,235,.18)!important}
+.side-link.active{background:linear-gradient(100deg,rgba(177,92,229,.24),rgba(238,133,188,.10))!important;color:#fff!important;border-color:rgba(215,139,239,.34)!important}
+.workspace{
+  background:
+    radial-gradient(ellipse at 72% 0%,rgba(147,70,189,.09),transparent 35%),
+    #100a19!important;color:var(--jv-premium-text)!important;
+}
+.workspace-head h3{color:#fff4ff!important}
+.workspace-head p{color:var(--jv-premium-muted)!important}
+.status{background:rgba(88,211,164,.08)!important;border:1px solid rgba(88,211,164,.3)!important;color:#85e7c2!important}
+.upload-zone{
+  background:linear-gradient(145deg,rgba(43,27,59,.9),rgba(25,16,37,.95))!important;
+  border:1px dashed rgba(211,139,235,.5)!important;border-radius:16px!important;color:#fff4ff!important;
+}
+.upload-zone:hover{background:linear-gradient(145deg,rgba(64,36,82,.96),rgba(33,19,47,.98))!important;border-color:#e6a5ee!important}
+.upload-zone strong{color:#fff5ff!important}.upload-zone span,.upload-zone small{color:#b9a9c8!important}
+.upload-icon,.preview-play{background:var(--jv-premium-gradient)!important;color:white!important;box-shadow:0 8px 25px rgba(189,101,244,.25)!important}
+.preview-panel,.controls-panel,.jv-editor-settings-panel,.jv-settings-card,.jv-projects-panel,
+.jv-project-card,.dashboard-card,.dashboard-recent,.saved-project-card,.jv-account-card,
+.jv-feature-card,.jv-production-card{
+  background:linear-gradient(145deg,#21152e,#171020)!important;color:var(--jv-premium-text)!important;
+  border:1px solid var(--jv-premium-line)!important;border-radius:16px!important;
+  box-shadow:0 12px 38px rgba(0,0,0,.22)!important;
+}
+.panel-label,.field-label{color:#d9b6e4!important}
+.preview-frame{background:#050309!important;border:1px solid rgba(221,181,255,.13)!important;border-radius:12px!important}
+.preview-caption{color:#fff!important}
+.preview-note,.demo-warning,.dashboard-muted,.dashboard-kicker,.jv-settings-intro,.jv-settings-hint{color:#b7a9c5!important}
+.controls-panel textarea,.controls-panel input:not([type=color]),.controls-panel select,
+.controls-panel input[type=text],.controls-panel input[type=number],
+.workspace input:not([type=color]),.workspace select,.workspace textarea,
+.jv-settings-card input,.jv-settings-card select,.jv-settings-card textarea{
+  background:#110b1b!important;color:#fbf6ff!important;border:1px solid rgba(221,181,255,.2)!important;
+  border-radius:10px!important;
+}
+.controls-panel textarea:focus,.controls-panel select:focus,.controls-panel input:focus,
+.workspace input:focus,.workspace select:focus,.workspace textarea:focus{
+  border-color:#c77cf0!important;box-shadow:0 0 0 3px rgba(199,124,240,.15)!important;
+}
+.style-option{background:#241832!important;border:1px solid var(--jv-premium-line)!important;color:#c9b9d3!important;border-radius:10px!important}
+.style-option.selected{background:rgba(183,101,234,.2)!important;border-color:#d28be9!important;color:#fff!important}
+#subtitleLanguagePanel{background:#1b1128!important;border:1px solid var(--jv-premium-line)!important;color:#f8efff!important}
+#subtitleLanguagePanel small{color:#b7a9c5!important}
+.dashboard-card h3,.dashboard-card h4,.dashboard-recent h3,.saved-project-card h4,
+.jv-settings-card h5,.workspace-page-heading h3,.workspace-page-title,.dashboard-section-title,
+.dashboard-value{color:#fff4ff!important}
+.dashboard-progress{background:#342440!important}
+.dashboard-progress-fill{background:var(--jv-premium-gradient)!important}
+.jv-account-bar{background:#241832!important;color:#fff!important}
+.toast{box-shadow:0 12px 40px rgba(0,0,0,.35)!important}
+/* Montages and timeline panels */
+.preview-wrap,.timeline-panel{background:#130b1e!important;border-color:var(--jv-premium-line)!important;color:#f8efff!important}
+.preview-overlay{background:linear-gradient(0deg,rgba(10,4,16,.8),transparent)!important}
+/* Responsive safety: wrapping instead of clipping or overlapping */
+.topbar nav a,.top-cta,.button,.jv-sidebar-new,.side-link,.status{max-width:100%;white-space:normal}
+.topbar nav{row-gap:8px}
+.workspace-head,.workspace-head-actions{min-width:0;flex-wrap:wrap}
+.editor-grid>*{min-width:0}
+.preview-panel,.controls-panel,.plan-card,.dashboard-card,.dashboard-recent{min-width:0}
+.hero h1,.section-heading h2,.marketing-heading h2,.plans-heading h2,.how-section h2,
+.workspace-head h3,.plan-price{overflow-wrap:anywhere;word-break:normal}
+@media(max-width:760px){
+  .hero h1{letter-spacing:-1.5px!important}
+  .plan-card,.showcase-card,.marketing-feature-grid>article,.usecase-grid>article{min-width:0}
+  .workspace-head{align-items:flex-start;gap:10px}
+  .workspace-head-actions{max-width:100%}
+}
+/* Optional light theme remains available; the first visit still opens in dark mode. */
+html[data-theme="light"] body{
+  background:radial-gradient(ellipse at 50% -12%,rgba(195,137,232,.16),transparent 35%),#f7f3fa!important;
+  color:#24172e!important;
+}
+html[data-theme="light"] .topbar{background:rgba(255,251,255,.9)!important;border-color:rgba(82,48,100,.12)!important}
+html[data-theme="light"] .topbar nav a,html[data-theme="light"] .topbar .brand,
+html[data-theme="light"] .topbar .brand span{color:#281a34!important}
+html[data-theme="light"] .hero,html[data-theme="light"] .marketing-showcase,
+html[data-theme="light"] .marketing-features,html[data-theme="light"] .marketing-usecases,
+html[data-theme="light"] .marketing-faq,html[data-theme="light"] .how-section,
+html[data-theme="light"] .plans-section,html[data-theme="light"] .studio-section{color:#24172e!important}
+html[data-theme="light"] .hero h1,html[data-theme="light"] .section-heading h2,
+html[data-theme="light"] .marketing-heading h2,html[data-theme="light"] .plans-heading h2,
+html[data-theme="light"] .how-section h2{color:#281a34!important}
+html[data-theme="light"] .hero-copy>p,html[data-theme="light"] .hero-proof,
+html[data-theme="light"] .marketing-heading>p,html[data-theme="light"] .section-heading>p,
+html[data-theme="light"] .plans-heading>p,html[data-theme="light"] .how-section>p{color:#685a70!important}
+html[data-theme="light"] .feature-strip,html[data-theme="light"] .showcase-card,
+html[data-theme="light"] .marketing-feature-grid>article,html[data-theme="light"] .usecase-grid>article,
+html[data-theme="light"] .steps>article,html[data-theme="light"] .faq-list details,
+html[data-theme="light"] .plan-card{
+  background:linear-gradient(145deg,#fffaff,#f4edf8)!important;color:#2b1c36!important;
+  border-color:rgba(119,76,139,.16)!important;box-shadow:0 15px 40px rgba(48,24,63,.08)!important;
+}
+html[data-theme="light"] .showcase-card h3,html[data-theme="light"] .marketing-feature-grid h3,
+html[data-theme="light"] .usecase-grid h3,html[data-theme="light"] .steps h3,
+html[data-theme="light"] .plan-card .plan,html[data-theme="light"] .faq-list summary{color:#2b1c36!important}
+html[data-theme="light"] .showcase-card p,html[data-theme="light"] .marketing-feature-grid p,
+html[data-theme="light"] .usecase-grid p,html[data-theme="light"] .steps p,
+html[data-theme="light"] .plan-description,html[data-theme="light"] .plan-card li,
+html[data-theme="light"] .plans-note,html[data-theme="light"] .faq-list p{color:#70627a!important}
+html[data-theme="light"] .studio{background:#f6eff9!important;border-color:rgba(119,76,139,.2)!important}
+html[data-theme="light"] .studio>.jv-sidebar,html[data-theme="light"] .studio>.sidebar,
+html[data-theme="light"] .jv-sidebar{background:linear-gradient(180deg,#281735,#1a1025)!important;color:#fff!important}
+html[data-theme="light"] .workspace{background:#fbf8fd!important;color:#2b1c36!important}
+html[data-theme="light"] .workspace-head h3,html[data-theme="light"] .dashboard-card h3,
+html[data-theme="light"] .dashboard-card h4,html[data-theme="light"] .workspace-page-heading h3,
+html[data-theme="light"] .workspace-page-title,html[data-theme="light"] .dashboard-section-title,
+html[data-theme="light"] .dashboard-value{color:#2b1c36!important}
+html[data-theme="light"] .workspace-head p,html[data-theme="light"] .preview-note,
+html[data-theme="light"] .demo-warning{color:#766780!important}
+html[data-theme="light"] .preview-panel,html[data-theme="light"] .controls-panel,
+html[data-theme="light"] .jv-editor-settings-panel,html[data-theme="light"] .jv-settings-card,
+html[data-theme="light"] .jv-projects-panel,html[data-theme="light"] .jv-project-card,
+html[data-theme="light"] .dashboard-card,html[data-theme="light"] .dashboard-recent,
+html[data-theme="light"] .saved-project-card,html[data-theme="light"] .jv-account-card,
+html[data-theme="light"] .jv-feature-card,html[data-theme="light"] .jv-production-card{
+  background:#fffaff!important;color:#2b1c36!important;border-color:rgba(119,76,139,.17)!important;
+}
+html[data-theme="light"] .panel-label,html[data-theme="light"] .field-label{color:#67536f!important}
+html[data-theme="light"] .controls-panel textarea,html[data-theme="light"] .controls-panel input:not([type=color]),
+html[data-theme="light"] .controls-panel select,html[data-theme="light"] .workspace input:not([type=color]),
+html[data-theme="light"] .workspace select,html[data-theme="light"] .workspace textarea{
+  background:#fff!important;color:#2b1c36!important;border-color:#e2d6e9!important;
+}
+html[data-theme="light"] #subtitleLanguagePanel{background:#f4eafa!important;color:#382342!important}
+html[data-theme="light"] #subtitleLanguagePanel small{color:#766780!important}
+html[data-theme="light"] .faq-list summary:hover{color:#9b55c5!important}
+html[data-theme="light"] .site-footer{background:#160d20!important;color:#cdbdd5!important}
